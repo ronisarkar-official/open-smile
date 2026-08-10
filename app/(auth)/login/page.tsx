@@ -1,0 +1,211 @@
+"use client";
+
+import { useState } from "react";
+import { signIn } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
+import { GitHubIcon, GoogleIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      // 1. Check user credentials before sending OTP
+      const checkRes = await fetch("/api/auth/check-credentials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const checkData = await checkRes.json();
+
+      if (!checkRes.ok) {
+        throw new Error(checkData.error || "Invalid email or password");
+      }
+
+      // 2. Send OTP code to the provided email
+      const otpRes = await fetch("/api/auth/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const otpData = await otpRes.json();
+
+      if (!otpRes.ok) {
+        throw new Error(otpData.error || "Failed to send verification OTP");
+      }
+
+      // 3. Store pending login details in sessionStorage
+      sessionStorage.setItem(
+        "pending_login",
+        JSON.stringify({ email, password })
+      );
+
+      // 4. Redirect user to verify-otp page
+      router.push(`/verify-otp?email=${encodeURIComponent(email)}&flow=login`);
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Something went wrong. Please try again.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="space-y-2">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          Welcome back
+        </h2>
+        <p className="text-muted-foreground text-sm">
+          Sign in to your account to continue
+        </p>
+      </div>
+
+      {/* Social login */}
+      <div className="grid grid-cols-2 gap-4">
+        <Button
+          variant="outline"
+          className="w-full h-9 gap-2.5 text-sm font-medium"
+          onClick={() => signIn.social({ provider: "github", callbackURL: "/dashboard" })}
+        >
+          <GitHubIcon className="size-4" />
+          GitHub
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full h-9 gap-2.5 text-sm font-medium"
+          onClick={() => signIn.social({ provider: "google", callbackURL: "/dashboard" })}
+        >
+          <GoogleIcon className="size-4" />
+          Google
+        </Button>
+      </div>
+
+      {/* Divider */}
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <span className="w-full border-t" />
+        </div>
+        <div className="relative flex justify-center text-xs uppercase">
+          <span className="bg-background px-3 text-muted-foreground">
+            or continue with email
+          </span>
+        </div>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {error && (
+          <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive flex flex-col gap-1">
+            <p>{error}</p>
+            {(error.toLowerCase().includes("sign up") ||
+              error.toLowerCase().includes("no account")) && (
+              <Link
+                href="/signup"
+                className="text-xs font-semibold underline hover:text-destructive/80 mt-0.5 inline-block"
+              >
+                Click here to create an account &rarr;
+              </Link>
+            )}
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <div className="relative">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              className="h-9 pl-10"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">Password</Label>
+            <Link
+              href="/forgot-password"
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              className="h-9 pl-10 pr-10"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={8}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="size-4" />
+              ) : (
+                <Eye className="size-4" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full h-9 text-sm font-medium"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 size-4 animate-spin" />
+              Signing in…
+            </>
+          ) : (
+            "Sign in"
+          )}
+        </Button>
+      </form>
+
+      {/* Footer */}
+      <p className="text-center text-sm text-muted-foreground">
+        Don&apos;t have an account?{" "}
+        <Link
+          href="/signup"
+          className="font-medium text-foreground underline-offset-4 hover:underline"
+        >
+          Sign up
+        </Link>
+      </p>
+    </div>
+  );
+}
