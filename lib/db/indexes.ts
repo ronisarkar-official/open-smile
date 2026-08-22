@@ -1,42 +1,52 @@
-import { getDb } from "./client";
+import { getPool } from "./client";
 
 const globalForIndexes = globalThis as typeof globalThis & {
 	__indexesPromise?: Promise<void>;
 };
 
 /**
- * ── Idempotent Index Bootstrapping ────────────────────────
+ * ── Idempotent Schema Bootstrapping ───────────────────────
  *
- * Ensures the TTL + lookup indexes this app relies on exist.
+ * Ensures the custom app tables and indexes exist.
  * Safe to call from any route; runs exactly once per process.
- * TTL indexes auto-delete expired OTP / rate-limit records.
+ * Also cleans up expired OTP / rate-limit records on each run.
  */
 export function ensureIndexes(): Promise<void> {
 	const g = globalForIndexes;
 	if (!g.__indexesPromise) {
 		g.__indexesPromise = (async () => {
 			try {
-				const db = getDb();
-				await Promise.all([
-					db.collection("otpCodes").createIndex({ email: 1 }, { unique: true }),
-					db.collection("otpCodes").createIndex(
-						{ expiresAt: 1 },
-						{ expireAfterSeconds: 0 }
-					),
-					db.collection("rateLimits").createIndex(
-						{ expiresAt: 1 },
-						{ expireAfterSeconds: 0 }
-					),
-					db.collection("betaWaitlist").createIndex(
-						{ email: 1 },
-						{ unique: true }
-					),
-				]);
-				console.log("✓ MongoDB indexes ensured");
+				const pool = getPool();
+				await pool.query(`
+					CREATE TABLE IF NOT EXISTS otp_codes (
+						email TEXT PRIMARY KEY,
+						otp_hash TEXT NOT NULL,
+						attempts INTEGER NOT NULL DEFAULT 0,
+						created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+						expires_at TIMESTAMPTZ NOT NULL
+					);
+
+					CREATE TABLE IF NOT EXISTS rate_limits (
+						id TEXT PRIMARY KEY,
+						count INTEGER NOT NULL DEFAULT 0,
+						window_start BIGINT NOT NULL,
+						expires_at TIMESTAMPTZ NOT NULL
+					);
+
+					CREATE TABLE IF NOT EXISTS beta_waitlist (
+						email TEXT PRIMARY KEY,
+						created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+					);
+
+					-- Cleanup expired records (replaces MongoDB TTL indexes)
+					DELETE FROM otp_codes WHERE expires_at <= NOW();
+					DELETE FROM rate_limits WHERE expires_at <= NOW();
+				`);
+				console.log("✓ PostgreSQL tables ensured");
 			} catch (err) {
-				// Non-fatal: indexes are an optimization. If creation fails
-				// (e.g. duplicates already exist), the app still works.
-				console.error("✗ MongoDB index creation failed:", err);
+				// Non-fatal: if table creation fails (e.g. already exist
+				// with different schema), the app may still work.
+				console.error("✗ PostgreSQL table setup failed:", err);
 			}
 		})();
 	}

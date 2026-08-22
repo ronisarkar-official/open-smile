@@ -1,94 +1,146 @@
-import { getDb } from "./client";
-import type { Document } from "mongodb";
+import { getPool } from "./client";
 
 /**
- * ── Typed Collection Accessors ───────────────────────────
+ * ── Typed Query Helpers ──────────────────────────────────
  *
- * Centralises collection-name strings so they are defined in
- * one place and discoverable via auto-complete.
+ * Centralises table names and provides typed query helpers
+ * so they are defined in one place and discoverable via
+ * auto-complete.
  *
  * @example
  * ```ts
- * import { usersCollection } from "@/lib/db";
- * const user = await usersCollection().findOne({ email });
+ * import { findUserByEmail } from "@/lib/db";
+ * const user = await findUserByEmail("user@example.com");
  * ```
  */
 
-/* ── Better Auth core collections ── */
-export function usersCollection() {
-	return getDb().collection("user");
+/* ── Better Auth core table helpers ── */
+
+export async function findUserByEmail(email: string) {
+	const { rows } = await getPool().query(
+		'SELECT * FROM "user" WHERE LOWER(email) = LOWER($1) LIMIT 1',
+		[email]
+	);
+	return rows[0] ?? null;
 }
 
-export function sessionsCollection() {
-	return getDb().collection("session");
-}
-
-export function accountsCollection() {
-	return getDb().collection("account");
-}
-
-export function verificationsCollection() {
-	return getDb().collection("verification");
-}
-
-/* ── Better Auth plugin collections ── */
-export function twoFactorsCollection() {
-	return getDb().collection("twoFactors");
-}
-
-export function organizationsCollection() {
-	return getDb().collection("organizations");
-}
-
-export function membersCollection() {
-	return getDb().collection("members");
-}
-
-export function invitationsCollection() {
-	return getDb().collection("invitations");
+export async function updateUserEmailVerified(email: string) {
+	await getPool().query(
+		'UPDATE "user" SET "emailVerified" = true WHERE LOWER(email) = LOWER($1)',
+		[email]
+	);
 }
 
 /* ── Beta waitlist ── */
 
-export interface BetaWaitlistDoc extends Document {
-	/** Normalized (lowercased, trimmed) email — unique per signup */
+export interface BetaWaitlistRow {
 	email: string;
-	createdAt: Date;
+	created_at: Date;
 }
 
-export function betaWaitlistCollection() {
-	return getDb().collection<BetaWaitlistDoc>("betaWaitlist");
+export async function findBetaWaitlistByEmail(email: string): Promise<BetaWaitlistRow | null> {
+	const { rows } = await getPool().query(
+		"SELECT * FROM beta_waitlist WHERE email = $1 LIMIT 1",
+		[email]
+	);
+	return rows[0] ?? null;
+}
+
+export async function insertBetaWaitlist(email: string) {
+	await getPool().query(
+		"INSERT INTO beta_waitlist (email, created_at) VALUES ($1, NOW()) ON CONFLICT (email) DO NOTHING",
+		[email]
+	);
 }
 
 /* ── OTP codes (email verification / login OTP) ── */
 
-export interface OtpCodeDoc extends Document {
-	/** Normalized (lowercased, trimmed) email — unique per user */
+export interface OtpCodeRow {
 	email: string;
-	/** SHA-256 of the OTP. Plaintext OTP is never persisted. */
-	otpHash: string;
-	/** Failed verification attempts for the current code */
+	otp_hash: string;
 	attempts: number;
-	createdAt: Date;
-	/** TTL index — the record is auto-deleted once expired */
-	expiresAt: Date;
+	created_at: Date;
+	expires_at: Date;
 }
 
-export function otpCodesCollection() {
-	return getDb().collection<OtpCodeDoc>("otpCodes");
+export async function upsertOtpCode(
+	email: string,
+	otpHash: string,
+	expiresAt: Date
+) {
+	await getPool().query(
+		`INSERT INTO otp_codes (email, otp_hash, attempts, created_at, expires_at)
+		 VALUES ($1, $2, 0, NOW(), $3)
+		 ON CONFLICT (email) DO UPDATE SET
+		   otp_hash = EXCLUDED.otp_hash,
+		   attempts = 0,
+		   created_at = NOW(),
+		   expires_at = EXCLUDED.expires_at`,
+		[email, otpHash, expiresAt]
+	);
 }
 
-/* ── Rate limiting (DB-backed, TTL-aware) ── */
+export async function findOtpCode(email: string): Promise<OtpCodeRow | null> {
+	const { rows } = await getPool().query(
+		"SELECT * FROM otp_codes WHERE email = $1 LIMIT 1",
+		[email]
+	);
+	return rows[0] ?? null;
+}
 
-export interface RateLimitDoc extends Document {
-	/** Semantic key, e.g. `otp-send:email:user@x.com` */
-	_id: string;
+export async function incrementOtpAttempts(email: string) {
+	await getPool().query(
+		"UPDATE otp_codes SET attempts = attempts + 1 WHERE email = $1",
+		[email]
+	);
+}
+
+export async function deleteOtpCode(email: string) {
+	await getPool().query("DELETE FROM otp_codes WHERE email = $1", [email]);
+}
+
+/* ── Rate limiting (DB-backed, with expiry) ── */
+
+export interface RateLimitRow {
+	id: string;
 	count: number;
-	windowStart: number;
-	/** TTL index — the record is auto-deleted once the window passes */
-	expiresAt: Date;
+	window_start: number;
+	expires_at: Date;
 }
 
-export function rateLimitsCollection() {
-	return getDb().collection<RateLimitDoc>("rateLimits");
+export async function upsertRateLimit(
+	key: string,
+	windowStart: number,
+	expiresAt: Date
+): Promise<RateLimitRow> {
+	const { rows } = await getPool().query(
+		`INSERT INTO rate_limits (id, count, window_start, expires_at)
+		 VALUES ($1, 1, $2, $3)
+		 ON CONFLICT (id) DO UPDATE SET
+		   count = rate_limits.count + 1
+		 RETURNING *`,
+		[key, windowStart, expiresAt]
+	);
+	return rows[0];
+}
+
+export async function resetRateLimit(
+	key: string,
+	windowStart: number,
+	expiresAt: Date
+) {
+	await getPool().query(
+		`UPDATE rate_limits SET count = 1, window_start = $2, expires_at = $3 WHERE id = $1`,
+		[key, windowStart, expiresAt]
+	);
+}
+
+/* ── Cleanup helpers (replaces MongoDB TTL indexes) ── */
+
+export async function cleanupExpiredOtpCodes() {
+	await getPool().query("DELETE FROM otp_codes WHERE expires_at <= NOW()");
+}
+
+export async function cleanupExpiredRateLimits() {
+	await getPool().query("DELETE FROM rate_limits WHERE expires_at <= NOW()");
 }

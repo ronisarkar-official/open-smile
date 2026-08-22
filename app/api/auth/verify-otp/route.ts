@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { verifyOTP } from "@/lib/otp";
-import { usersCollection } from "@/lib/db";
+import { updateUserEmailVerified } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 
 const WINDOW = 15 * 60 * 1000;
@@ -52,10 +52,7 @@ export async function POST(req: NextRequest) {
     // OTP verified === email verified. Update the Better Auth user row so
     // implicit account linking (GitHub/Google) on later logins is allowed.
     try {
-      await usersCollection().updateOne(
-        { email: normalizedEmail },
-        { $set: { emailVerified: true } }
-      );
+      await updateUserEmailVerified(normalizedEmail);
     } catch (err) {
       console.error("[verify-otp] Failed to mark email verified:", err);
     }

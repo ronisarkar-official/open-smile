@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { otpCodesCollection } from "@/lib/db";
+import { upsertOtpCode, findOtpCode, incrementOtpAttempts, deleteOtpCode } from "@/lib/db";
 import { ensureIndexes } from "@/lib/db/indexes";
 
 export const OTP_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -15,16 +15,16 @@ interface InMemoryOtpRecord {
 /**
  * ── OTP Storage ──────────────────────────────────────────
  *
- * **Production**: persisted in MongoDB (`otpCodes`) with:
+ * **Production**: persisted in PostgreSQL (`otp_codes`) with:
  *  - hashed value only (raw OTP never touches the disk)
  *  - per-user unique key so a new code invalidates the old one
- *  - a TTL index that auto-deletes expired codes
+ *  - expiry-based cleanup (checked on read + bootstrap)
  *  - an attempt counter that burns the code after N failures
  *
  * **Development fallback**: in-memory store (survives HMR via
- * `globalThis`). Only used when `MONGODB_DIRECT_URI` is unset.
+ * `globalThis`). Only used when `DATABASE_URL` is unset.
  */
-const isDbConfigured = () => Boolean(process.env.MONGODB_DIRECT_URI);
+const isDbConfigured = () => Boolean(process.env.DATABASE_URL);
 
 const globalAny = globalThis as typeof globalThis & { mockOTPs?: InMemoryOtpRecord[] };
 if (!globalAny.mockOTPs) {
@@ -54,17 +54,10 @@ export async function saveOTP(email: string, otp: string): Promise<void> {
   if (isDbConfigured()) {
     try {
       await ensureIndexes();
-      await otpCodesCollection().updateOne(
-        { email: normalizedEmail },
-        {
-          $set: {
-            otpHash,
-            attempts: 0,
-            createdAt: new Date(),
-            expiresAt: new Date(Date.now() + OTP_TTL_MS),
-          },
-        },
-        { upsert: true }
+      await upsertOtpCode(
+        normalizedEmail,
+        otpHash,
+        new Date(Date.now() + OTP_TTL_MS)
       );
       return;
     } catch (err) {
@@ -90,26 +83,25 @@ export async function verifyOTP(email: string, otp: string): Promise<boolean> {
   if (isDbConfigured()) {
     try {
       await ensureIndexes();
-      const col = otpCodesCollection();
-      const record = await col.findOne({ email: normalizedEmail });
+      const record = await findOtpCode(normalizedEmail);
       if (!record) return false;
 
-      const expired = record.expiresAt.getTime() <= Date.now();
+      const expired = new Date(record.expires_at).getTime() <= Date.now();
       const exhausted = record.attempts >= OTP_MAX_ATTEMPTS;
       if (expired || exhausted) {
-        await col.deleteOne({ email: normalizedEmail });
+        await deleteOtpCode(normalizedEmail);
         return false;
       }
 
-      if (!safeEqual(record.otpHash, otpHash)) {
-        await col.updateOne({ email: normalizedEmail }, { $inc: { attempts: 1 } });
+      if (!safeEqual(record.otp_hash, otpHash)) {
+        await incrementOtpAttempts(normalizedEmail);
         if (record.attempts + 1 >= OTP_MAX_ATTEMPTS) {
-          await col.deleteOne({ email: normalizedEmail });
+          await deleteOtpCode(normalizedEmail);
         }
         return false;
       }
 
-      await col.deleteOne({ email: normalizedEmail });
+      await deleteOtpCode(normalizedEmail);
       return true;
     } catch (err) {
       console.error("[otp] DB verify failed:", err);

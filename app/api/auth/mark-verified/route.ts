@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { usersCollection } from "@/lib/db";
+import { updateUserEmailVerified } from "@/lib/db";
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,11 +14,8 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    if (Boolean(process.env.MONGODB_DIRECT_URI)) {
-      await usersCollection().updateOne(
-        { email: normalizedEmail },
-        { $set: { emailVerified: true } }
-      );
+    if (Boolean(process.env.DATABASE_URL)) {
+      await updateUserEmailVerified(normalizedEmail);
     }
 
     return NextResponse.json({ success: true }, { status: 200 });

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPassword } from "better-auth/crypto";
-import { usersCollection } from "@/lib/db";
+import { findUserByEmail } from "@/lib/db";
 import { rateLimit } from "@/lib/rate-limit";
 
 const WINDOW = 15 * 60 * 1000;
@@ -51,9 +51,7 @@ export async function POST(req: NextRequest) {
     // Verify credentials against the stored scrypt hash — no session is
     // created here. `verifyPassword` matches Better Auth's default hash
     // format (`salt:key`).
-    const existingUser = await usersCollection().findOne({
-      email: { $regex: `^${escapeRegex(normalizedEmail)}$`, $options: "i" },
-    });
+    const existingUser = await findUserByEmail(normalizedEmail);
 
     if (!existingUser || typeof existingUser.password !== "string") {
       return invalidCredentials();
@@ -74,10 +72,6 @@ export async function POST(req: NextRequest) {
     console.error("Error in check-credentials route:", error);
     return invalidCredentials();
   }
-}
-
-function escapeRegex(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function invalidCredentials() {

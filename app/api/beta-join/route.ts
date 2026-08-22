@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { sendBetaWaitlistEmail } from "@/lib/mailer";
 import { rateLimit } from "@/lib/rate-limit";
-import { betaWaitlistCollection, ensureIndexes } from "@/lib/db";
+import { findBetaWaitlistByEmail, insertBetaWaitlist, ensureIndexes } from "@/lib/db";
 
 const WINDOW = 60 * 60 * 1000;
 const MAX_PER_EMAIL = 3;
@@ -19,7 +19,7 @@ function getClientIp(req: NextRequest): string {
  * POST /api/beta-join
  *
  * Public waitlist signup. Normalizes the email, rate-limits per email
- * and per IP, then persists a unique row in `betaWaitlist`. Re-joining
+ * and per IP, then persists a unique row in `beta_waitlist`. Re-joining
  * with the same address is idempotent (`alreadyJoined: true`).
  *
  * Body: { email: string }
@@ -49,22 +49,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (Boolean(process.env.MONGODB_DIRECT_URI)) {
+    if (Boolean(process.env.DATABASE_URL)) {
       try {
         await ensureIndexes();
-        const existing = await betaWaitlistCollection().findOne({
-          email: normalizedEmail,
-        });
+        const existing = await findBetaWaitlistByEmail(normalizedEmail);
         if (existing) {
           return NextResponse.json(
             { success: true, alreadyJoined: true },
             { status: 200 }
           );
         }
-        await betaWaitlistCollection().insertOne({
-          email: normalizedEmail,
-          createdAt: new Date(),
-        });
+        await insertBetaWaitlist(normalizedEmail);
       } catch (dbErr) {
         console.error("[beta-join] failed to persist signup:", dbErr);
         return NextResponse.json(

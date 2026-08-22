@@ -1,79 +1,99 @@
-import { MongoClient, Db } from "mongodb";
+import { Pool } from "pg";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 /**
- * ── MongoDB Client Singleton ─────────────────────────────
+ * ── PostgreSQL Pool Singleton ─────────────────────────────
  *
- * Provides a lazily-initialised, singleton MongoClient.
+ * Provides a lazily-initialised, singleton pg Pool.
  *
- * In **development** the client is cached on `globalThis` so
+ * In **development** the pool is cached on `globalThis` so
  * Next.js hot-module-reloads don't leak connections.
  *
  * In **production** a simple module-level variable is used.
  *
  * @example
  * ```ts
- * import { getDb } from "@/lib/db";
- * const users = await getDb().collection("users").find().toArray();
+ * import { getPool } from "@/lib/db";
+ * const { rows } = await getPool().query("SELECT * FROM \"user\" LIMIT 1");
  * ```
  */
 
-const MONGODB_URI = process.env.MONGODB_DIRECT_URI;
+const DATABASE_URL = process.env.DATABASE_URL;
 
 /* ---------- dev-safe global cache key ---------- */
-const globalForMongo = globalThis as typeof globalThis & {
-	_mongoClient?: MongoClient;
+const globalForPg = globalThis as typeof globalThis & {
+	_pgPool?: Pool;
+	_supabase?: SupabaseClient;
 };
 
-let _client: MongoClient | null = null;
+let _pool: Pool | null = null;
 
 /**
- * Return the singleton `MongoClient`.
- * Creates & connects it on first call.
+ * Return the singleton `Pool`.
+ * Creates it on first call.
  */
-export function getMongoClient(): MongoClient {
-	if (process.env.NODE_ENV === "development" && globalForMongo._mongoClient) {
-		return globalForMongo._mongoClient;
+export function getPool(): Pool {
+	if (process.env.NODE_ENV === "development" && globalForPg._pgPool) {
+		return globalForPg._pgPool;
 	}
 
-	if (_client) return _client;
+	if (_pool) return _pool;
 
-	if (!MONGODB_URI) {
+	if (!DATABASE_URL) {
 		throw new Error(
-			"MONGODB_DIRECT_URI is not set. " +
+			"DATABASE_URL is not set. " +
 				"Please add it to your .env.local file.\n" +
-				"Example: mongodb+srv://user:pass@cluster.mongodb.net/dbname"
+				"Example: postgresql://postgres.[ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres"
 		);
 	}
 
-	_client = new MongoClient(MONGODB_URI);
+	_pool = new Pool({ connectionString: DATABASE_URL });
 
 	if (process.env.NODE_ENV === "development") {
-		globalForMongo._mongoClient = _client;
+		globalForPg._pgPool = _pool;
 	}
 
-	return _client;
+	return _pool;
 }
 
 /**
- * Shorthand — return the default `Db` instance (or a named one).
- *
- * @param name  Optional database name. When omitted the DB name
- *              from the connection string is used.
+ * Return the singleton Supabase client (service-role, server-side only).
  */
-export function getDb(name?: string): Db {
-	return getMongoClient().db(name);
+export function getSupabase(): SupabaseClient {
+	if (process.env.NODE_ENV === "development" && globalForPg._supabase) {
+		return globalForPg._supabase;
+	}
+
+	const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+	const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+	if (!url || !key) {
+		throw new Error(
+			"NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are not set. " +
+				"Please add them to your .env.local file."
+		);
+	}
+
+	const client = createClient(url, key, {
+		auth: { persistSession: false, autoRefreshToken: false },
+	});
+
+	if (process.env.NODE_ENV === "development") {
+		globalForPg._supabase = client;
+	}
+
+	return client;
 }
 
 /* ── Startup connection test (runs once on first import) ── */
 (async () => {
-	if (MONGODB_URI) {
+	if (DATABASE_URL) {
 		try {
-			const client = getMongoClient();
-			await client.connect();
-			await client.db().admin().ping();
-			console.log("✓ MongoDB connected successfully");
+			const pool = getPool();
+			await pool.query("SELECT 1");
+			console.log("✓ PostgreSQL connected successfully");
 		} catch (err) {
-			console.error("✗ MongoDB connection failed:", err);
+			console.error("✗ PostgreSQL connection failed:", err);
 		}
 	}
 })();

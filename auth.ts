@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth";
-import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { getMongoClient, getDb } from "@/lib/db";
+import { Pool } from "pg";
 import { sendWelcomeEmail, sendResetPasswordEmail } from "@/lib/mailer";
 import {
 	twoFactor,
@@ -14,9 +13,9 @@ import {
 // Fail fast in production: auth silently shipping without a database
 // or signing secret is a security hazard.
 if (process.env.NODE_ENV === "production") {
-	if (!process.env.MONGODB_DIRECT_URI) {
+	if (!process.env.DATABASE_URL) {
 		throw new Error(
-			"MONGODB_DIRECT_URI is required in production. Add it to your environment before deploying."
+			"DATABASE_URL is required in production. Add it to your environment before deploying."
 		);
 	}
 	if (!process.env.BETTER_AUTH_SECRET) {
@@ -32,8 +31,8 @@ if (process.env.NODE_ENV === "production") {
 }
 
 export const auth = betterAuth({
-	database: process.env.MONGODB_DIRECT_URI
-		? mongodbAdapter(getDb(), { client: getMongoClient() })
+	database: process.env.DATABASE_URL
+		? new Pool({ connectionString: process.env.DATABASE_URL })
 		: (undefined as never),
 	secret: process.env.BETTER_AUTH_SECRET,
 	baseURL: process.env.BETTER_AUTH_URL,

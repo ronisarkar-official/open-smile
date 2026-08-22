@@ -1,4 +1,4 @@
-import { rateLimitsCollection } from '@/lib/db';
+import { upsertRateLimit, resetRateLimit } from '@/lib/db';
 import { ensureIndexes } from '@/lib/db/indexes';
 
 export interface RateLimitResult {
@@ -7,7 +7,7 @@ export interface RateLimitResult {
 	retryAfter: number;
 }
 
-const isDbConfigured = () => Boolean(process.env.MONGODB_DIRECT_URI);
+const isDbConfigured = () => Boolean(process.env.DATABASE_URL);
 
 /* In-memory fallback — used only when no database is configured (dev). */
 const memoryStores = new Map<string, { count: number; windowStart: number }>();
@@ -15,9 +15,9 @@ const memoryStores = new Map<string, { count: number; windowStart: number }>();
 /**
  * ── DB-backed sliding-window rate limiter ────────────────
  *
- * Atomic single-key implementation (no read-then-write races).
- * Documents self-expire via a TTL index so stale records never
- * accumulate. Falls back to an in-memory store when the database
+ * Atomic single-key implementation using INSERT ... ON CONFLICT.
+ * Expired records are cleaned up during bootstrap and on window
+ * reset. Falls back to an in-memory store when the database
  * isn't configured (local development).
  */
 export async function rateLimit(
@@ -29,36 +29,20 @@ export async function rateLimit(
 	if (isDbConfigured()) {
 		try {
 			await ensureIndexes();
-			const col = rateLimitsCollection();
-			const doc = await col.findOneAndUpdate(
-				{ _id: key },
-				{
-					$inc: { count: 1 },
-					$setOnInsert: {
-						windowStart: now,
-						expiresAt: new Date(now + windowMs),
-					},
-				},
-				{ upsert: true, returnDocument: 'after' },
+			const record = await upsertRateLimit(
+				key,
+				now,
+				new Date(now + windowMs),
 			);
 
-			const record = doc as { count?: number; windowStart?: number } | null;
-			if (!record?.count || record.windowStart == null) {
+			if (!record?.count || record.window_start == null) {
 				return { allowed: true, retryAfter: 0 };
 			}
 
-			if (record.windowStart + windowMs <= now) {
+			const windowStart = Number(record.window_start);
+			if (windowStart + windowMs <= now) {
 				// Window elapsed — reset and allow.
-				await col.updateOne(
-					{ _id: key },
-					{
-						$set: {
-							count: 1,
-							windowStart: now,
-							expiresAt: new Date(now + windowMs),
-						},
-					},
-				);
+				await resetRateLimit(key, now, new Date(now + windowMs));
 				return { allowed: true, retryAfter: 0 };
 			}
 
@@ -66,7 +50,7 @@ export async function rateLimit(
 				allowed: record.count <= limit,
 				retryAfter: Math.max(
 					0,
-					Math.ceil((record.windowStart + windowMs - now) / 1000),
+					Math.ceil((windowStart + windowMs - now) / 1000),
 				),
 			};
 		} catch (err) {
