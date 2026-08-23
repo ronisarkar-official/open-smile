@@ -8,14 +8,14 @@ export interface FlowButtonProps extends React.ComponentProps<typeof Button> {
 }
 
 export const FlowButton: React.FC<FlowButtonProps> = ({
-  text = "Find shelter",
+  text = "Continue",
   className = "",
   ...props
 }) => {
   return (
     <Button
       size="lg"
-      className={`relative overflow-hidden rounded-full px-8 py-6 text-base font-semibold transition-all duration-300 hover:scale-105 hover:shadow-md ${className}`}
+      className={`relative overflow-hidden px-8 text-base font-semibold ${className}`}
       {...props}
     >
       <span className="relative z-10">{text}</span>

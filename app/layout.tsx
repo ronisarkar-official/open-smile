@@ -1,29 +1,44 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Inter, Space_Grotesk, Space_Mono, Syne } from "next/font/google";
 import "./globals.css";
-import { cn } from "@/lib/utils";
 import { SessionProvider } from "@/components/session-provider";
 import { ToastProvider } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "Next Boilerplate",
-  description: "A Next.js 16 boilerplate with auth, a dashboard, and reusable UI components",
+  title: {
+    default: "Open Smile: smile more, win more",
+    template: "%s · Open Smile",
+  },
+  description:
+    "A playful smile-recognition rewards platform where everyday smiles earn real rewards.",
 };
 
-import { ThemeProvider } from "@/components/theme-provider";
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+});
+
+const spaceMono = Space_Mono({
+  subsets: ["latin"],
+  variable: "--font-space-mono",
+  display: "swap",
+  weight: ["400", "700"],
+});
+
+const syne = Syne({
+  subsets: ["latin"],
+  variable: "--font-syne",
+  display: "swap",
+});
 
 const themeInitScript = `
 (function() {
@@ -31,11 +46,7 @@ const themeInitScript = `
     var theme = localStorage.getItem('app-theme') || 'light';
     var root = document.documentElement;
     root.classList.remove('light', 'dark');
-    if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-      root.classList.add('dark');
-    } else {
-      root.classList.add('light');
-    }
+    root.classList.add(theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light');
   } catch (e) {}
 })();
 `;
@@ -49,12 +60,18 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", geist.variable)}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${spaceMono.variable} ${syne.variable} h-full font-sans antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col">
+        <a
+          href="#main-content"
+          className="sr-only fixed left-4 top-4 z-500 bg-primary px-4 py-2 font-bold text-black focus:not-sr-only focus:brutal-surface"
+        >
+          Skip to content
+        </a>
         <ThemeProvider defaultTheme="light" storageKey="app-theme">
           <SessionProvider>
             <ToastProvider>
@@ -67,4 +84,3 @@ export default function RootLayout({
     </html>
   );
 }
-

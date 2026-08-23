@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, signUp } from "@/lib/auth-client";
+import { signIn } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -63,19 +63,18 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <div className="space-y-4">
       <div className="space-y-2">
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          Create an account
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          Get started with your free account
+        <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">Join the beta</p>
+        <h1 className="text-3xl font-black tracking-[-0.06em] sm:text-4xl">
+          Make room for more good days.
+        </h1>
+        <p className="max-w-[42ch] text-sm leading-5 text-muted-foreground">
+          Set up your Open Smile account and we&apos;ll save your place in line.
         </p>
       </div>
 
-      {/* Social login */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <Button
           variant="outline"
           className="w-full h-9 gap-2.5 text-sm font-medium"
@@ -94,20 +93,18 @@ export default function SignupPage() {
         </Button>
       </div>
 
-      {/* Divider */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-3 text-muted-foreground">
+          <span className="bg-card px-3 font-mono text-muted-foreground">
             or continue with email
           </span>
         </div>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3">
         {error && (
           <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
             {error}
@@ -121,7 +118,7 @@ export default function SignupPage() {
             <Input
               id="name"
               type="text"
-              placeholder="John Doe"
+              placeholder="Your name"
               className="h-9 pl-10"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -189,21 +186,12 @@ export default function SignupPage() {
           )}
         </Button>
 
-        <p className="text-xs text-center text-muted-foreground leading-relaxed">
-          By creating an account, you agree to our{" "}
-          <Link href="#" className="underline underline-offset-4 hover:text-foreground">
-            Terms of Service
-          </Link>{" "}
-          and{" "}
-          <Link href="#" className="underline underline-offset-4 hover:text-foreground">
-            Privacy Policy
-          </Link>
-          .
+        <p className="text-center text-xs leading-snug text-muted-foreground">
+          By creating an account, you agree to the beta terms and privacy notice.
         </p>
       </form>
 
-      {/* Footer */}
-      <p className="text-center text-sm text-muted-foreground">
+      <p className="text-center text-xs text-muted-foreground">
         Already have an account?{" "}
         <Link
           href="/login"

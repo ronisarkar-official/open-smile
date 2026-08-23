@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { motion, AnimatePresence, type HTMLMotionProps } from 'motion/react';
-import { cn } from '@/lib/utils'; // Your utility for merging class names
+import { motion, type HTMLMotionProps, useReducedMotion } from 'motion/react';
+import { cn } from '@/lib/utils';
 import { CheckCircle2, AlertTriangle, Info, XOctagon, X } from 'lucide-react';
 
-// Define variants for the alert toast using cva
 const alertToastVariants = cva(
-	'relative w-full max-w-sm overflow-hidden rounded-lg shadow-lg flex items-start p-4 space-x-4',
+	'brutal-surface relative flex w-full max-w-sm items-start gap-4 overflow-hidden p-4 text-black',
 	{
 		variants: {
 			variant: {
@@ -16,7 +15,7 @@ const alertToastVariants = cva(
 				error: '',
 			},
 			styleVariant: {
-				default: 'bg-background border',
+				default: '',
 				filled: '',
 			},
 		},
@@ -24,25 +23,22 @@ const alertToastVariants = cva(
 			{
 				variant: 'success',
 				styleVariant: 'default',
-				className:
-					'text-success-foreground border-green-200 dark:border-green-700',
+				className: 'bg-success text-success-foreground',
 			},
 			{
 				variant: 'warning',
 				styleVariant: 'default',
-				className:
-					'text-warning-foreground border-yellow-200 dark:border-yellow-700',
+				className: 'bg-warning text-warning-foreground',
 			},
 			{
 				variant: 'info',
 				styleVariant: 'default',
-				className: 'text-info-foreground border-blue-200 dark:border-blue-700',
+				className: 'bg-info text-info-foreground',
 			},
 			{
 				variant: 'error',
 				styleVariant: 'default',
-				className:
-					'text-destructive-foreground border-red-200 dark:border-red-700',
+				className: 'bg-destructive text-destructive-foreground',
 			},
 			{
 				variant: 'success',
@@ -72,7 +68,6 @@ const alertToastVariants = cva(
 	},
 );
 
-// Define icon map for different variants
 const iconMap = {
 	success: CheckCircle2,
 	warning: AlertTriangle,
@@ -80,19 +75,18 @@ const iconMap = {
 	error: XOctagon,
 };
 
-// Define icon color classes
 const iconColorClasses: Record<string, Record<string, string>> = {
 	default: {
-		success: 'text-green-500',
-		warning: 'text-yellow-500',
-		info: 'text-blue-500',
-		error: 'text-red-500',
+		success: 'text-black',
+		warning: 'text-black',
+		info: 'text-black',
+		error: 'text-black',
 	},
 	filled: {
-		success: 'text-success-foreground',
-		warning: 'text-warning-foreground',
-		info: 'text-info-foreground',
-		error: 'text-destructive-foreground',
+		success: 'text-black',
+		warning: 'text-black',
+		info: 'text-black',
+		error: 'text-black',
 	},
 };
 
@@ -100,11 +94,8 @@ export interface AlertToastProps
 	extends
 		Omit<HTMLMotionProps<'div'>, 'title'>,
 		VariantProps<typeof alertToastVariants> {
-	/** The title of the alert. */
 	title: string;
-	/** A more detailed description for the alert. */
 	description: string;
-	/** A function to call when the alert is dismissed. */
 	onClose: () => void;
 }
 
@@ -122,23 +113,23 @@ const AlertToast = React.forwardRef<HTMLDivElement, AlertToastProps>(
 		ref,
 	) => {
 		const Icon = iconMap[variant!];
+		const reducedMotion = useReducedMotion();
 
 		return (
 			<motion.div
 				ref={ref}
 				role="alert"
 				layout
-				initial={{ opacity: 0, y: 50, scale: 0.3 }}
-				animate={{ opacity: 1, y: 0, scale: 1 }}
-				exit={{ opacity: 0, y: 20, scale: 0.5 }}
+				initial={reducedMotion ? false : { opacity: 0, y: 16, scale: 0.25, filter: 'blur(4px)' }}
+				animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+				exit={reducedMotion ? undefined : { opacity: 0, y: 12, scale: 0.96 }}
 				transition={{
 					type: 'spring',
-					stiffness: 260,
-					damping: 20,
+					duration: 0.3,
+					bounce: 0,
 				}}
 				className={cn(alertToastVariants({ variant, styleVariant }), className)}
 				{...props}>
-				{/* Icon */}
 				<div className="flex-shrink-0">
 					<Icon
 						className={cn('h-6 w-6', iconColorClasses[styleVariant!][variant!])}
@@ -146,21 +137,19 @@ const AlertToast = React.forwardRef<HTMLDivElement, AlertToastProps>(
 					/>
 				</div>
 
-				{/* Content */}
 				<div className="flex-1">
 					<p className="text-sm font-semibold">{title}</p>
 					<p className="text-sm opacity-90">{description}</p>
 				</div>
 
-				{/* Close Button */}
 				<div className="flex-shrink-0">
 					<button
 						onClick={onClose}
 						aria-label="Close"
 						className={cn(
-							'p-1 rounded-full opacity-80 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-offset-2',
+							'flex size-11 items-center justify-center border-[3px] border-current opacity-100 transition-[background-color,transform] hover:-translate-x-0.5 hover:-translate-y-0.5 focus:outline-none focus:ring-[3px] focus:ring-black focus:ring-offset-2',
 							styleVariant === 'default' ?
-								'text-foreground/70 hover:bg-muted'
+								'text-black hover:bg-black/10'
 							:	'hover:bg-black/20',
 						)}>
 						<X className="h-5 w-5" />

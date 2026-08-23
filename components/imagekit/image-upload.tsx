@@ -173,7 +173,7 @@ export function ImageUpload({
   return (
     <div className={cn("w-full space-y-3", className)}>
       {currentFile ? (
-        <div className="relative group rounded-xl border border-border bg-card p-3 shadow-xs transition-all">
+        <div className="brutal-surface relative group bg-card p-3 transition-[box-shadow,transform]">
           <div className="flex items-center gap-4">
             <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border bg-muted">
               {currentFile.url ? (
@@ -245,7 +245,7 @@ export function ImageUpload({
           onDrop={handleDrop}
           onClick={() => !disabled && !isUploading && inputRef.current?.click()}
           className={cn(
-            "relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center cursor-pointer transition-all duration-150",
+            "relative flex flex-col items-center justify-center border-[3px] border-dashed border-border bg-card p-6 text-center shadow-[3px_3px_0_var(--outline)] transition-[background-color,border-color,box-shadow,transform] duration-150 cursor-pointer",
             isDragging
               ? "border-primary bg-primary/5 scale-[0.99]"
               : "border-border hover:border-primary/50 hover:bg-muted/30",
@@ -268,16 +268,16 @@ export function ImageUpload({
               <p className="text-sm font-medium text-foreground">
                 Uploading to ImageKit...
               </p>
-              <div className="w-48 bg-muted rounded-full h-1.5 overflow-hidden mt-1">
+              <div className="mt-1 h-1.5 w-48 overflow-hidden bg-muted">
                 <div
-                  className="bg-primary h-full transition-all duration-300"
+                  className="h-full bg-primary"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>
             </div>
           ) : (
             <>
-              <div className="p-3 rounded-full bg-primary/10 text-primary mb-3">
+              <div className="mb-3 border-[3px] border-border bg-primary p-3 text-primary-foreground">
                 <UploadCloud className="h-6 w-6" />
               </div>
               <p className="text-sm font-medium text-foreground">

@@ -1,192 +1,31 @@
-'use client';
-
-import Image from 'next/image';
-import Link from 'next/link';
-import { motion, AnimatePresence, Variants } from 'motion/react';
-import { FlowButton } from "@/components/ui/flow-button";
+import Link from "next/link";
+import { ArrowUpRight, SearchX, Smile } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 
-const easeCurve = [0.43, 0.13, 0.23, 0.96] as const;
-
-const containerVariants: Variants = {
-  hidden: { 
-    opacity: 0,
-    y: 30
-  },
-  visible: { 
-    opacity: 1,
-    y: 0,
-    transition: {
-      duration: 0.7,
-      ease: easeCurve,
-      delayChildren: 0.1,
-      staggerChildren: 0.1
-    }
-  }
-};
-
-const itemVariants: Variants = {
-  hidden: { 
-    opacity: 0,
-    y: 20
-  },
-  visible: { 
-    opacity: 1, 
-    y: 0,
-    transition: {
-      duration: 0.6,
-      ease: easeCurve
-    }
-  }
-};
-
-const numberVariants: Variants = {
-  hidden: (direction: number) => ({
-    opacity: 0,
-    x: direction * 40,
-    y: 15,
-    rotate: direction * 5
-  }),
-  visible: {
-    opacity: 0.7,
-    x: 0,
-    y: 0,
-    rotate: 0,
-    transition: {
-      duration: 0.8,
-      ease: easeCurve
-    }
-  }
-};
-
-const ghostVariants: Variants = {
-  hidden: { 
-    scale: 0.8,
-    opacity: 0,
-    y: 15,
-    rotate: -5
-  },
-  visible: { 
-    scale: 1,
-    opacity: 1,
-    y: 0,
-    rotate: 0,
-    transition: {
-      duration: 0.6,
-      ease: easeCurve
-    }
-  },
-  hover: {
-    scale: 1.1,
-    y: -10,
-    rotate: [0, -5, 5, -5, 0],
-    transition: {
-      duration: 0.8,
-      ease: "easeInOut",
-      rotate: {
-        duration: 2,
-        ease: "linear",
-        repeat: Infinity,
-        repeatType: "reverse"
-      }
-    }
-  },
-  floating: {
-    y: [-5, 5],
-    transition: {
-      y: {
-        duration: 2,
-        ease: "easeInOut",
-        repeat: Infinity,
-        repeatType: "reverse"
-      }
-    }
-  }
-};
-
-export function NotFound() {
+export default function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground px-4 py-12">
-      <AnimatePresence mode="wait">
-        <motion.div 
-          className="text-center flex flex-col items-center max-w-xl mx-auto"
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          exit="hidden"
-        >
-          {/* Website Logo */}
-          <motion.div variants={itemVariants} className="mb-6">
-            <Link href="/" className="inline-block transition-opacity hover:opacity-90">
-              <Logo className="h-8 w-auto" />
-            </Link>
-          </motion.div>
-
-          <div className="flex items-center justify-center gap-4 md:gap-6 mb-8 md:mb-10">
-            <motion.span 
-              className="text-[80px] md:text-[120px] font-bold text-foreground/80 select-none tracking-tighter"
-              variants={numberVariants}
-              custom={-1}
-            >
-              4
-            </motion.span>
-            <motion.div
-              variants={ghostVariants}
-              whileHover="hover"
-              animate={["visible", "floating"]}
-            >
-              <Image
-                src="https://xubohuah.github.io/xubohua.top/Group.png"
-                alt="Ghost"
-                width={120}
-                height={120}
-                className="w-[80px] h-[80px] md:w-[120px] md:h-[120px] object-contain select-none border-none outline-none ring-0 shadow-none mix-blend-multiply dark:mix-blend-normal dark:brightness-125"
-                draggable="false"
-                priority
-              />
-            </motion.div>
-            <motion.span 
-              className="text-[80px] md:text-[120px] font-bold text-foreground/80 select-none tracking-tighter"
-              variants={numberVariants}
-              custom={1}
-            >
-              4
-            </motion.span>
-          </div>
-          
-          <motion.h1 
-            className="text-3xl md:text-5xl font-bold text-foreground mb-4 md:mb-6 select-none tracking-tight"
-            variants={itemVariants}
-          >
-            Boo! Page missing!
-          </motion.h1>
-          
-          <motion.p 
-            className="text-lg md:text-xl text-muted-foreground mb-8 md:mb-10 select-none max-w-md leading-relaxed"
-            variants={itemVariants}
-          >
-            Whoops! This page must be a ghost &mdash; it&apos;s not here!
-          </motion.p>
-
-          <motion.div 
-            variants={itemVariants}
-            whileHover={{ 
-              scale: 1.05,
-              transition: {
-                duration: 0.3,
-                ease: easeCurve
-              }
-            }}
-            className="flex justify-center"
-          >
-            <Link href="/">
-              <FlowButton text="Find shelter" />
-            </Link>
-          </motion.div>
-        </motion.div>
-      </AnimatePresence>
-    </div>
+    <main id="main-content" className="flex min-h-[100dvh] items-center justify-center overflow-hidden bg-background px-5 py-12">
+      <div className="relative w-full max-w-2xl border-[3px] border-black bg-card p-7 text-center shadow-[8px_8px_0_#000] sm:p-12">
+        <div className="absolute -left-6 -top-6 hidden size-14 border-[3px] border-black bg-secondary sm:block" />
+        <div className="absolute -bottom-7 -right-7 hidden size-20 border-[3px] border-black bg-accent sm:block" />
+        <Link href="/" className="inline-block focus-visible:outline-3 focus-visible:outline-offset-4">
+          <Logo className="h-9 w-auto" />
+        </Link>
+        <div className="mx-auto mt-10 flex size-20 items-center justify-center border-[3px] border-black bg-primary">
+          <SearchX className="size-10" strokeWidth={2.5} />
+        </div>
+        <p className="mt-8 font-mono text-xs font-bold tracking-[0.14em] uppercase">404</p>
+        <h1 className="mt-3 text-5xl font-black tracking-[-0.07em] sm:text-6xl">This smile went missing.</h1>
+        <p className="mx-auto mt-5 max-w-[46ch] leading-7 text-muted-foreground">The page you&apos;re after doesn&apos;t exist or has moved somewhere brighter.</p>
+        <Button asChild size="lg" className="mt-8">
+          <Link href="/">
+            <Smile className="size-5" />
+            Back to Open Smile
+            <ArrowUpRight className="size-5" />
+          </Link>
+        </Button>
+      </div>
+    </main>
   );
 }
-
-export default NotFound;

@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@base-ui/react": "^1.7.0",
     "@better-auth/infra": "^0.3.7",
     "@floating-ui/react": "^0.27.19",
     "@imagekit/next": "^2.1.5",

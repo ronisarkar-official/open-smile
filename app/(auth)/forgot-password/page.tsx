@@ -38,7 +38,8 @@ export default function ForgotPasswordPage() {
 
       // Success, redirect to reset password page with email
       router.push(`/reset-password?email=${encodeURIComponent(email)}`);
-    } catch (err: any) {      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "We couldn’t send a reset link. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -46,10 +47,11 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="flex flex-col space-y-6">
-      <div className="flex flex-col space-y-2 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Forgot password</h1>
-        <p className="text-sm text-muted-foreground">
-          Enter your email address and we'll send you a link to reset your password.
+      <div className="flex flex-col space-y-3">
+        <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">Account recovery</p>
+        <h1 className="text-4xl font-black tracking-[-0.06em]">Reset your password</h1>
+        <p className="text-sm leading-6 text-muted-foreground">
+          Enter your email address and we&apos;ll send you a reset link.
         </p>
       </div>
 
@@ -78,7 +80,7 @@ export default function ForgotPasswordPage() {
           className="w-full"
           disabled={isLoading}
         >
-          {isLoading ? "Sending OTP..." : "Send Reset Link"}
+          {isLoading ? "Sending link…" : "Send reset link"}
         </Button>
       </form>
 

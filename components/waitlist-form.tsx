@@ -1,50 +1,46 @@
 "use client";
 
 import * as React from "react";
+import { ArrowUpRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 
-/**
- * Beta waitlist form — posts to /api/beta-join and reports the result
- * via the app-wide toast system.
- */
 export function WaitlistForm() {
   const [email, setEmail] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [joined, setJoined] = React.useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     if (!email.trim()) return;
 
     setLoading(true);
     try {
-      const res = await fetch("/api/beta-join", {
+      const response = await fetch("/api/beta-join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),
       });
-      const data = await res.json();
+      const data = await response.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || "Something went wrong.");
+      if (!response.ok) {
+        throw new Error(data.error || "We couldn’t add you to the beta list.");
       }
 
       setJoined(true);
       toast({
-        title: data.alreadyJoined ? "Already on the list" : "You're on the list",
+        title: data.alreadyJoined ? "You’re already on the list" : "You’re on the list",
         description: data.alreadyJoined
-          ? "We've got your email — we'll be in touch."
-          : "We'll email you the moment the beta opens.",
+          ? "We’ll email you when beta access opens."
+          : "We’ll email you when it’s your turn to smile.",
         variant: "success",
       });
-    } catch (err) {
+    } catch (error) {
       toast({
-        title: "Couldn't sign you up",
-        description:
-          err instanceof Error ? err.message : "Please try again.",
+        title: "We couldn’t add you to the list",
+        description: error instanceof Error ? error.message : "Please try again.",
         variant: "error",
       });
     } finally {
@@ -53,24 +49,22 @@ export function WaitlistForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full max-w-md gap-2">
+    <form onSubmit={handleSubmit} className="flex w-full max-w-xl flex-col gap-3 sm:flex-row">
       <Input
+        id="waitlist-email"
         type="email"
         required
-        placeholder="you@email.com"
+        autoComplete="email"
+        placeholder="you@example.com"
         aria-label="Email address"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={(event) => setEmail(event.target.value)}
         disabled={loading || joined}
-        className="h-10 flex-1"
+        className="flex-1"
       />
-      <Button
-        type="submit"
-        size="lg"
-        className="h-10 shrink-0"
-        disabled={loading || joined}
-      >
-        {loading ? "Joining…" : joined ? "Joined" : "Join the beta"}
+      <Button type="submit" size="lg" disabled={loading || joined} className="shrink-0">
+        {loading ? "Joining…" : joined ? "You’re in" : "Get beta access"}
+        {!loading && !joined && <ArrowUpRight className="size-4" />}
       </Button>
     </form>
   );

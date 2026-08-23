@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense, FormEvent } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   InputOTP,
@@ -9,6 +10,7 @@ import {
 } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
 import { signIn, signUp } from "@/lib/auth-client";
+import { Logo } from "@/components/logo";
 
 function VerifyOTPContent() {
   const router = useRouter();
@@ -174,13 +176,17 @@ function VerifyOTPContent() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-background">
-      <div className="w-full max-w-md space-y-8 rounded-xl bg-card p-8 shadow-xs border border-border">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-background p-5">
+      <div className="brutal-surface w-full max-w-md space-y-8 bg-card p-6 sm:p-8">
+        <Link href="/" className="mx-auto block w-fit focus-visible:outline-3 focus-visible:outline-offset-4">
+          <Logo className="h-8 w-auto" />
+        </Link>
         <div className="text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">One last step</p>
+          <h1 className="mt-3 text-4xl font-black tracking-[-0.06em] text-foreground">
             {flowParam === "signup" ? "Verify your email" : "Sign-in Verification"}
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
             We&apos;ve sent a 6-digit code to <br />
             <span className="font-semibold text-foreground">
               {email || "your email address"}
@@ -210,8 +216,8 @@ function VerifyOTPContent() {
           )}
 
           {success && (
-            <p className="text-sm text-emerald-600 font-medium text-center dark:text-emerald-400">
-              Successfully verified! Redirecting to dashboard...
+            <p className="text-center text-sm font-medium text-success">
+              Verified. Redirecting to your dashboard…
             </p>
           )}
 
@@ -220,13 +226,13 @@ function VerifyOTPContent() {
             disabled={otp.length !== 6 || isLoading || success}
             className="w-full"
           >
-            {isLoading ? "Verifying..." : "Verify & Continue"}
+            {isLoading ? "Verifying…" : "Verify and continue"}
           </Button>
         </form>
 
         <div className="text-center text-sm space-y-2">
           <p className="text-muted-foreground">
-            Didn't receive the code?{" "}
+            Didn&apos;t receive the code?{" "}
             <button
               onClick={handleResend}
               disabled={cooldown > 0 || success}
@@ -245,7 +251,7 @@ export default function VerifyOTPPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="flex min-h-dvh items-center justify-center bg-background">
           <p className="text-muted-foreground">Loading...</p>
         </div>
       }

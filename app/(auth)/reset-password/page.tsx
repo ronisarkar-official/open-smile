@@ -101,9 +101,10 @@ function ResetPasswordContent() {
 
   return (
     <div className="flex flex-col space-y-6">
-      <div className="flex flex-col space-y-2 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Set new password</h1>
-        <p className="text-sm text-muted-foreground">
+      <div className="flex flex-col space-y-3">
+        <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">Account recovery</p>
+        <h1 className="text-4xl font-black tracking-[-0.06em]">Set a new password</h1>
+        <p className="text-sm leading-6 text-muted-foreground">
           {email
             ? <>Set a new password for <strong>{email}</strong>.</>
             : "Enter the one-time reset token from your email and choose a new password."}
@@ -170,7 +171,7 @@ function ResetPasswordContent() {
 
         {success && (
           <div className="text-sm font-medium text-emerald-500 text-center">
-            Password reset successfully! Redirecting to login...
+            Password reset. Redirecting to login…
           </div>
         )}
 

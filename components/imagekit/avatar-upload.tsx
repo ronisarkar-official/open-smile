@@ -121,7 +121,7 @@ export function AvatarUpload({
         onClick={triggerSelect}
         title="Click to upload profile picture"
         className={cn(
-          "relative group cursor-pointer overflow-hidden rounded-full transition-all ring-2 ring-primary/20 hover:ring-primary hover:scale-[1.03]",
+          "relative group cursor-pointer overflow-hidden transition-[box-shadow,transform] ring-2 ring-primary/20 hover:ring-primary hover:scale-[1.03]",
           sizeClasses[size],
           className
         )}

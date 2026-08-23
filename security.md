@@ -1,83 +1,58 @@
-# SECURITY.md
+# Security — Open Smile
 
-> Security policy and checklist. Adapt the placeholders for your project.
+This document covers the security-relevant design decisions in Open Smile and what to check before shipping changes to any of these surfaces.
 
-## 1. Reporting a Vulnerability
+## Threat model summary
 
-If you discover a security issue, please report it privately instead of opening a public issue.
+Open Smile handles three categories of sensitive surface:
+1. **Facial image data** — users upload photos of their faces for scoring.
+2. **A real-money-adjacent reward economy** — coins convert to Amazon gift vouchers, so the coin ledger is effectively financial data and a target for abuse.
+3. **Standard auth** — email/password + OTP, session management, password reset.
 
-- **Contact:** security@yourdomain.com
-- **Response time:** within 48 hours
-- **Disclosure policy:** coordinated disclosure — please allow time for a fix before going public.
+## Facial data & privacy
 
-## 2. Supported Versions
+- **Storage:** Images live in ImageKit with a 1-day auto-delete policy. This is a hard requirement — any new feature that touches images (Explore posts, profile photos, etc.) must inherit this expiry, not introduce a separate longer-lived storage path.
+- **Client-side scoring where possible:** Smile scoring runs via face-api.js / MediaPipe in-browser. Prefer sending only the derived numeric score to the server, not the raw frame, wherever a feature doesn't need the image server-side. This is both a privacy property and a reduced-liability property — less raw biometric data touching the backend at all.
+- **Opt-in publishing:** A capture is private by default. Publishing to the Explore feed requires an explicit user action per capture. Never default a capture to public, and never bulk-publish a user's history without fresh per-item consent.
+- **Deletion:** Account deletion (see Open Questions in the project plan) should cascade to all owned images and posts, not just the `user` row.
 
-| Version | Supported |
-|---|---|
-| main / latest | ✅ |
-| older releases | ❌ |
+## Coin ledger integrity
 
-## 3. Authentication & Authorization
+- **Append-only ledger, never a mutable balance.** Every coin movement is an insert into `coin_ledger` with a `reason`. Balance is derived via `SUM(coins)`. This is the primary defense against a whole class of bugs and race conditions where a balance column gets double-credited or corrupted under concurrent writes — do not "simplify" this into a single balance field.
+- **Server-computed, never client-trusted.** Coin amounts (capture reward, streak multiplier, referral bonus, signup bonus) must be computed and locked server-side before any client-facing reveal (e.g. the scratch card). The scratch card is purely an animation over an already-decided value — it must never be the mechanism that determines the reward.
+- **Referral abuse:** Referral rewards trigger only on the referred user's first successful capture, not on signup alone, and are capped per referrer per day. This blocks the basic "create N fake accounts, get N×signup-bonus" attack. If referral logic is touched, keep both the completion-gate and the daily cap.
+- **Anti-cheat layer is load-bearing, not cosmetic:**
+  - Capture cooldown, derived from `MAX(created_at)` per user in `smile_captures` — prevents rapid-fire farming.
+  - Liveness check (blink / prompted movement) before a capture is accepted — blocks photo-of-a-photo spoofing.
+  - Perceptual image hashing (`image_hashes`, pHash-style, small Hamming-distance matching) — blocks re-submission of the same or a re-photographed/recompressed image. This is intentionally *not* a cryptographic hash (MD5/SHA), since those only catch byte-identical files and would miss recompressed or slightly-altered re-uploads.
+  - Daily capture caps.
+  - Any change that removes or weakens one of these needs an explicit replacement, not a silent removal.
 
-- [ ] Passwords hashed with bcrypt/argon2 — never stored in plain text
-- [ ] Sessions/tokens use secure, httpOnly, sameSite cookies (or short-lived JWTs + refresh tokens)
-- [ ] Role-based access control enforced on the server, not just hidden in UI
-- [ ] Rate limiting on login, signup, and password-reset endpoints
-- [ ] Account lockout / backoff after repeated failed logins
+## Auth & session security
 
-## 4. Input Validation & Data Handling
+- **Better Auth owns `user`/`session`/`account`/`verification`.** Don't hand-roll parallel session logic — route auth-sensitive changes through Better Auth's own flow (`app/api/auth/[...all]/route.ts`) or the documented custom OTP endpoints, not new ad hoc endpoints.
+- **OTP handling:**
+  - OTPs are stored hashed (`otp_hash`), never in plaintext, in `otp_codes`.
+  - Attempts are counted (`attempts` column) and should be capped — reject further verification attempts past a threshold rather than allowing unlimited guesses against a 6-digit code.
+  - OTPs expire (`expires_at`) and are cleaned up via scheduled `DELETE ... WHERE expires_at <= NOW()` — verify this cleanup job is actually scheduled in production, not just present as a callable function.
+  - `upsertOtpCode` resets `attempts` to 0 on resend — intentional, so a resend doesn't inherit a near-exhausted attempt counter, but also means resend itself should be rate-limited (see below) or it becomes an attempt-counter reset button for an attacker.
+- **Rate limiting is DB-backed** (`rate_limits` table), specifically so it survives serverless cold starts where an in-memory limiter would silently reset. Any new sensitive endpoint (OTP send/verify, login, password reset, capture submission) should be covered by this rate limiter, not assumed to be low-risk because it's "just an internal API route."
+- **Login notification emails** (`notify-login`) exist as a user-facing signal for unrecognized logins — keep this firing on every successful login, not just failures, so it's useful as an early warning to the user.
+- **Password reset:** reset tokens/flows should follow the same expiry + single-use discipline as OTPs. Don't let a reset link remain valid after it's been used once or after a new reset has been requested.
 
-- [ ] All user input validated and sanitized server-side (never trust client-side validation alone)
-- [ ] Parameterized queries / ORM used — no raw string-concatenated SQL
-- [ ] Output encoding to prevent XSS (escape user content before rendering)
-- [ ] File uploads restricted by type, size, and scanned/validated before storage
-- [ ] CSRF protection on state-changing requests
+## Input handling
 
-## 5. Secrets Management
+- All database queries go through parameterized queries via `lib/db/collections.ts` (`$1`, `$2`, ...). **Never string-interpolate user input into a SQL string.** Any new query helper must follow this pattern.
+- Image uploads (ImageKit) should validate file type/size server-side before upload authorization is granted, not rely on client-side validation alone.
 
-- [ ] No API keys, DB credentials, or secrets committed to the repo
-- [ ] `.env` files gitignored, `.env.example` kept updated
-- [ ] Secrets rotated periodically and on any suspected leak
-- [ ] Use a secrets manager (Vercel/Netlify env vars, AWS Secrets Manager, etc.) in production
+## Known open items (track before production use)
 
-## 6. Transport & Headers
+- [ ] Confirm the OTP/rate-limit cleanup job is actually scheduled (cron/Edge Function), not just present as an uncalled function.
+- [ ] Define and enforce a max OTP verification attempt count.
+- [ ] Confirm ImageKit's 1-day deletion is enforced server-side (a lifecycle policy) rather than relying on a client-triggered delete call that might not fire.
+- [ ] Account deletion flow — ensure cascading deletion of images, posts, and ledger data (or documented retention policy) if a user requests deletion.
+- [ ] Supabase Realtime channel auth currently needs Better Auth sessions passed into the presence/broadcast callback manually, since Realtime's built-in RLS expects Supabase Auth JWTs by default — verify this doesn't leave a channel accessible without a valid Better Auth session.
 
-- [ ] HTTPS enforced everywhere (HSTS enabled)
-- [ ] Security headers set: `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`
-- [ ] CORS configured to allow only trusted origins
+## Reporting
 
-## 7. Dependencies
-
-- [ ] Dependencies kept up to date
-- [ ] Automated vulnerability scanning enabled (e.g. `npm audit`, Dependabot, Snyk)
-- [ ] Unused packages removed regularly
-
-## 8. Database Security
-
-- [ ] Principle of least privilege for DB users/roles
-- [ ] Regular backups, tested restore process
-- [ ] Sensitive fields (PII) encrypted at rest where applicable
-
-## 9. Logging & Monitoring
-
-- [ ] Failed login attempts and suspicious activity logged
-- [ ] No sensitive data (passwords, tokens, full card numbers) ever logged
-- [ ] Alerts set up for unusual traffic or error spikes
-
-## 10. Infrastructure
-
-- [ ] Admin/dashboard routes protected and not publicly indexable
-- [ ] Server/hosting platform kept patched
-- [ ] Staging and production environments isolated
-
-## 11. Incident Response
-
-1. Identify and contain the issue.
-2. Rotate any exposed credentials immediately.
-3. Patch the vulnerability.
-4. Notify affected users if data was compromised.
-5. Document the incident and the fix in this file's changelog.
-
-## 12. Changelog
-
-- **YYYY-MM-DD** — Security update or incident note.
+If you find a security issue in this codebase, treat it as sensitive by default — don't file it as a public issue with exploit details before it's fixed.

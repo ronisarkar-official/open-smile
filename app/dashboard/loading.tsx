@@ -1,6 +1,6 @@
 export default function DashboardLoading() {
   return (
-    <div className="flex h-full min-h-screen w-full flex-col bg-background p-6 space-y-6 animate-pulse">
+    <div className="flex h-full min-h-[100dvh] w-full flex-col space-y-6 bg-background p-6 animate-pulse">
       {/* Header skeleton */}
       <div className="flex items-center justify-between">
         <div className="h-8 w-48 rounded-md bg-muted" />

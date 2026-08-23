@@ -6,8 +6,13 @@ import {
 	multiSessionClient,
 } from "better-auth/client/plugins";
 
+const clientBaseURL =
+	process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
+	(typeof window !== "undefined" ? window.location.origin : undefined) ||
+	"http://localhost:3000";
+
 export const authClient = createAuthClient({
-	baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? "http://localhost:3000",
+	baseURL: clientBaseURL,
 	plugins: [
 		twoFactorClient(),
 		organizationClient(),

@@ -12,9 +12,9 @@ export function Toaster() {
     <div
       aria-live="polite"
       aria-label="Notifications"
-      className="fixed bottom-4 right-4 z-[100] flex flex-col-reverse gap-3 pointer-events-none w-full max-w-sm"
+      className="pointer-events-none fixed bottom-4 right-4 z-[500] flex w-full max-w-sm flex-col-reverse gap-3"
     >
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence initial={false} mode="popLayout">
         {toasts.map((t) => (
           <div key={t.id} className="pointer-events-auto">
             <AlertToast

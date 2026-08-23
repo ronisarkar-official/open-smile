@@ -68,19 +68,18 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
+    <div className="space-y-5">
       <div className="space-y-2">
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          Welcome back
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          Sign in to your account to continue
+        <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">Welcome back</p>
+        <h1 className="text-3xl font-black tracking-[-0.06em] sm:text-4xl">
+          Keep the good streak going.
+        </h1>
+        <p className="max-w-[42ch] text-sm leading-5 text-muted-foreground">
+          Sign in to pick up where your smiles left off.
         </p>
       </div>
 
-      {/* Social login */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-3">
         <Button
           variant="outline"
           className="w-full h-9 gap-2.5 text-sm font-medium"
@@ -99,20 +98,18 @@ export default function LoginPage() {
         </Button>
       </div>
 
-      {/* Divider */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-3 text-muted-foreground">
+          <span className="bg-card px-3 font-mono text-muted-foreground">
             or continue with email
           </span>
         </div>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-3">
         {error && (
           <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive flex flex-col gap-1">
             <p>{error}</p>
@@ -196,8 +193,7 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      {/* Footer */}
-      <p className="text-center text-sm text-muted-foreground">
+        <p className="text-center text-xs text-muted-foreground">
         Don&apos;t have an account?{" "}
         <Link
           href="/signup"
