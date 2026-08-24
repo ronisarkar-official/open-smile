@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 import { auth } from "@/auth";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardGroupLayout({ children }: { children: React.ReactNode }) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });

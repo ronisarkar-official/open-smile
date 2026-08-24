@@ -41,11 +41,16 @@ import {
 } from '@/components/animate-ui/components/radix/dropdown-menu';
 import {
 	Bell,
+	Camera,
 	ChevronsUpDown,
+	Compass,
+	Gift,
 	LayoutDashboard,
 	LogOut,
 	Smile,
 	Settings,
+	Trophy,
+	UserPlus,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SettingsDialog } from '@/components/settings/dialog';
@@ -57,6 +62,31 @@ const mainNav = [
 		title: 'Dashboard',
 		url: '/dashboard',
 		icon: LayoutDashboard,
+	},
+	{
+		title: 'Capture',
+		url: '/capture',
+		icon: Camera,
+	},
+	{
+		title: 'Leaderboard',
+		url: '/leaderboard',
+		icon: Trophy,
+	},
+	{
+		title: 'Explore',
+		url: '/explore',
+		icon: Compass,
+	},
+	{
+		title: 'Rewards',
+		url: '/rewards',
+		icon: Gift,
+	},
+	{
+		title: 'Refer',
+		url: '/refer',
+		icon: UserPlus,
 	},
 ];
 
@@ -75,6 +105,24 @@ const mobileTabs = [
 		title: 'Dashboard',
 		url: '/dashboard',
 		icon: LayoutDashboard,
+		kind: 'link' as const,
+	},
+	{
+		title: 'Capture',
+		url: '/capture',
+		icon: Camera,
+		kind: 'link' as const,
+	},
+	{
+		title: 'Board',
+		url: '/leaderboard',
+		icon: Trophy,
+		kind: 'link' as const,
+	},
+	{
+		title: 'Explore',
+		url: '/explore',
+		icon: Compass,
 		kind: 'link' as const,
 	},
 	{
