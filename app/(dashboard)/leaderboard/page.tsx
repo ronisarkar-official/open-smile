@@ -140,33 +140,6 @@ export default function LeaderboardPage() {
           ))}
         </div>
       </section>
-
-      <section className="mt-8">
-        <div className="flex items-center gap-3">
-          <Sparkles className="size-5 text-accent" strokeWidth={2.5} />
-          <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">Special category</p>
-        </div>
-        <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] sm:text-3xl">Most Improved Smiler</h2>
-        <div className="mt-5 grid gap-4 sm:grid-cols-3">
-          {[
-            { name: "Zara Okonkwo", delta: "+32", period: "This week", bg: "bg-primary" },
-            { name: "Leo Petrov", delta: "+28", period: "This week", bg: "bg-accent" },
-            { name: "You", delta: "+15", period: "This week", bg: "bg-secondary" },
-          ].map((item) => (
-            <article key={item.name} className={`${item.bg} brutal-surface brutal-lift flex flex-col p-5`}>
-              <div className="flex items-start justify-between">
-                <TrendingUp className="size-6" strokeWidth={2.5} />
-                <span className="font-mono text-xs font-bold uppercase">{item.period}</span>
-              </div>
-              <div className="mt-auto pt-8">
-                <p className="font-display text-4xl font-black tracking-[-0.06em] tabular-nums">{item.delta}</p>
-                <p className="text-sm font-bold">avg. score increase</p>
-                <p className="mt-2 text-sm font-bold text-black/70">{item.name}</p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
     </main>
   );
 }

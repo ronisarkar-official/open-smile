@@ -1,3 +1,5 @@
+export { CoinIcon, CoinBadge, type CoinIconProps } from '@/components/ui/coin-icon';
+
 export function GitHubIcon({ className }: { className?: string }) {
   return (
     <svg

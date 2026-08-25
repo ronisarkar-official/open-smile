@@ -6,42 +6,54 @@ This document describes how Open Smile is put together: system boundaries, data 
 
 Open Smile is a single Next.js 15 application (App Router) with no separate backend service. All server-side logic lives in Next.js API routes and server components, talking to one Supabase Postgres database. There is no microservice split — the boundaries that matter here are *client vs. server* and *trusted vs. untrusted computation*, not separate deployable services.
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         Browser (Client)                     │
-│                                                                │
-│   Webcam ──▶ MediaPipe / face-api.js ──▶ Smile Score (0–100)  │
-│                        │                                      │
-│                        ▼                                      │
-│              Scratch Card (reveal UI only)                    │
-└───────────────────────┬───────────────────────────────────────┘
-                         │ score + capture metadata
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Next.js API Routes (Server)                 │
-│                                                                │
-│   /api/auth/*        Better Auth + custom OTP flow            │
-│   /api/imagekit/*     Upload auth + signed upload              │
-│   /api/beta-join      Waitlist                                 │
-│   (planned) /api/capture   Score validation, coin calc,        │
-│                              anti-cheat checks                 │
-│   (planned) /api/leaderboard   Aggregation queries              │
-└───────────────────────┬───────────────────────────────────────┘
-                         │ parameterized SQL via lib/db
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Supabase Postgres (single DB)                │
-│                                                                │
-│   Better Auth tables: user, session, account, verification    │
-│   App tables: smile_captures, coin_ledger, streaks, rewards,  │
-│               referrals, posts, likes, image_hashes           │
-│   Infra tables: otp_codes, rate_limits, beta_waitlist          │
-│   Realtime: leaderboard subscriptions                          │
-└─────────────────────────────────────────────────────────────┘
-                         │
-                         ▼
-                 ImageKit (image storage,
-                  1-day auto-delete)
+```mermaid
+flowchart TB
+    subgraph Client["Browser (Client)"]
+        Webcam["Webcam Feed"]
+        FaceAI["MediaPipe / face-api.js<br/>(Client-Side Scoring)"]
+        UI["UI / Scratch Card<br/>(Reveal Animation)"]
+        RealtimeSub["Realtime Listener<br/>(Live Leaderboard)"]
+        
+        Webcam --> FaceAI
+        FaceAI -->|"Smile Score (0-100) + pHash"| UI
+    end
+
+    subgraph Server["Next.js 15 Server (App Router)"]
+        AuthRoutes["/api/auth/* & Custom OTP<br/>(Better Auth + OTP Handlers)"]
+        CaptureRoute["/api/capture<br/>(Score Validation, Anti-Cheat, Coin Engine)"]
+        LeaderboardRoute["/api/leaderboard<br/>(Aggregation Queries)"]
+        ImageKitAuth["/api/imagekit/*<br/>(Upload Auth & Signatures)"]
+        BetaRoute["/api/beta-join<br/>(Waitlist Handler)"]
+        DBPool["lib/db/collections.ts<br/>(Parameterized SQL Pool via pg)"]
+        
+        CaptureRoute --> DBPool
+        AuthRoutes --> DBPool
+        LeaderboardRoute --> DBPool
+        BetaRoute --> DBPool
+    end
+
+    subgraph Database["Supabase Postgres (Single DB)"]
+        AuthTables["Better Auth Tables<br/>(user, session, account, verification)"]
+        AppTables["App Tables<br/>(smile_captures, coin_ledger, streaks, rewards, referrals, posts, image_hashes)"]
+        InfraTables["Infra Tables<br/>(otp_codes, rate_limits, beta_waitlist)"]
+        RealtimeEngine["Supabase Realtime Engine"]
+        
+        DBPool -->|"Parameterized SQL ($1, $2)"| AuthTables
+        DBPool -->|"Parameterized SQL ($1, $2)"| AppTables
+        DBPool -->|"Parameterized SQL ($1, $2)"| InfraTables
+        AppTables -.->|"CDC / WAL Events"| RealtimeEngine
+    end
+
+    subgraph Storage["External Storage"]
+        ImageKit["ImageKit Storage<br/>(1-Day Auto-Delete Lifecycle)"]
+    end
+
+    UI -->|"Submit Score + Frame pHash"| CaptureRoute
+    CaptureRoute -->|"Return Locked Coins"| UI
+    UI -.->|"Request Upload Signature"| ImageKitAuth
+    ImageKitAuth -.->|"Signed Upload Credentials"| UI
+    UI -.->|"Upload Image (Opt-in Explore only)"| ImageKit
+    RealtimeEngine -.->|"Live Updates (WebSocket)"| RealtimeSub
 ```
 
 ## Why this shape
@@ -63,6 +75,37 @@ Better Auth owns `user`, `session`, `account`, and `verification` directly in th
 
 ## Data flow: a smile capture, end to end
 
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Client as Browser (MediaPipe / UI)
+    participant Server as Next.js API (/api/capture)
+    participant DB as Supabase Postgres
+    participant Realtime as Supabase Realtime
+
+    User->>Client: Smiles into webcam
+    Client->>Client: Detect landmarks (mouth curvature, eye crinkle)
+    Client->>Client: Compute score (0–100) & frame pHash
+    Client->>Server: POST /api/capture (score, pHash, liveness proof)
+
+    Note over Server,DB: Anti-Cheat Pipeline (Fast-Reject)
+    Server->>DB: 1. Cooldown check (MAX created_at in smile_captures)
+    Server->>DB: 2. Liveness check verification
+    Server->>DB: 3. pHash duplicate check (image_hashes table)
+    Server->>DB: 4. Daily capture cap check
+
+    Note over Server,DB: Coin & Streak Processing
+    Server->>DB: Calculate base coins × streak multiplier
+    Server->>DB: INSERT into coin_ledger (reason: 'capture')
+    Server->>DB: UPDATE streaks & INSERT smile_captures & image_hashes
+
+    Server-->>Client: Return locked coin reward & updated streak
+    Client->>User: Play Scratch Card reveal animation
+    DB-->>Realtime: Emit coin_ledger insert event
+    Realtime-->>Client: Broadcast live leaderboard update
+```
+
 1. **Client:** webcam frame → MediaPipe/face-api.js landmark detection (in-browser) → smile score (0–100) computed from mouth curvature, width/height ratio, eye crinkle.
 2. **Client → Server:** score (and enough metadata for anti-cheat, e.g. a perceptual hash of the frame) is sent to the capture endpoint. The raw image itself only goes to ImageKit if the feature needs persistence (e.g. a potential Explore post) — not to the scoring path.
 3. **Server, anti-cheat checks (in order, reject fast):**
@@ -75,6 +118,34 @@ Better Auth owns `user`, `session`, `account`, and `verification` directly in th
 6. **Realtime:** the leaderboard's underlying aggregation reflects the new ledger row; connected clients see the update via Supabase Realtime without polling.
 
 ## Data flow: referrals
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Referrer
+    actor Friend as Referred Friend
+    participant Client as Friend's Browser
+    participant Server as Next.js API
+    participant DB as Supabase Postgres
+
+    Note over Referrer,Friend: Referral Link Shared (?ref=REFERRER_CODE)
+    Friend->>Server: POST /api/auth/sign-up (email, password, ref_code)
+    Server->>DB: Create User & INSERT referrals (status: 'pending')
+    Note over DB: No coins awarded yet (anti-farming protection)
+
+    Friend->>Client: Completes first smile capture
+    Client->>Server: POST /api/capture (first valid capture score)
+    Server->>DB: Validate capture & pass anti-cheat checks
+
+    Note over Server,DB: Referral Activation Trigger
+    Server->>DB: Find pending referral for Friend
+    Server->>DB: Check Referrer's daily referral reward cap
+    Server->>DB: INSERT coin_ledger for Referrer (reason: 'referral_bonus')
+    Server->>DB: INSERT coin_ledger for Friend (reason: 'referral_bonus')
+    Server->>DB: UPDATE referrals SET status = 'rewarded'
+
+    Server-->>Client: Return capture reward + referral welcome bonus
+```
 
 1. Signup via a referral link records a `referrals` row (`referrer_id`, `referred_id`, `status: 'pending'`).
 2. The reward does **not** trigger on signup. It triggers when the referred user completes their first successful capture (i.e. passes the anti-cheat checks above and gets a `coin_ledger` row) — this closes the "create fake accounts for free coins" loophole that a signup-triggered reward would leave open.

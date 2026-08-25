@@ -24,11 +24,11 @@ export function SettingsSidebar({
 	userInitials,
 }: SettingsSidebarProps) {
 	return (
-		<nav className="w-[220px] shrink-0 border-r border-border bg-muted/30 overflow-y-auto py-3 hidden sm:block">
+		<nav className="w-[230px] shrink-0 border-r-[3px] border-black bg-muted/30 overflow-y-auto py-3 hidden sm:block">
 			{/* Nav groups */}
 			{NAV_GROUPS.map((group, gi) => (
-				<div key={group.title} className={cn(gi > 0 && 'mt-3')}>
-					<p className="px-5 mb-1 text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+				<div key={group.title} className={cn(gi > 0 && 'mt-4')}>
+					<p className="px-5 mb-1.5 font-mono text-[10px] font-black text-muted-foreground uppercase tracking-widest">
 						{group.title}
 					</p>
 					{group.items.map((item) => {
@@ -41,19 +41,19 @@ export function SettingsSidebar({
 									key={item.id}
 									onClick={() => onSectionChange('profile')}
 									className={cn(
-										'flex items-center gap-2.5 rounded-md mx-3 px-2.5 py-1.5 text-sm transition-colors',
-										'w-[calc(100%-24px)]',
+										'flex items-center gap-2.5 mx-3 px-2.5 py-1.5 text-xs uppercase tracking-wider font-bold transition-all',
+										'w-[calc(100%-24px)] border-[2px]',
 										isActive
-											? 'bg-primary/10 text-foreground font-medium'
-											: 'text-foreground hover:bg-muted',
+											? 'border-black bg-primary text-black shadow-[2px_2px_0_#000]'
+											: 'border-transparent text-foreground hover:border-black hover:bg-muted hover:shadow-[1px_1px_0_#000]',
 									)}>
-									<Avatar className="h-5 w-5 rounded-md">
+									<Avatar className="h-5 w-5 border border-black shrink-0">
 										<AvatarImage src={userAvatar} alt={userName} />
-										<AvatarFallback className="rounded-md text-[10px] bg-primary text-primary-foreground">
+										<AvatarFallback className="text-[9px] font-black bg-card text-black">
 											{userInitials}
 										</AvatarFallback>
 									</Avatar>
-									<span className="truncate font-medium">
+									<span className="truncate font-black">
 										{userName.toUpperCase()}
 									</span>
 								</button>
@@ -65,13 +65,13 @@ export function SettingsSidebar({
 								key={item.id}
 								onClick={() => onSectionChange(item.id)}
 								className={cn(
-									'flex items-center gap-2.5 rounded-md mx-3 px-2.5 py-1.5 text-sm transition-colors',
-									'w-[calc(100%-24px)]',
+									'flex items-center gap-2.5 mx-3 px-2.5 py-1.5 text-xs uppercase tracking-wider font-bold transition-all',
+									'w-[calc(100%-24px)] border-[2px]',
 									isActive
-										? 'bg-primary/10 text-foreground font-medium'
-										: 'text-muted-foreground hover:bg-muted hover:text-foreground',
+										? 'border-black bg-primary text-black shadow-[2px_2px_0_#000]'
+										: 'border-transparent text-foreground hover:border-black hover:bg-muted hover:shadow-[1px_1px_0_#000]',
 								)}>
-								<Icon className="h-4 w-4 shrink-0" />
+								<Icon className="h-4 w-4 shrink-0" strokeWidth={isActive ? 2.5 : 2} />
 								<span className="truncate">{item.label}</span>
 							</button>
 						);
@@ -91,13 +91,13 @@ export function SettingsMobileNav({
 	onSectionChange: (section: SettingsSection) => void;
 }) {
 	return (
-		<div className="sm:hidden border-b border-border p-3">
+		<div className="sm:hidden border-b-[3px] border-black p-3 bg-muted/20">
 			<select
 				value={activeSection}
 				onChange={(e) =>
 					onSectionChange(e.target.value as SettingsSection)
 				}
-				className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm">
+				className="w-full border-[2px] border-black bg-card px-3 py-2 font-mono text-xs font-bold uppercase shadow-[2px_2px_0_#000] focus:outline-none">
 				{NAV_GROUPS.flatMap((g) =>
 					g.items.map((item) => (
 						<option key={item.id} value={item.id}>

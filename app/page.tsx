@@ -17,6 +17,7 @@ import { auth } from "@/auth";
 import { Navbar } from "@/components/navbar";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { Button } from "@/components/ui/button";
+import { TeamAndTestimonialsSection } from "@/components/team-and-testimonials";
 
 const steps = [
   {
@@ -168,6 +169,8 @@ export default async function Home() {
             <p className="mt-6 max-w-[52ch] text-lg leading-8 text-muted-foreground">Smile scoring happens locally in your browser. Captures are private by default, and any image you choose to share expires automatically after one day.</p>
           </div>
         </section>
+
+        <TeamAndTestimonialsSection />
 
         <section id="beta" className="border-y-[3px] border-black bg-primary">
           <div className="mx-auto grid w-full max-w-7xl gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end lg:py-20">

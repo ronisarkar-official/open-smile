@@ -4,16 +4,6 @@ import * as React from 'react';
 import { useSession, signOut } from '@/lib/auth-client';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-
-import {
-	Breadcrumb,
-	BreadcrumbItem,
-	BreadcrumbLink,
-	BreadcrumbList,
-	BreadcrumbPage,
-	BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { Separator } from '@/components/ui/separator';
 import {
 	SidebarProvider,
 	SidebarInset,
@@ -43,12 +33,15 @@ import {
 	Bell,
 	Camera,
 	ChevronsUpDown,
+	Coins,
 	Compass,
+	Flame,
 	Gift,
 	LayoutDashboard,
 	LogOut,
 	Smile,
 	Settings,
+	Sparkles,
 	Trophy,
 	UserPlus,
 } from 'lucide-react';
@@ -56,6 +49,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SettingsDialog } from '@/components/settings/dialog';
 import type { SettingsSection } from '@/components/settings/settings-shared';
 import { cn } from '@/lib/utils';
+import { CoinIcon } from '@/components/ui/coin-icon';
 
 const mainNav = [
 	{
@@ -98,8 +92,6 @@ const secondaryNav = [
 	},
 ];
 
-// Bottom tab bar items, in display order. Settings opens the dialog rather
-// than navigating, same as the desktop sidebar's Settings entry.
 const mobileTabs = [
 	{
 		title: 'Dashboard',
@@ -129,7 +121,7 @@ const mobileTabs = [
 		title: 'Settings',
 		url: '/dashboard/settings',
 		icon: Settings,
-		kind: 'settings' as const,
+		kind: 'link' as const,
 	},
 ];
 
@@ -167,7 +159,6 @@ export const DashboardSidebar = ({
 	const isActive = (url: string) => pathname === url;
 
 	const navItems = [...mainNav, ...secondaryNav];
-
 	const currentPage = navItems.find((item) => isActive(item.url));
 
 	const UserMenu = ({ className }: { className?: string }) => (
@@ -176,52 +167,60 @@ export const DashboardSidebar = ({
 				<button
 					type="button"
 					className={cn(
-						'flex items-center gap-2 border-[3px] border-border bg-card px-2 py-1.5 text-left brutal-shadow-sm',
+						'flex items-center gap-2 border-[2px] border-black bg-card px-2 py-1.5 text-left shadow-[2px_2px_0_#000] brutal-lift cursor-pointer outline-none focus-visible:outline-3 focus-visible:outline-ring',
 						className,
 					)}
 					aria-label="Open account menu">
-					<Avatar className="h-8 w-8">
+					<Avatar className="h-7 w-7 border border-black">
 						<AvatarImage
 							src={userAvatar}
 							alt={userName}
 						/>
-						<AvatarFallback>{userInitials}</AvatarFallback>
+						<AvatarFallback className="bg-primary text-black font-bold text-xs">
+							{userInitials}
+						</AvatarFallback>
 					</Avatar>
 				</button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
-				className="w-56"
+				className="w-60 border-[3px] border-black bg-card shadow-[5px_5px_0_#000] p-1"
 				side="bottom"
 				align="end"
 				sideOffset={8}>
-				<DropdownMenuLabel className="p-0 font-normal">
-					<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-						<Avatar className="h-8 w-8">
+				<DropdownMenuLabel className="p-2 font-normal border-b-[2px] border-black bg-muted/40">
+					<div className="flex items-center gap-2.5 text-left">
+						<Avatar className="h-8 w-8 border-[2px] border-black shrink-0">
 							<AvatarImage
 								src={userAvatar}
 								alt={userName}
 							/>
-							<AvatarFallback>{userInitials}</AvatarFallback>
+							<AvatarFallback className="bg-primary font-black text-xs">
+								{userInitials}
+							</AvatarFallback>
 						</Avatar>
-						<div className="grid flex-1 text-left text-sm leading-tight">
-							<span className="truncate font-semibold">{userName}</span>
-							<span className="truncate text-xs">{userEmail}</span>
+						<div className="grid flex-1 text-left leading-tight min-w-0">
+							<span className="truncate font-black text-sm">{userName}</span>
+							<span className="truncate text-xs font-mono text-muted-foreground">{userEmail}</span>
 						</div>
 					</div>
 				</DropdownMenuLabel>
-				<DropdownMenuSeparator />
-				<DropdownMenuGroup>
-					<DropdownMenuItem onClick={() => openSettings('profile')}>
-						<Settings />
+				<DropdownMenuGroup className="p-1">
+					<DropdownMenuItem
+						onClick={() => openSettings('profile')}
+						className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-primary/20 focus:bg-primary/20">
+						<Settings className="size-4" strokeWidth={2.5} />
 						Settings
 					</DropdownMenuItem>
-					<DropdownMenuItem>
-						<Bell />
+					<DropdownMenuItem
+						onClick={() => openSettings('notifications')}
+						className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-accent/20 focus:bg-accent/20">
+						<Bell className="size-4" strokeWidth={2.5} />
 						Notifications
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
-				<DropdownMenuSeparator />
+				<DropdownMenuSeparator className="bg-black h-[2px]" />
 				<DropdownMenuItem
+					className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider text-destructive cursor-pointer hover:bg-destructive/10 focus:bg-destructive/10"
 					onClick={() =>
 						signOut({
 							fetchOptions: {
@@ -231,7 +230,7 @@ export const DashboardSidebar = ({
 							},
 						})
 					}>
-					<LogOut />
+					<LogOut className="size-4" strokeWidth={2.5} />
 					Log out
 				</DropdownMenuItem>
 			</DropdownMenuContent>
@@ -241,22 +240,26 @@ export const DashboardSidebar = ({
 	return (
 		<>
 			<SidebarProvider>
-				{/* Desktop / tablet sidebar — hidden below md, unchanged above it */}
 				<Sidebar
 					collapsible="icon"
-					className="hidden md:flex">
-					<SidebarHeader>
+					className="hidden md:flex border-r-[3px] border-black bg-sidebar">
+					<SidebarHeader className="border-b-[3px] border-black p-3">
 						<SidebarMenu>
 							<SidebarMenuItem>
 								<Link href="/dashboard">
 									<SidebarMenuButton
 										size="lg"
-										className="group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:justify-center!">
-										<div className="flex aspect-square size-8 items-center justify-center border-2 border-black bg-primary text-primary-foreground">
-											<Smile className="m-auto size-4" />
+										className="group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:justify-center! hover:bg-primary/10">
+										<div className="flex aspect-square size-9 items-center justify-center border-[3px] border-black bg-primary text-black shadow-[2px_2px_0_#000] shrink-0">
+											<Smile className="m-auto size-5" strokeWidth={2.5} />
 										</div>
-										<div className="grid flex-1 text-left text-sm leading-tight">
-											<span className="truncate font-semibold">Open Smile</span>
+										<div className="grid flex-1 text-left leading-tight ml-1">
+											<span className="truncate font-black tracking-tight text-base font-title">
+												OPEN SMILE
+											</span>
+											<span className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+												Daily AI Rewards
+											</span>
 										</div>
 									</SidebarMenuButton>
 								</Link>
@@ -264,116 +267,156 @@ export const DashboardSidebar = ({
 						</SidebarMenu>
 					</SidebarHeader>
 
-					<SidebarContent>
+					<SidebarContent className="p-2 gap-4">
+						<div className="px-1 pt-1 group-data-[collapsible=icon]:hidden">
+							<Link
+								href="/capture"
+								className="flex items-center justify-center gap-2 border-[3px] border-black bg-primary px-3 py-2.5 font-title font-black text-xs uppercase tracking-wider text-black shadow-[3px_3px_0_#000] brutal-lift hover:bg-primary/90">
+								<Camera className="size-4" strokeWidth={2.5} />
+								<span>Capture Smile</span>
+							</Link>
+						</div>
+
 						<SidebarGroup>
-							<SidebarGroupLabel>Main</SidebarGroupLabel>
-							<SidebarMenu>
-								{mainNav.map((item) => (
-									<SidebarMenuItem key={item.title}>
-										<Link href={item.url}>
-											<SidebarMenuButton
-												tooltip={item.title}
-												isActive={isActive(item.url)}>
-												<item.icon />
-												<span>{item.title}</span>
-											</SidebarMenuButton>
-										</Link>
-									</SidebarMenuItem>
-								))}
+							<SidebarGroupLabel className="font-mono text-[10px] font-black uppercase tracking-[0.14em] text-foreground/70 px-2">
+								Menu
+							</SidebarGroupLabel>
+							<SidebarMenu className="gap-1.5">
+								{mainNav.map((item) => {
+									const active = isActive(item.url);
+									return (
+										<SidebarMenuItem key={item.title}>
+											<Link href={item.url}>
+												<SidebarMenuButton
+													tooltip={item.title}
+													isActive={active}
+													className={cn(
+														'border-[2px] transition-all font-title font-bold text-sm tracking-tight',
+														active
+															? 'border-black bg-primary text-black shadow-[3px_3px_0_#000]'
+															: 'border-transparent text-foreground hover:border-black hover:bg-muted/70 hover:shadow-[2px_2px_0_#000]',
+													)}>
+													<item.icon className="size-4" strokeWidth={active ? 2.5 : 2} />
+													<span className="font-bold">{item.title}</span>
+												</SidebarMenuButton>
+											</Link>
+										</SidebarMenuItem>
+									);
+								})}
 							</SidebarMenu>
 						</SidebarGroup>
 
 						<SidebarGroup>
-							<SidebarGroupLabel>Settings</SidebarGroupLabel>
-							<SidebarMenu>
-								{secondaryNav.map((item) => (
-									<SidebarMenuItem key={item.title}>
-										{item.title === 'Settings' ?
-											<SidebarMenuButton
-												tooltip={item.title}
-												isActive={settingsOpen || isActive(item.url)}
-												onClick={() => openSettings('profile')}>
-												<item.icon />
-												<span>{item.title}</span>
-											</SidebarMenuButton>
-										:	<Link href={item.url}>
+							<SidebarGroupLabel className="font-mono text-[10px] font-black uppercase tracking-[0.14em] text-foreground/70 px-2">
+								Account
+							</SidebarGroupLabel>
+							<SidebarMenu className="gap-1.5">
+								{secondaryNav.map((item) => {
+									const active = settingsOpen || isActive(item.url);
+									return (
+										<SidebarMenuItem key={item.title}>
+											{item.title === 'Settings' ? (
 												<SidebarMenuButton
 													tooltip={item.title}
-													isActive={isActive(item.url)}>
-													<item.icon />
-													<span>{item.title}</span>
+													isActive={active}
+													onClick={() => openSettings('profile')}
+													className={cn(
+														'border-[2px] transition-all font-title font-bold text-sm tracking-tight',
+														active
+															? 'border-black bg-primary text-black shadow-[3px_3px_0_#000]'
+															: 'border-transparent text-foreground hover:border-black hover:bg-muted/70 hover:shadow-[2px_2px_0_#000]',
+													)}>
+													<item.icon className="size-4" strokeWidth={active ? 2.5 : 2} />
+													<span className="font-bold">{item.title}</span>
 												</SidebarMenuButton>
-											</Link>
-										}
-									</SidebarMenuItem>
-								))}
+											) : (
+												<Link href={item.url}>
+													<SidebarMenuButton
+														tooltip={item.title}
+														isActive={active}
+														className={cn(
+															'border-[2px] transition-all font-title font-bold text-sm tracking-tight',
+															active
+																? 'border-black bg-primary text-black shadow-[3px_3px_0_#000]'
+																: 'border-transparent text-foreground hover:border-black hover:bg-muted/70 hover:shadow-[2px_2px_0_#000]',
+														)}>
+														<item.icon className="size-4" strokeWidth={active ? 2.5 : 2} />
+														<span className="font-bold">{item.title}</span>
+													</SidebarMenuButton>
+												</Link>
+											)}
+										</SidebarMenuItem>
+									);
+								})}
 							</SidebarMenu>
 						</SidebarGroup>
 					</SidebarContent>
 
-					<SidebarFooter>
+					<SidebarFooter className="border-t-[3px] border-black p-2">
 						<SidebarMenu>
 							<SidebarMenuItem>
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
 										<SidebarMenuButton
 											size="lg"
-											className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-											<Avatar className="h-8 w-8 rounded-lg">
+											className="border-[2px] border-black bg-card shadow-[2px_2px_0_#000] hover:bg-muted brutal-lift">
+											<Avatar className="h-8 w-8 border border-black shrink-0">
 												<AvatarImage
 													src={userAvatar}
 													alt={userName}
 												/>
-												<AvatarFallback className="rounded-lg">
+												<AvatarFallback className="bg-primary text-black font-black text-xs">
 													{userInitials}
 												</AvatarFallback>
 											</Avatar>
-											<div className="grid flex-1 text-left text-sm leading-tight">
-												<span className="truncate font-semibold">
+											<div className="grid flex-1 text-left leading-tight min-w-0">
+												<span className="truncate font-black text-sm font-title">
 													{userName}
 												</span>
-												<span className="truncate text-xs">{userEmail}</span>
+												<span className="truncate font-mono text-[10px] text-muted-foreground">{userEmail}</span>
 											</div>
-											<ChevronsUpDown className="ml-auto size-4" />
+											<ChevronsUpDown className="ml-auto size-4" strokeWidth={2.5} />
 										</SidebarMenuButton>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent
-										className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-										side={'bottom'}
+										className="w-[--radix-dropdown-menu-trigger-width] min-w-56 border-[3px] border-black bg-card shadow-[5px_5px_0_#000] p-1"
+										side="bottom"
 										align="end"
 										sideOffset={4}>
-										<DropdownMenuLabel className="p-0 font-normal">
-											<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-												<Avatar className="h-8 w-8 rounded-lg">
+										<DropdownMenuLabel className="p-2 font-normal border-b-[2px] border-black bg-muted/40">
+											<div className="flex items-center gap-2 px-1 text-left text-sm">
+												<Avatar className="h-8 w-8 border-[2px] border-black">
 													<AvatarImage
 														src={userAvatar}
 														alt={userName}
 													/>
-													<AvatarFallback className="rounded-lg">
+													<AvatarFallback className="bg-primary font-black text-xs">
 														{userInitials}
 													</AvatarFallback>
 												</Avatar>
-												<div className="grid flex-1 text-left text-sm leading-tight">
-													<span className="truncate font-semibold">
-														{userName}
-													</span>
-													<span className="truncate text-xs">{userEmail}</span>
+												<div className="grid flex-1 text-left text-sm leading-tight min-w-0">
+													<span className="truncate font-black">{userName}</span>
+													<span className="truncate font-mono text-xs text-muted-foreground">{userEmail}</span>
 												</div>
 											</div>
 										</DropdownMenuLabel>
-										<DropdownMenuSeparator />
-										<DropdownMenuGroup>
-											<DropdownMenuItem onClick={() => openSettings('profile')}>
-												<Settings />
+										<DropdownMenuGroup className="p-1">
+											<DropdownMenuItem
+												onClick={() => openSettings('profile')}
+												className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-primary/20 focus:bg-primary/20">
+												<Settings className="size-4" strokeWidth={2.5} />
 												Settings
 											</DropdownMenuItem>
-											<DropdownMenuItem>
-												<Bell />
+											<DropdownMenuItem
+												onClick={() => openSettings('notifications')}
+												className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-accent/20 focus:bg-accent/20">
+												<Bell className="size-4" strokeWidth={2.5} />
 												Notifications
 											</DropdownMenuItem>
 										</DropdownMenuGroup>
-										<DropdownMenuSeparator />
+										<DropdownMenuSeparator className="bg-black h-[2px]" />
 										<DropdownMenuItem
+											className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider text-destructive cursor-pointer hover:bg-destructive/10 focus:bg-destructive/10"
 											onClick={() =>
 												signOut({
 													fetchOptions: {
@@ -383,7 +426,7 @@ export const DashboardSidebar = ({
 													},
 												})
 											}>
-											<LogOut />
+											<LogOut className="size-4" strokeWidth={2.5} />
 											Log out
 										</DropdownMenuItem>
 									</DropdownMenuContent>
@@ -395,107 +438,79 @@ export const DashboardSidebar = ({
 				</Sidebar>
 
 				<SidebarInset>
-					{/* Top header — sidebar trigger only shows on desktop; mobile gets brand + user menu instead */}
-					<header className="flex h-14 shrink-0 items-center gap-2 border-b-[3px] border-border transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-14">
-						<div className="flex flex-1 items-center gap-2 px-4">
-							<SidebarTrigger className="-ml-1 hidden md:flex" />
-							<Separator
-								orientation="vertical"
-								className="hidden h-8 md:block"
-							/>
+					<header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b-[3px] border-black bg-background transition-[width,height] ease-linear">
+						<div className="flex flex-1 items-center justify-between gap-3 px-4 sm:px-6">
+							<div className="flex items-center gap-3">
+								<SidebarTrigger className="-ml-1 hidden md:flex border-[2px] border-black bg-card shadow-[2px_2px_0_#000] hover:bg-muted size-9" />
+								
 
-							{/* Mobile brand mark — sidebar trigger doesn't exist on mobile anymore */}
-							<Link
-								href="/dashboard"
-								className="flex items-center gap-2 md:hidden">
-								<div className="flex aspect-square size-7 items-center justify-center border-2 border-border bg-primary text-primary-foreground">
-									<Smile className="m-auto size-3.5" />
-								</div>
-								<span className="truncate text-sm font-semibold">
-									Open Smile
-								</span>
-							</Link>
+								
+							</div>
 
-							<Breadcrumb className="hidden md:block">
-								<BreadcrumbList>
-									<BreadcrumbItem>
-										<BreadcrumbLink href="/dashboard">Dashboard</BreadcrumbLink>
-									</BreadcrumbItem>
-									{currentPage && !isActive('/dashboard') && (
-										<>
-											<BreadcrumbSeparator />
-											<BreadcrumbItem>
-												<BreadcrumbPage>{currentPage.title}</BreadcrumbPage>
-											</BreadcrumbItem>
-										</>
-									)}
-								</BreadcrumbList>
-							</Breadcrumb>
+							<div className="flex items-center gap-2 sm:gap-3">
+								<Link
+									href="/rewards"
+									title="View Coin Rewards"
+									className="flex items-center gap-1.5 border-[2px] border-black bg-primary px-2.5 py-1 text-black shadow-[2px_2px_0_#000] brutal-lift">
+									<CoinIcon className="size-4" strokeWidth={2.5} />
+									<span className="font-mono text-xs font-black tabular-nums">247</span>
+								</Link>
 
-							{/* User menu lives here on mobile since there's no sidebar footer to hold it */}
-							<UserMenu className="ml-auto md:hidden" />
+								<Link
+									href="/dashboard"
+									title="Active Smile Streak"
+									className="flex items-center gap-1.5 border-[2px] border-black bg-secondary px-2.5 py-1 text-black shadow-[2px_2px_0_#000] brutal-lift">
+									<Flame className="size-4" strokeWidth={2.5} />
+									<span className="font-mono text-xs font-black tabular-nums">3d</span>
+								</Link>
+
+								<Link
+									href="/capture"
+									className="hidden sm:inline-flex items-center gap-1.5 border-[2px] border-black bg-accent px-3 py-1 font-title font-bold text-xs uppercase tracking-wider text-black shadow-[2px_2px_0_#000] brutal-lift">
+									<Camera className="size-3.5" strokeWidth={2.5} />
+									<span>Smile</span>
+								</Link>
+
+								<UserMenu className="md:hidden ml-1" />
+							</div>
 						</div>
 					</header>
 
-					{/* Bottom padding on mobile clears the fixed tab bar so content never sits underneath it */}
-					<div className="flex flex-1 flex-col gap-4 p-4 pt-0 pb-20 md:pb-4">
+					<div className="flex flex-1 flex-col gap-4 p-4 pt-4 pb-24 md:pb-8">
 						{children}
 					</div>
 				</SidebarInset>
 			</SidebarProvider>
 
-			{/* Bottom tab bar — mobile only, fixed to viewport bottom, hidden at md and up */}
 			<nav
-				className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-stretch border-t-[3px] border-border bg-card md:hidden"
+				className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-stretch border-t-[3px] border-black bg-card md:hidden shadow-[0_-3px_0_#000]"
 				style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
 				aria-label="Primary">
 				{mobileTabs.map((tab) => {
-					const active =
-						tab.kind === 'settings' ?
-							settingsOpen || isActive(tab.url)
-						:	isActive(tab.url);
+					const active = isActive(tab.url);
 
-					const content = (
-						<>
+					return (
+						<Link
+							key={tab.title}
+							href={tab.url}
+							className={cn(
+								'flex flex-1 flex-col items-center justify-center gap-1 transition-all',
+								active
+									? 'bg-primary text-black font-bold border-t-[3px] border-black -mt-[3px]'
+									: 'text-foreground hover:bg-muted/50',
+							)}
+							aria-current={active ? 'page' : undefined}>
 							<tab.icon
 								className="size-5"
 								strokeWidth={active ? 2.5 : 2}
 							/>
 							<span
 								className={cn(
-									'text-[11px]',
-									active ? 'font-bold' : 'font-medium',
+									'font-mono text-[10px] tracking-wider uppercase',
+									active ? 'font-black' : 'font-semibold text-muted-foreground',
 								)}>
 								{tab.title}
 							</span>
-						</>
-					);
-
-					const itemClasses = cn(
-						'flex flex-1 flex-col items-center justify-center gap-1 transition-colors',
-						active ? 'text-primary-foreground bg-primary' : 'text-foreground',
-					);
-
-					if (tab.kind === 'settings') {
-						return (
-							<button
-								key={tab.title}
-								type="button"
-								onClick={() => openSettings('profile')}
-								className={itemClasses}
-								aria-current={active ? 'page' : undefined}>
-								{content}
-							</button>
-						);
-					}
-
-					return (
-						<Link
-							key={tab.title}
-							href={tab.url}
-							className={itemClasses}
-							aria-current={active ? 'page' : undefined}>
-							{content}
 						</Link>
 					);
 				})}
@@ -515,3 +530,4 @@ export const DashboardSidebar = ({
 		</>
 	);
 };
+
