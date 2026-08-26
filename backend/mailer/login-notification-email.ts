@@ -7,7 +7,6 @@ interface LoginDetails {
 	userAgent?: string;
 }
 
-/** Security alert email — sent on user login (Google-style notification) */
 export async function sendLoginNotificationEmail(
 	to: string,
 	details?: LoginDetails

@@ -1,7 +1,6 @@
 import { sendEmail } from "./send-email";
 import { emailCss } from "./styles";
 
-/** Welcome email — sent on first user creation */
 export async function sendWelcomeEmail(to: string, name: string): Promise<void> {
 	if (!to) return;
 	await sendEmail({

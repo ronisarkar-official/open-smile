@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { requireServerUser } from '@/lib/server-auth';
+import { requireServerUser } from '@/backend/auth';
 import {
 	insertSmileCapture,
 	insertCoinLedgerEntry,
 	getLastCaptureTime,
-} from '@/lib/db/collections';
+} from '@/backend/db';
 
 const COOLDOWN_MS = 60 * 60 * 1000;
 

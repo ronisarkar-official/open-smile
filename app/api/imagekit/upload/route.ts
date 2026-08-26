@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireServerUser } from "@/lib/server-auth"
-import { uploadToImageKit, deleteFromImageKit, deleteFromImageKitByUrl, isImageKitConfigured } from "@/lib/imagekit"
+import { requireServerUser } from "@/backend/auth";
+import { uploadToImageKit, deleteFromImageKit, deleteFromImageKitByUrl, isImageKitConfigured } from "@/backend/services";
 
 const MAX_UPLOAD_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_MIME_TYPES = new Set([

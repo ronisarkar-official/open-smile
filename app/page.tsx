@@ -13,7 +13,7 @@ import {
   Sparkles,
   Trophy,
 } from "lucide-react";
-import { auth } from "@/auth";
+import { auth } from "@/backend/auth";
 import { Navbar } from "@/components/navbar";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { Button } from "@/components/ui/button";

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPassword } from "better-auth/crypto";
-import { findUserByEmail } from "@/lib/db";
-import { rateLimit } from "@/lib/rate-limit";
+import { findUserByEmail } from "@/backend/db";
+import { rateLimit } from "@/backend/services";
 
 const WINDOW = 15 * 60 * 1000;
 const MAX_PER_EMAIL = 10;

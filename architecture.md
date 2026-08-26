@@ -24,7 +24,7 @@ flowchart TB
         LeaderboardRoute["/api/leaderboard<br/>(Aggregation Queries)"]
         ImageKitAuth["/api/imagekit/*<br/>(Upload Auth & Signatures)"]
         BetaRoute["/api/beta-join<br/>(Waitlist Handler)"]
-        DBPool["lib/db/collections.ts<br/>(Parameterized SQL Pool via pg)"]
+        DBPool["backend/db/collections.ts<br/>(Parameterized SQL Pool via pg)"]
         
         CaptureRoute --> DBPool
         AuthRoutes --> DBPool
@@ -68,7 +68,7 @@ flowchart TB
 
 Better Auth owns `user`, `session`, `account`, and `verification` directly in the same Postgres database — it does **not** sit on top of Supabase Auth. In this stack, Supabase is purely Postgres + Realtime + (optionally) Storage; its own Auth product is unused.
 
-- Access is via a raw `pg` connection pool (`lib/db/client.ts`), not an ORM. `lib/db/collections.ts` centralizes typed, parameterized query helpers so SQL isn't scattered through route handlers.
+- Access is via a raw `pg` connection pool (`backend/db/client.ts`), not an ORM. `backend/db/collections.ts` centralizes typed, parameterized query helpers so SQL isn't scattered through route handlers.
 - A custom email-OTP layer sits alongside Better Auth (`otp_codes` table + `send-otp` / `verify-otp` / `check-credentials` / `mark-verified` / `notify-login` routes) for verification and login-notification flows Better Auth doesn't handle out of the box.
 - App tables (`smile_captures`, `coin_ledger`, etc.) reference `user.id` as a plain foreign key — one source of truth, no UID-syncing between systems.
 - **Known integration seam:** Supabase Realtime's built-in RLS policies expect Supabase Auth JWTs by default. Since auth is Better Auth, per-user Realtime channel authorization (e.g. private leaderboard subscriptions) needs the Better Auth session passed into Realtime's presence/broadcast auth callback manually. This is the one place the "two systems, one database" architecture requires extra wiring, and it should be verified before relying on Realtime for anything access-controlled.

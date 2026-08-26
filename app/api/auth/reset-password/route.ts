@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
-import { rateLimit } from "@/lib/rate-limit";
+import { auth } from "@/backend/auth";
+import { rateLimit } from "@/backend/services";
 
 const WINDOW = 15 * 60 * 1000;
 const MAX_PER_IP = 20;

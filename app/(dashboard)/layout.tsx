@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { auth } from "@/auth";
+import { auth } from "@/backend/auth";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 
 export default async function DashboardGroupLayout({ children }: { children: React.ReactNode }) {

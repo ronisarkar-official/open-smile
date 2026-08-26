@@ -1,6 +1,5 @@
 import { sendEmail } from "./send-email";
 
-/** OTP email — used by /api/auth/send-otp */
 export async function sendOTPEmail(email: string, otp: string): Promise<void> {
 	if (!email) return;
 	await sendEmail({

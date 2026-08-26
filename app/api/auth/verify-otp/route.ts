@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { verifyOTP } from "@/lib/otp";
-import { updateUserEmailVerified } from "@/lib/db";
-import { rateLimit } from "@/lib/rate-limit";
+import { verifyOTP } from "@/backend/auth";
+import { updateUserEmailVerified } from "@/backend/db";
+import { rateLimit } from "@/backend/services";
 
 const WINDOW = 15 * 60 * 1000;
 const MAX_PER_EMAIL = 15;

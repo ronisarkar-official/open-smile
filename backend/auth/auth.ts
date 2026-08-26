@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { Pool } from "pg";
-import { sendWelcomeEmail, sendResetPasswordEmail } from "@/lib/mailer";
+import { sendWelcomeEmail, sendResetPasswordEmail } from "../mailer";
 import {
 	twoFactor,
 	organization,
@@ -10,8 +10,6 @@ import {
 	openAPI,
 } from "better-auth/plugins";
 
-// Fail fast in production: auth silently shipping without a database
-// or signing secret is a security hazard.
 if (process.env.NODE_ENV === "production") {
 	if (!process.env.DATABASE_URL) {
 		throw new Error(
@@ -37,7 +35,6 @@ export const auth = betterAuth({
 	secret: process.env.BETTER_AUTH_SECRET,
 	baseURL: process.env.BETTER_AUTH_URL,
 
-	// User Management Features
 	user: {
 		deleteUser: {
 			enabled: true,
@@ -47,30 +44,21 @@ export const auth = betterAuth({
 		},
 	},
 
-	// Account Linking (Google & GitHub SSO)
 	account: {
 		accountLinking: {
 			enabled: true,
 			trustedProviders: ["google", "github"],
-			// Local users created through this app's OTP flow don't carry
-			// Better Auth's `emailVerified` flag, so without this the implicit
-			// linking gate rejects GitHub/Google sign-ins for existing users
-			// with "account_not_linked". These providers verify emails
-			// themselves, so local verification is not required to link.
 			requireLocalEmailVerified: false,
 		},
 	},
 
-	// Email & Password Auth
 	emailAndPassword: {
 		enabled: true,
 		autoSignIn: true,
 		minPasswordLength: 8,
-		// Sends the magic reset link. We build our own URL so the user
-		// lands on the reset page with the token pre-filled — no extra hop.
 		sendResetPassword: async ({ user, token }) => {
 			const base = (process.env.BETTER_AUTH_URL || "").replace(/\/+$/, "");
-			if (!base) return; // dev: no origin configured; npm logs already cover it
+			if (!base) return;
 			const resetUrl =
 				`${base}/reset-password` +
 				`?token=${encodeURIComponent(token)}` +
@@ -81,11 +69,9 @@ export const auth = betterAuth({
 				console.error("[auth] Reset-password email failed:", err);
 			}
 		},
-		// After a password reset, invalidate the user's other sessions.
 		revokeSessionsOnPasswordReset: true,
 	},
 
-	// Social OAuth Providers
 	socialProviders: {
 		github: {
 			clientId: process.env.AUTH_GITHUB_ID || "",
@@ -97,22 +83,19 @@ export const auth = betterAuth({
 		},
 	},
 
-	// Session Management
 	session: {
-		expiresIn: 60 * 60 * 24 * 30, // 30 days
-		updateAge: 60 * 60 * 24, // 1 day
+		expiresIn: 60 * 60 * 24 * 30,
+		updateAge: 60 * 60 * 24,
 		cookieCache: {
 			enabled: true,
 			maxAge: 60,
 		},
 	},
 
-	// Advanced Production Security Settings
 	advanced: {
 		useSecureCookies: process.env.NODE_ENV === "production",
 	},
 
-	// Run side-effects on auth lifecycle events
 	databaseHooks: {
 		user: {
 			create: {
@@ -127,7 +110,6 @@ export const auth = betterAuth({
 		},
 	},
 
-	// Plugin Suite (Zero-config plugins)
 	plugins: [
 		twoFactor(),
 		organization(),

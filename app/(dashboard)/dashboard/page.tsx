@@ -10,7 +10,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { CoinIcon } from "@/components/ui/coin-icon";
-import { auth } from "@/auth";
+import { auth } from "@/backend/auth";
 import { Button } from "@/components/ui/button";
 
 const recentActivity = [

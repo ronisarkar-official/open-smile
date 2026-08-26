@@ -30,7 +30,7 @@ When picking up work, default to building toward the missing core loop unless to
 |---|---|
 | Frontend | Next.js 15 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui |
 | Smile detection | face-api.js or MediaPipe Face Landmarker — **client-side only**, never send raw video/images to a server for scoring |
-| Database | Supabase Postgres — **raw `pg` pool, no ORM**. See `lib/db/collections.ts` for the pattern |
+| Database | Supabase Postgres — **raw `pg` pool, no ORM**. See `backend/db/collections.ts` for the pattern |
 | Realtime | Supabase Realtime (leaderboard live updates) |
 | Auth | Better Auth — owns its own `user`/`session`/`account`/`verification` tables directly in the same Postgres DB. It does **not** sit on top of Supabase Auth; Supabase in this stack is just Postgres + Realtime + (optionally) Storage |
 | Storage | ImageKit — images auto-delete after 1 day |
@@ -40,7 +40,7 @@ When picking up work, default to building toward the missing core loop unless to
 
 ## Database conventions
 
-- All queries go through `lib/db/client.ts` (pool) and `lib/db/collections.ts` (typed, parameterized query helpers). **Do not write raw inline SQL in route handlers or components** — add a new typed helper to `collections.ts` instead, following the existing pattern (see `findUserByEmail`, `upsertOtpCode`).
+- All queries go through `backend/db/client.ts` (pool) and `backend/db/collections.ts` (typed, parameterized query helpers). **Do not write raw inline SQL in route handlers or components** — add a new typed helper to `collections.ts` instead, following the existing pattern (see `findUserByEmail`, `upsertOtpCode`).
 - Always use parameterized queries (`$1`, `$2`, ...). Never string-interpolate user input into SQL.
 - Coin balances are **never** stored as a mutable running total. Every coin movement (capture reward, signup bonus, referral bonus, streak bonus, explore post reward) is an **insert** into `coin_ledger` with a `reason` column. Current balance = `SUM(coins)` over a user's ledger rows. This makes the economy auditable and reversible — do not "optimize" this into a single mutable balance column.
 - Expired rows (`otp_codes`, `rate_limits`) are cleaned up via explicit `DELETE ... WHERE expires_at <= NOW()` calls, not TTL indexes (Postgres has none). If you add a new expiring table, add a matching cleanup helper and wire it into the same scheduled cleanup job — don't leave it to grow unbounded.

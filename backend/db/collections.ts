@@ -1,21 +1,5 @@
 import { getPool } from "./client";
 
-/**
- * ── Typed Query Helpers ──────────────────────────────────
- *
- * Centralises table names and provides typed query helpers
- * so they are defined in one place and discoverable via
- * auto-complete.
- *
- * @example
- * ```ts
- * import { findUserByEmail } from "@/lib/db";
- * const user = await findUserByEmail("user@example.com");
- * ```
- */
-
-/* ── Better Auth core table helpers ── */
-
 export async function findUserByEmail(email: string) {
 	const { rows } = await getPool().query(
 		'SELECT * FROM "user" WHERE LOWER(email) = LOWER($1) LIMIT 1',
@@ -30,8 +14,6 @@ export async function updateUserEmailVerified(email: string) {
 		[email]
 	);
 }
-
-/* ── Beta waitlist ── */
 
 export interface BetaWaitlistRow {
 	email: string;
@@ -52,8 +34,6 @@ export async function insertBetaWaitlist(email: string) {
 		[email]
 	);
 }
-
-/* ── OTP codes (email verification / login OTP) ── */
 
 export interface OtpCodeRow {
 	email: string;
@@ -99,8 +79,6 @@ export async function deleteOtpCode(email: string) {
 	await getPool().query("DELETE FROM otp_codes WHERE email = $1", [email]);
 }
 
-/* ── Rate limiting (DB-backed, with expiry) ── */
-
 export interface RateLimitRow {
 	id: string;
 	count: number;
@@ -135,8 +113,6 @@ export async function resetRateLimit(
 	);
 }
 
-/* ── Cleanup helpers (replaces MongoDB TTL indexes) ── */
-
 export async function cleanupExpiredOtpCodes() {
 	await getPool().query("DELETE FROM otp_codes WHERE expires_at <= NOW()");
 }
@@ -144,8 +120,6 @@ export async function cleanupExpiredOtpCodes() {
 export async function cleanupExpiredRateLimits() {
 	await getPool().query("DELETE FROM rate_limits WHERE expires_at <= NOW()");
 }
-
-/* ── Smile captures ── */
 
 export async function insertSmileCapture(
 	userId: string,
@@ -171,8 +145,6 @@ export async function getLastCaptureTime(userId: string): Promise<Date | null> {
 	);
 	return rows[0]?.created_at ?? null;
 }
-
-/* ── Coin ledger (append-only, balance = SUM) ── */
 
 export async function insertCoinLedgerEntry(
 	userId: string,

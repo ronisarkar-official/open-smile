@@ -1,26 +1,8 @@
 import { Pool } from "pg";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-/**
- * ── PostgreSQL Pool Singleton ─────────────────────────────
- *
- * Provides a lazily-initialised, singleton pg Pool.
- *
- * In **development** the pool is cached on `globalThis` so
- * Next.js hot-module-reloads don't leak connections.
- *
- * In **production** a simple module-level variable is used.
- *
- * @example
- * ```ts
- * import { getPool } from "@/lib/db";
- * const { rows } = await getPool().query("SELECT * FROM \"user\" LIMIT 1");
- * ```
- */
-
 const DATABASE_URL = process.env.DATABASE_URL;
 
-/* ---------- dev-safe global cache key ---------- */
 const globalForPg = globalThis as typeof globalThis & {
 	_pgPool?: Pool;
 	_supabase?: SupabaseClient;
@@ -28,10 +10,6 @@ const globalForPg = globalThis as typeof globalThis & {
 
 let _pool: Pool | null = null;
 
-/**
- * Return the singleton `Pool`.
- * Creates it on first call.
- */
 export function getPool(): Pool {
 	if (process.env.NODE_ENV === "development" && globalForPg._pgPool) {
 		return globalForPg._pgPool;
@@ -56,9 +34,6 @@ export function getPool(): Pool {
 	return _pool;
 }
 
-/**
- * Return the singleton Supabase client (service-role, server-side only).
- */
 export function getSupabase(): SupabaseClient {
 	if (process.env.NODE_ENV === "development" && globalForPg._supabase) {
 		return globalForPg._supabase;
@@ -85,7 +60,6 @@ export function getSupabase(): SupabaseClient {
 	return client;
 }
 
-/* ── Startup connection test (runs once on first import) ── */
 (async () => {
 	if (DATABASE_URL) {
 		try {

@@ -4,13 +4,6 @@ const globalForIndexes = globalThis as typeof globalThis & {
 	__indexesPromise?: Promise<void>;
 };
 
-/**
- * ── Idempotent Schema Bootstrapping ───────────────────────
- *
- * Ensures the custom app tables and indexes exist.
- * Safe to call from any route; runs exactly once per process.
- * Also cleans up expired OTP / rate-limit records on each run.
- */
 export function ensureIndexes(): Promise<void> {
 	const g = globalForIndexes;
 	if (!g.__indexesPromise) {
@@ -44,8 +37,6 @@ export function ensureIndexes(): Promise<void> {
 				`);
 				console.log("✓ PostgreSQL tables ensured");
 			} catch (err) {
-				// Non-fatal: if table creation fails (e.g. already exist
-				// with different schema), the app may still work.
 				console.error("✗ PostgreSQL table setup failed:", err);
 			}
 		})();

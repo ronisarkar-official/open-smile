@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateUserEmailVerified } from "@/lib/db";
+import { updateUserEmailVerified } from "@/backend/db";
 
 export async function POST(req: NextRequest) {
   try {

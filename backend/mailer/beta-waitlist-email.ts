@@ -1,7 +1,6 @@
 import { sendEmail } from "./send-email";
 import { emailCss } from "./styles";
 
-/** Confirmation email — sent when someone joins the beta waitlist */
 export async function sendBetaWaitlistEmail(to: string): Promise<void> {
 	if (!to) return;
 	await sendEmail({

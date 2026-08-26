@@ -1,6 +1,5 @@
 import { sendEmail } from "./send-email";
 
-/** Password reset email — used by Better Auth's `sendResetPassword` hook. */
 export async function sendResetPasswordEmail(
   email: string,
   resetUrl: string

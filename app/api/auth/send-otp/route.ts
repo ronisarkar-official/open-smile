@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { generateOTP, saveOTP } from "@/lib/otp";
-import { sendOTPEmail } from "@/lib/mailer";
-import { rateLimit } from "@/lib/rate-limit";
-import { findUserByEmail } from "@/lib/db";
+import { generateOTP, saveOTP } from "@/backend/auth";
+import { sendOTPEmail } from "@/backend/mailer";
+import { rateLimit } from "@/backend/services";
+import { findUserByEmail } from "@/backend/db";
 
 const WINDOW = 15 * 60 * 1000;
 const MAX_PER_EMAIL = 5;

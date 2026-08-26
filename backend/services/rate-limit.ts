@@ -1,25 +1,14 @@
-import { upsertRateLimit, resetRateLimit } from '@/lib/db';
-import { ensureIndexes } from '@/lib/db/indexes';
+import { upsertRateLimit, resetRateLimit, ensureIndexes } from "../db";
 
 export interface RateLimitResult {
 	allowed: boolean;
-	/** Seconds until the caller may retry (0 when allowed). */
 	retryAfter: number;
 }
 
 const isDbConfigured = () => Boolean(process.env.DATABASE_URL);
 
-/* In-memory fallback — used only when no database is configured (dev). */
 const memoryStores = new Map<string, { count: number; windowStart: number }>();
 
-/**
- * ── DB-backed sliding-window rate limiter ────────────────
- *
- * Atomic single-key implementation using INSERT ... ON CONFLICT.
- * Expired records are cleaned up during bootstrap and on window
- * reset. Falls back to an in-memory store when the database
- * isn't configured (local development).
- */
 export async function rateLimit(
 	key: string,
 	limit: number,
@@ -41,7 +30,6 @@ export async function rateLimit(
 
 			const windowStart = Number(record.window_start);
 			if (windowStart + windowMs <= now) {
-				// Window elapsed — reset and allow.
 				await resetRateLimit(key, now, new Date(now + windowMs));
 				return { allowed: true, retryAfter: 0 };
 			}

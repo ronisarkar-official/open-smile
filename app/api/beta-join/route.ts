@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { sendBetaWaitlistEmail } from "@/lib/mailer";
-import { rateLimit } from "@/lib/rate-limit";
-import { findBetaWaitlistByEmail, insertBetaWaitlist, ensureIndexes } from "@/lib/db";
+import { sendBetaWaitlistEmail } from "@/backend/mailer";
+import { rateLimit } from "@/backend/services";
+import { findBetaWaitlistByEmail, insertBetaWaitlist, ensureIndexes } from "@/backend/db";
 
 const WINDOW = 60 * 60 * 1000;
 const MAX_PER_EMAIL = 3;

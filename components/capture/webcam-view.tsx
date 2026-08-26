@@ -1,22 +1,15 @@
 'use client';
 
 import * as React from 'react';
-import { Camera, ScanFace, AlertTriangle, RefreshCw, Settings, ShieldAlert, Hand } from 'lucide-react';
+import { Camera, ScanFace, AlertTriangle, RefreshCw, Settings, ShieldAlert } from 'lucide-react';
 import {
 	initSmileDetector,
 	detectSmile,
 	type SmileDetectionResult,
 } from '@/lib/smile-detection';
-import {
-	initGestureRecognizer,
-	detectPalmGesture,
-	type PalmDetectionResult,
-	type PalmPoint,
-} from '@/lib/palm-detection';
-import type { FaceLandmarker, GestureRecognizer } from '@mediapipe/tasks-vision';
+import type { FaceLandmarker } from '@mediapipe/tasks-vision';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { PalmShutterIndicator } from '@/components/capture/palm-shutter-indicator';
 
 export async function requestCameraStream(): Promise<MediaStream> {
 	if (typeof window === 'undefined' || !navigator?.mediaDevices?.getUserMedia) {
@@ -48,12 +41,8 @@ interface WebcamViewProps {
 	isActive: boolean;
 	isFrozen: boolean;
 	stream?: MediaStream | null;
-	enablePalmShutter?: boolean;
-	palmHoldProgress?: number;
 	onStreamChange?: (stream: MediaStream | null) => void;
 	onSmileUpdate?: (result: SmileDetectionResult | null) => void;
-	onPalmUpdate?: (result: PalmDetectionResult | null) => void;
-	onTogglePalmShutter?: () => void;
 	onReady?: () => void;
 	onError?: (error: string) => void;
 	className?: string;
@@ -65,12 +54,8 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 			isActive,
 			isFrozen,
 			stream: externalStream,
-			enablePalmShutter = true,
-			palmHoldProgress = 0,
 			onStreamChange,
 			onSmileUpdate,
-			onPalmUpdate,
-			onTogglePalmShutter,
 			onReady,
 			onError,
 			className,
@@ -80,9 +65,20 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 		const videoRef = React.useRef<HTMLVideoElement>(null);
 		const canvasRef = React.useRef<HTMLCanvasElement>(null);
 		const detectorRef = React.useRef<FaceLandmarker | null>(null);
-		const gestureDetectorRef = React.useRef<GestureRecognizer | null>(null);
 		const rafRef = React.useRef<number>(0);
 		const localStreamRef = React.useRef<MediaStream | null>(null);
+
+		const onSmileUpdateRef = React.useRef(onSmileUpdate);
+		onSmileUpdateRef.current = onSmileUpdate;
+
+		const onStreamChangeRef = React.useRef(onStreamChange);
+		onStreamChangeRef.current = onStreamChange;
+
+		const onReadyRef = React.useRef(onReady);
+		onReadyRef.current = onReady;
+
+		const onErrorRef = React.useRef(onError);
+		onErrorRef.current = onError;
 
 		const [status, setStatus] = React.useState<'loading' | 'ready' | 'error'>('loading');
 		const [errorType, setErrorType] = React.useState<'permission' | 'device' | 'busy' | 'other'>('other');
@@ -90,8 +86,6 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 		const [currentScore, setCurrentScore] = React.useState(0);
 		const [hasFace, setHasFace] = React.useState(false);
 		const [isRetrying, setIsRetrying] = React.useState(false);
-		const [currentPalmCenter, setCurrentPalmCenter] = React.useState<PalmPoint | null>(null);
-		const [isPalmActive, setIsPalmActive] = React.useState(false);
 
 		const getScreenshot = React.useCallback((): string | null => {
 			const video = videoRef.current;
@@ -130,7 +124,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 					try {
 						activeStream = await requestCameraStream();
 						localStreamRef.current = activeStream;
-						onStreamChange?.(activeStream);
+						onStreamChangeRef.current?.(activeStream);
 					} catch (camErr) {
 						let type: 'permission' | 'device' | 'busy' | 'other' = 'other';
 						let msg = 'Failed to access camera.';
@@ -151,7 +145,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 						setErrorType(type);
 						setStatus('error');
 						setErrorMsg(msg);
-						onError?.(msg);
+						onErrorRef.current?.(msg);
 						return;
 					}
 				}
@@ -164,25 +158,24 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 					} catch {}
 				}
 
-				const [faceDetector, gestureDetector] = await Promise.all([
-					initSmileDetector().catch(() => null),
-					initGestureRecognizer().catch(() => null),
-				]);
+				const faceDetector = await initSmileDetector().catch((err) => {
+					console.warn('[OpenSmile] Face detector init failed:', err);
+					return null;
+				});
 
 				if (faceDetector) detectorRef.current = faceDetector;
-				if (gestureDetector) gestureDetectorRef.current = gestureDetector;
 
 				setStatus('ready');
-				onReady?.();
+				onReadyRef.current?.();
 			} catch {
 				setStatus('error');
 				setErrorType('other');
 				setErrorMsg('Could not initialize camera.');
-				onError?.('Initialization error');
+				onErrorRef.current?.('Initialization error');
 			} finally {
 				setIsRetrying(false);
 			}
-		}, [externalStream, onStreamChange, onReady, onError]);
+		}, [externalStream]);
 
 		React.useEffect(() => {
 			if (isActive) {
@@ -232,28 +225,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 						} else {
 							setHasFace(false);
 						}
-						onSmileUpdate?.(result);
-					}
-
-					if (enablePalmShutter && gestureDetectorRef.current) {
-						const palmResult = detectPalmGesture(
-							gestureDetectorRef.current,
-							video,
-							now
-						);
-
-						if (palmResult?.isPalmDetected) {
-							setIsPalmActive(true);
-							setCurrentPalmCenter(palmResult.palmCenter);
-						} else {
-							setIsPalmActive(false);
-							setCurrentPalmCenter(null);
-						}
-						onPalmUpdate?.(palmResult);
-					} else {
-						setIsPalmActive(false);
-						setCurrentPalmCenter(null);
-						onPalmUpdate?.(null);
+						onSmileUpdateRef.current?.(result);
 					}
 				}
 
@@ -266,7 +238,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 				running = false;
 				if (rafRef.current) cancelAnimationFrame(rafRef.current);
 			};
-		}, [status, isFrozen, enablePalmShutter, onSmileUpdate, onPalmUpdate]);
+		}, [status, isFrozen]);
 
 		const getScoreColor = (score: number) => {
 			if (score >= 80) return 'bg-success';
@@ -287,21 +259,6 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 						Live Camera Smile Check
 					</div>
 					<div className="flex items-center gap-2">
-						{onTogglePalmShutter && status === 'ready' && !isFrozen && (
-							<button
-								type="button"
-								onClick={onTogglePalmShutter}
-								className={cn(
-									'flex items-center gap-1.5 border-[length:var(--border-width-sm)] border-border px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider rounded-md transition-all shadow-brutal-xs brutal-press',
-									enablePalmShutter
-										? 'bg-warning text-warning-foreground'
-										: 'bg-card text-muted-foreground opacity-60'
-								)}>
-								<Hand className="size-3" strokeWidth={2.5} />
-								Palm Shutter {enablePalmShutter ? 'ON' : 'OFF'}
-							</button>
-						)}
-
 						{status === 'ready' && !isFrozen && (
 							<>
 								<span className="relative flex size-2">
@@ -336,13 +293,6 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 					<canvas
 						ref={canvasRef}
 						className="absolute inset-0 size-full pointer-events-none"
-					/>
-
-					<PalmShutterIndicator
-						isPalmDetected={isPalmActive}
-						holdProgress={palmHoldProgress}
-						palmCenter={currentPalmCenter}
-						enabled={enablePalmShutter && status === 'ready' && !isFrozen}
 					/>
 
 					<div className="absolute inset-6 border-[length:var(--border-width-sm)] border-dashed border-foreground/20 rounded-lg pointer-events-none" />

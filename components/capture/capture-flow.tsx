@@ -1,16 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { Camera, CircleDot, Sparkles, Hand } from 'lucide-react';
+import { Camera, CircleDot, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSession } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
 import { WebcamView, requestCameraStream, type WebcamViewHandle } from '@/components/capture/webcam-view';
 import { AuthGateOverlay } from '@/components/capture/auth-gate-overlay';
 import { ScratchCardModal, type ScratchCardItem } from '@/components/rewards/scratch-card-modal';
-import { CoinIcon } from '@/components/ui/coin-icon';
 import { initSmileDetector, type SmileDetectionResult } from '@/lib/smile-detection';
-import { initGestureRecognizer, type PalmDetectionResult } from '@/lib/palm-detection';
 import { playCountdownBeep, playShutterSound, playRewardChime } from '@/lib/capture-sfx';
 import { CaptureCelebrationOverlay } from '@/components/capture/capture-celebration-overlay';
 import { SmileResultScreen } from '@/components/capture/smile-result-screen';
@@ -27,7 +25,6 @@ type CapturePhase =
 const STORAGE_KEY = 'opensmile_pending_capture';
 const SMILE_TRIGGER_THRESHOLD = 60;
 const SMILE_TRIGGER_DURATION_MS = 450;
-const PALM_TRIGGER_HOLD_MS = 450;
 
 export interface CaptureFlowProps {
 	redirectTo?: string;
@@ -55,19 +52,16 @@ export function CaptureFlow({
 	const [saving, setSaving] = React.useState(false);
 	const [isRewardClaimed, setIsRewardClaimed] = React.useState(false);
 
-	const [palmShutterEnabled, setPalmShutterEnabled] = React.useState(true);
-	const [palmHoldProgress, setPalmHoldProgress] = React.useState(0);
-	const [isPalmDetected, setIsPalmDetected] = React.useState(false);
-
 	const [countdownText, setCountdownText] = React.useState<string>('');
 	const [countdownNumber, setCountdownNumber] = React.useState<number | null>(null);
 	const smileStartTimeRef = React.useRef<number | null>(null);
-	const palmStartTimeRef = React.useRef<number | null>(null);
+	const lastResultRef = React.useRef<SmileDetectionResult | null>(null);
+	const cameraStreamRef = React.useRef<MediaStream | null>(null);
+	cameraStreamRef.current = cameraStream;
 	const isTriggeringRef = React.useRef<boolean>(false);
 
 	React.useEffect(() => {
 		initSmileDetector().catch(() => {});
-		initGestureRecognizer().catch(() => {});
 	}, []);
 
 	React.useEffect(() => {
@@ -90,22 +84,18 @@ export function CaptureFlow({
 	}, [isLoggedIn]);
 
 	const triggerCaptureSequence = React.useCallback(
-		(instantScore?: number, triggerSource: 'SMILE' | 'PALM' | 'MANUAL' = 'SMILE') => {
+		(instantScore?: number, triggerSource: 'SMILE' | 'MANUAL' = 'SMILE') => {
 			if (isTriggeringRef.current) return;
 			isTriggeringRef.current = true;
 			setPhase('COUNTDOWN');
 
-			if (triggerSource === 'PALM') {
-				setCountdownText('PALM DETECTED! ✋');
-			} else if (triggerSource === 'MANUAL') {
+			if (triggerSource === 'MANUAL') {
 				setCountdownText('GET READY! 📸');
 			} else {
 				setCountdownText('SMILE DETECTED! 😄');
 			}
 
 			setCountdownNumber(null);
-			setPalmHoldProgress(0);
-			setIsPalmDetected(false);
 
 			setTimeout(() => {
 				setCountdownText('HOLD IT…');
@@ -130,7 +120,7 @@ export function CaptureFlow({
 
 							const finalScore =
 								instantScore ??
-								lastResult?.score ??
+								lastResultRef.current?.score ??
 								(Math.floor(Math.random() * 25) + 75);
 							const finalCoins = Math.max(1, Math.floor(finalScore / 10));
 
@@ -139,8 +129,8 @@ export function CaptureFlow({
 							setPhase('CELEBRATING');
 							playRewardChime();
 
-							if (cameraStream) {
-								cameraStream.getTracks().forEach((track) => track.stop());
+							if (cameraStreamRef.current) {
+								cameraStreamRef.current.getTracks().forEach((track) => track.stop());
 								setCameraStream(null);
 							}
 						}, 750);
@@ -148,11 +138,12 @@ export function CaptureFlow({
 				}, 750);
 			}, 600);
 		},
-		[lastResult, cameraStream]
+		[]
 	);
 
 	const handleSmileUpdate = React.useCallback(
 		(result: SmileDetectionResult | null) => {
+			lastResultRef.current = result;
 			setLastResult(result);
 
 			if (phase !== 'CAMERA_ACTIVE' || isTriggeringRef.current) {
@@ -175,41 +166,6 @@ export function CaptureFlow({
 		[phase, triggerCaptureSequence]
 	);
 
-	const handlePalmUpdate = React.useCallback(
-		(result: PalmDetectionResult | null) => {
-			if (phase !== 'CAMERA_ACTIVE' || isTriggeringRef.current || !palmShutterEnabled) {
-				palmStartTimeRef.current = null;
-				setPalmHoldProgress(0);
-				setIsPalmDetected(false);
-				return;
-			}
-
-			if (result && result.isPalmDetected) {
-				setIsPalmDetected(true);
-				const now = Date.now();
-				if (!palmStartTimeRef.current) {
-					palmStartTimeRef.current = now;
-					setPalmHoldProgress(0.1);
-				} else {
-					const elapsed = now - palmStartTimeRef.current;
-					const progress = Math.min(1, elapsed / PALM_TRIGGER_HOLD_MS);
-					setPalmHoldProgress(progress);
-
-					if (elapsed >= PALM_TRIGGER_HOLD_MS) {
-						palmStartTimeRef.current = null;
-						setPalmHoldProgress(0);
-						triggerCaptureSequence(undefined, 'PALM');
-					}
-				}
-			} else {
-				palmStartTimeRef.current = null;
-				setPalmHoldProgress(0);
-				setIsPalmDetected(false);
-			}
-		},
-		[phase, palmShutterEnabled, triggerCaptureSequence]
-	);
-
 	const handleCameraReady = React.useCallback(() => {
 		setCameraReady(true);
 		setIsConnecting(false);
@@ -230,7 +186,7 @@ export function CaptureFlow({
 	};
 
 	const handleManualCapture = () => {
-		const score = lastResult?.score ?? (Math.floor(Math.random() * 25) + 75);
+		const score = lastResultRef.current?.score ?? (Math.floor(Math.random() * 25) + 75);
 		triggerCaptureSequence(score, 'MANUAL');
 	};
 
@@ -287,9 +243,6 @@ export function CaptureFlow({
 		}
 		isTriggeringRef.current = false;
 		smileStartTimeRef.current = null;
-		palmStartTimeRef.current = null;
-		setPalmHoldProgress(0);
-		setIsPalmDetected(false);
 		setSmileScore(0);
 		setCoinsAwarded(0);
 		setLastResult(null);
@@ -360,7 +313,7 @@ export function CaptureFlow({
 										Ready to smile?
 									</h2>
 									<p className="mt-2 max-w-[34ch] text-sm text-muted-foreground font-semibold">
-										Start your camera, show your brightest smile or raise your palm, and let AI calculate your reward coins!
+										Start your camera, show your brightest smile, and let AI calculate your reward coins!
 									</p>
 									{!isLoggedIn && (
 										<p className="mt-3 text-xs text-muted-foreground border border-border/40 rounded-md px-3 py-1.5 inline-block">
@@ -389,12 +342,8 @@ export function CaptureFlow({
 								isActive={true}
 								isFrozen={phase === 'COUNTDOWN'}
 								stream={cameraStream}
-								enablePalmShutter={palmShutterEnabled}
-								palmHoldProgress={palmHoldProgress}
 								onStreamChange={setCameraStream}
 								onSmileUpdate={handleSmileUpdate}
-								onPalmUpdate={handlePalmUpdate}
-								onTogglePalmShutter={() => setPalmShutterEnabled((prev) => !prev)}
 								onReady={handleCameraReady}
 							/>
 
@@ -433,25 +382,13 @@ export function CaptureFlow({
 						</div>
 
 						{phase === 'CAMERA_ACTIVE' && (
-							<div className="flex flex-wrap items-center justify-between gap-3 border-[length:var(--border-width)] border-border rounded-lg bg-accent/30 px-4 py-3">
-								<div className="flex items-center gap-2">
-									<Sparkles className="size-4 shrink-0 text-accent-foreground" strokeWidth={2.5} />
-									<p className="font-mono text-xs font-bold tracking-wider uppercase">
-										{isPalmDetected
-											? '✋ Palm detected! Hold steady to snap...'
-											: lastResult?.hasFace
-											? `Face detected (${lastResult.score}%) — smile big or show palm ✋!`
-											: 'Look at the camera & position your face in the frame'}
-									</p>
-								</div>
-
-								<button
-									type="button"
-									onClick={() => setPalmShutterEnabled((prev) => !prev)}
-									className="flex items-center gap-1.5 font-mono text-[11px] font-bold uppercase underline hover:opacity-80">
-									<Hand className="size-3.5" />
-									{palmShutterEnabled ? 'Palm Shutter active' : 'Enable Palm Shutter'}
-								</button>
+							<div className="flex items-center gap-2 border-[length:var(--border-width)] border-border rounded-lg bg-accent/30 px-4 py-3">
+								<Sparkles className="size-4 shrink-0 text-accent-foreground" strokeWidth={2.5} />
+								<p className="font-mono text-xs font-bold tracking-wider uppercase">
+									{lastResult?.hasFace
+										? `Face detected (${lastResult.score}%) — hold your best smile to snap!`
+										: 'Look at the camera & position your face in the frame'}
+								</p>
 							</div>
 						)}
 
