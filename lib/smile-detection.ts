@@ -6,6 +6,21 @@ import {
 	type FaceLandmarkerResult,
 } from '@mediapipe/tasks-vision';
 
+if (typeof window !== 'undefined') {
+	const originalConsoleError = console.error;
+	console.error = (...args: unknown[]) => {
+		const firstArg = typeof args[0] === 'string' ? args[0] : '';
+		if (
+			firstArg.includes('Created TensorFlow Lite XNNPACK delegate') ||
+			firstArg.includes('Sets FaceBlendshapesGraph') ||
+			firstArg.includes('OpenGL error checking is disabled')
+		) {
+			return;
+		}
+		originalConsoleError.apply(console, args);
+	};
+}
+
 let faceLandmarker: FaceLandmarker | null = null;
 let initPromise: Promise<FaceLandmarker> | null = null;
 

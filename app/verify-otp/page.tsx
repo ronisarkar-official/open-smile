@@ -17,6 +17,7 @@ function VerifyOTPContent() {
   const searchParams = useSearchParams();
   const emailParam = searchParams.get("email") || "";
   const flowParam = searchParams.get("flow") || "signup";
+  const redirectToParam = searchParams.get("redirectTo") || "/dashboard";
 
   const [email] = useState(emailParam);
   const [otp, setOtp] = useState("");
@@ -85,7 +86,7 @@ function VerifyOTPContent() {
 
               setSuccess(true);
               setTimeout(() => {
-                router.push("/dashboard");
+                router.push(redirectToParam);
                 router.refresh();
               }, 1200);
             },
@@ -113,12 +114,12 @@ function VerifyOTPContent() {
           console.error("Failed to send login security notification email:", err);
         }
 
-        // 2. Clear pending login and redirect to dashboard
+        // 2. Clear pending login and redirect to destination
         const completeLogin = () => {
           sessionStorage.removeItem("pending_login");
           setSuccess(true);
           setTimeout(() => {
-            router.push("/dashboard");
+            router.push(redirectToParam);
             router.refresh();
           }, 1200);
         };

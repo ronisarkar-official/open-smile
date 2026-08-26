@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   Eye,
@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function SignupPage() {
+function SignupForm() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,6 +25,8 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirectTo");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,8 +53,9 @@ export default function SignupPage() {
         JSON.stringify({ name, email, password })
       );
 
-      // 3. Redirect user to verify-otp page
-      router.push(`/verify-otp?email=${encodeURIComponent(email)}&flow=signup`);
+      // 3. Redirect user to verify-otp page with redirectTo param preserved
+      const redirectQuery = redirectTo ? `&redirectTo=${encodeURIComponent(redirectTo)}` : "";
+      router.push(`/verify-otp?email=${encodeURIComponent(email)}&flow=signup${redirectQuery}`);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Something went wrong. Please try again.";
@@ -78,7 +81,7 @@ export default function SignupPage() {
         <Button
           variant="outline"
           className="w-full h-9 gap-2.5 text-sm font-medium"
-          onClick={() => signIn.social({ provider: "github", callbackURL: "/" })}
+          onClick={() => signIn.social({ provider: "github", callbackURL: redirectTo || "/dashboard" })}
         >
           <GitHubIcon className="size-4" />
           GitHub
@@ -86,7 +89,7 @@ export default function SignupPage() {
         <Button
           variant="outline"
           className="w-full h-9 gap-2.5 text-sm font-medium"
-          onClick={() => signIn.social({ provider: "google", callbackURL: "/" })}
+          onClick={() => signIn.social({ provider: "google", callbackURL: redirectTo || "/dashboard" })}
         >
           <GoogleIcon className="size-4" />
           Google
@@ -194,12 +197,20 @@ export default function SignupPage() {
       <p className="text-center text-xs text-muted-foreground">
         Already have an account?{" "}
         <Link
-          href="/login"
+          href={redirectTo ? `/login?redirectTo=${encodeURIComponent(redirectTo)}` : "/login"}
           className="font-medium text-foreground underline-offset-4 hover:underline"
         >
           Sign in
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense fallback={<div className="h-64 flex items-center justify-center text-xs font-mono text-muted-foreground">Loading...</div>}>
+      <SignupForm />
+    </Suspense>
   );
 }

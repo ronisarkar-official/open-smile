@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { signIn } from "@/lib/auth-client";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
 import { GitHubIcon, GoogleIcon } from "@/components/icons";
@@ -10,13 +10,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export default function LoginPage() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirectTo");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -56,8 +58,9 @@ export default function LoginPage() {
         JSON.stringify({ email, password })
       );
 
-      // 4. Redirect user to verify-otp page
-      router.push(`/verify-otp?email=${encodeURIComponent(email)}&flow=login`);
+      // 4. Redirect user to verify-otp page with redirectTo param preserved
+      const redirectQuery = redirectTo ? `&redirectTo=${encodeURIComponent(redirectTo)}` : "";
+      router.push(`/verify-otp?email=${encodeURIComponent(email)}&flow=login${redirectQuery}`);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Something went wrong. Please try again.";
@@ -83,7 +86,7 @@ export default function LoginPage() {
         <Button
           variant="outline"
           className="w-full h-9 gap-2.5 text-sm font-medium"
-          onClick={() => signIn.social({ provider: "github", callbackURL: "/dashboard" })}
+          onClick={() => signIn.social({ provider: "github", callbackURL: redirectTo || "/dashboard" })}
         >
           <GitHubIcon className="size-4" />
           GitHub
@@ -91,7 +94,7 @@ export default function LoginPage() {
         <Button
           variant="outline"
           className="w-full h-9 gap-2.5 text-sm font-medium"
-          onClick={() => signIn.social({ provider: "google", callbackURL: "/dashboard" })}
+          onClick={() => signIn.social({ provider: "google", callbackURL: redirectTo || "/dashboard" })}
         >
           <GoogleIcon className="size-4" />
           Google
@@ -116,7 +119,7 @@ export default function LoginPage() {
             {(error.toLowerCase().includes("sign up") ||
               error.toLowerCase().includes("no account")) && (
               <Link
-                href="/signup"
+                href={redirectTo ? `/signup?redirectTo=${encodeURIComponent(redirectTo)}` : "/signup"}
                 className="text-xs font-semibold underline hover:text-destructive/80 mt-0.5 inline-block"
               >
                 Click here to create an account &rarr;
@@ -193,15 +196,23 @@ export default function LoginPage() {
         </Button>
       </form>
 
-        <p className="text-center text-xs text-muted-foreground">
+      <p className="text-center text-xs text-muted-foreground">
         Don&apos;t have an account?{" "}
         <Link
-          href="/signup"
+          href={redirectTo ? `/signup?redirectTo=${encodeURIComponent(redirectTo)}` : "/signup"}
           className="font-medium text-foreground underline-offset-4 hover:underline"
         >
           Sign up
         </Link>
       </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="h-64 flex items-center justify-center text-xs font-mono text-muted-foreground">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

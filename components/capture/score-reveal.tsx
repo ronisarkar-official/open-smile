@@ -55,7 +55,7 @@ export function ScoreReveal({ score, className }: ScoreRevealProps) {
 			animate={{ opacity: 1, scale: 1, y: 0 }}
 			transition={{ type: 'spring', damping: 20, stiffness: 300 }}
 			className={cn(
-				'border-[length:var(--border-width)] border-black rounded-xl bg-primary p-5 shadow-brutal-xl',
+				'border-[length:var(--border-width)] border-border rounded-xl bg-primary text-primary-foreground p-5 shadow-brutal-xl',
 				className
 			)}>
 			<Sparkles className="size-7" strokeWidth={2.5} />
@@ -76,7 +76,7 @@ export function ScoreReveal({ score, className }: ScoreRevealProps) {
 				transition={{ delay: 0.8 }}>
 				{getScoreLabel(score)}
 			</motion.p>
-			<div className="mt-4 h-3 w-full border-[length:var(--border-width-sm)] border-black rounded-xs bg-card overflow-hidden">
+			<div className="mt-4 h-3 w-full border-[length:var(--border-width-sm)] border-border rounded-xs bg-card overflow-hidden">
 				<motion.div
 					className={cn('h-full', getScoreColor(score))}
 					initial={{ width: 0 }}

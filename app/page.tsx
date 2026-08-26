@@ -70,7 +70,7 @@ export default async function Home() {
             </p>
             <div className="reveal-in reveal-delay-3 mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
-                <Link href="/signup">
+                <Link href="/try">
                   Start smiling
                   <ArrowUpRight className="size-5" />
                 </Link>

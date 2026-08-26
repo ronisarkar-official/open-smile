@@ -146,7 +146,19 @@ if (ENVIRONMENT_IS_WEB || ENVIRONMENT_IS_WORKER) {
 
 var out = console.log.bind(console);
 
-var err = console.error.bind(console);
+var err = (text) => {
+  if (typeof text === 'string' && (
+    text.startsWith('INFO:') ||
+    text.startsWith('WARNING:') ||
+    text.includes('XNNPACK delegate') ||
+    text.includes('OpenGL error checking') ||
+    text.includes('FaceBlendshapesGraph') ||
+    /^[IWE]\d{4}\s/.test(text)
+  )) {
+    return;
+  }
+  console.error(text);
+};
 
 // end include: shell.js
 // include: preamble.js
@@ -8361,12 +8373,21 @@ function custom_emscripten_dbgn(str, len) {
   if (typeof (dbg) !== "undefined") {
     dbg(UTF8ToString(str, len));
   } else {
+    var text = UTF8ToString(str, len);
+    if (typeof text === 'string' && (
+      text.includes('FaceBlendshapesGraph') ||
+      text.includes('OpenGL error checking') ||
+      text.includes('XNNPACK') ||
+      /^[IWE]\d{4}\s/.test(text)
+    )) {
+      return;
+    }
     if (typeof (custom_dbg) === "undefined") {
       function custom_dbg(text) {
         console.warn.apply(console, arguments);
       }
     }
-    custom_dbg(UTF8ToString(str, len));
+    custom_dbg(text);
   }
 }
 
