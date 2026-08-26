@@ -73,7 +73,7 @@ export function SettingsDialog({
 						{/* Content */}
 						<DialogPrimitive.Content asChild forceMount>
 							<motion.div
-								className="fixed z-50 flex overflow-hidden border-[3px] border-black bg-background shadow-[8px_8px_0_#000] inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(95vw,960px)] sm:h-[min(85vh,680px)]"
+								className="fixed z-50 flex overflow-hidden border-[length:var(--border-width)] border-black rounded-xl bg-background shadow-brutal-xl inset-4 sm:inset-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:w-[min(95vw,960px)] sm:h-[min(85vh,680px)]"
 								initial={{ opacity: 0, scale: 0.96, y: 10 }}
 								animate={{ opacity: 1, scale: 1, y: 0 }}
 								exit={{ opacity: 0, scale: 0.96, y: 10 }}
@@ -109,7 +109,7 @@ export function SettingsDialog({
 								{/* ---- Right Content ---- */}
 								<div className="flex-1 overflow-y-auto p-6 sm:p-8 relative">
 									{/* Close button */}
-									<DialogPrimitive.Close className="absolute top-4 right-4 p-1.5 border-[2px] border-black bg-card shadow-[2px_2px_0_#000] text-foreground hover:bg-muted brutal-lift transition-all z-10">
+									<DialogPrimitive.Close className="absolute top-4 right-4 p-1.5 border-[length:var(--border-width)] border-black rounded-md bg-card shadow-brutal-sm text-foreground hover:bg-muted brutal-lift transition-all z-10">
 										<X className="h-4 w-4" strokeWidth={2.5} />
 										<span className="sr-only">Close</span>
 									</DialogPrimitive.Close>

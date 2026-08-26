@@ -6,13 +6,13 @@ import { Logo } from "@/components/logo";
 export default function NotFound() {
   return (
     <main id="main-content" className="flex min-h-[100dvh] items-center justify-center overflow-hidden bg-background px-5 py-12">
-      <div className="relative w-full max-w-2xl border-[3px] border-black bg-card p-7 text-center shadow-[8px_8px_0_#000] sm:p-12">
-        <div className="absolute -left-6 -top-6 hidden size-14 border-[3px] border-black bg-secondary sm:block" />
-        <div className="absolute -bottom-7 -right-7 hidden size-20 border-[3px] border-black bg-accent sm:block" />
+      <div className="relative w-full max-w-2xl border-[length:var(--border-width)] border-black rounded-xl bg-card p-7 text-center shadow-brutal-xl sm:p-12">
+        <div className="absolute -left-6 -top-6 hidden size-14 border-[length:var(--border-width)] border-black rounded-lg bg-secondary sm:block" />
+        <div className="absolute -bottom-7 -right-7 hidden size-20 border-[length:var(--border-width)] border-black rounded-lg bg-accent sm:block" />
         <Link href="/" className="inline-block focus-visible:outline-3 focus-visible:outline-offset-4">
           <Logo className="h-9 w-auto" />
         </Link>
-        <div className="mx-auto mt-10 flex size-20 items-center justify-center border-[3px] border-black bg-primary">
+        <div className="mx-auto mt-10 flex size-20 items-center justify-center border-[length:var(--border-width)] border-black rounded-xl bg-primary shadow-brutal-sm">
           <SearchX className="size-10" strokeWidth={2.5} />
         </div>
         <p className="mt-8 font-mono text-xs font-bold tracking-[0.14em] uppercase">404</p>

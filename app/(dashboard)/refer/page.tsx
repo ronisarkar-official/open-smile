@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import {
   Camera,
-  Check,
   Coins,
   Copy,
   Gift,
@@ -64,7 +63,7 @@ export default function ReferPage() {
       </div>
 
       <section className="mt-8 grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-        <article className="border-[3px] border-black bg-card p-5 shadow-[8px_8px_0_#000] sm:p-7">
+        <article className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-5 shadow-brutal-xl sm:p-7">
           <div className="flex items-start justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
@@ -72,7 +71,7 @@ export default function ReferPage() {
                 <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">Your referral code</p>
               </div>
               <div className="mt-5 flex items-center gap-3">
-                <div className="flex-1 border-[3px] border-black bg-muted px-4 py-3.5">
+                <div className="flex-1 border-[length:var(--border-width)] border-black rounded-lg bg-muted px-4 py-3.5">
                   <p className="font-mono text-lg font-black tracking-[0.1em] sm:text-xl">{referralCode}</p>
                 </div>
                 <Button variant="outline" size="icon" className="shrink-0" aria-label="Copy referral code">
@@ -85,7 +84,7 @@ export default function ReferPage() {
           <div className="mt-5">
             <p className="font-mono text-[10px] font-bold tracking-widest uppercase text-muted-foreground">Shareable link</p>
             <div className="mt-2 flex items-center gap-3">
-              <div className="flex-1 overflow-hidden border-[3px] border-dashed border-black bg-muted/50 px-4 py-3">
+              <div className="flex-1 overflow-hidden border-[length:var(--border-width)] border-dashed border-black rounded-lg bg-muted/50 px-4 py-3">
                 <p className="truncate font-mono text-sm font-semibold">{referralLink}</p>
               </div>
               <Button variant="outline" size="icon" className="shrink-0" aria-label="Copy referral link">
@@ -105,19 +104,19 @@ export default function ReferPage() {
             </Button>
           </div>
 
-          <div className="mt-6 flex items-center gap-2 border-[3px] border-black bg-success/20 px-4 py-3">
+          <div className="mt-6 flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-success/20 px-4 py-3">
             <Sparkles className="size-4 shrink-0 text-success" strokeWidth={2.5} />
             <p className="text-sm font-bold">5 referral rewards remaining today</p>
           </div>
         </article>
 
         <div className="flex flex-col gap-5">
-          <article className="border-[3px] border-black bg-muted p-5 shadow-[5px_5px_0_#000]">
+          <article className="border-[length:var(--border-width)] border-black rounded-xl bg-muted p-5 shadow-brutal">
             <div className="flex items-center gap-2">
               <QrCode className="size-5" strokeWidth={2.5} />
               <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">QR Code</p>
             </div>
-            <div className="mt-4 flex aspect-square items-center justify-center border-[3px] border-dashed border-black bg-card">
+            <div className="mt-4 flex aspect-square items-center justify-center border-[length:var(--border-width)] border-dashed border-black rounded-lg bg-card">
               <div className="flex flex-col items-center gap-3 text-center">
                 <QrCode className="size-16 text-muted-foreground" strokeWidth={1} />
                 <p className="text-xs font-semibold text-muted-foreground">Scan to join via your link</p>
@@ -125,7 +124,7 @@ export default function ReferPage() {
             </div>
           </article>
 
-          <article className="border-[3px] border-black bg-primary p-5 shadow-[5px_5px_0_#000]">
+          <article className="border-[length:var(--border-width)] border-black rounded-xl bg-primary p-5 shadow-brutal">
             <Gift className="size-7" strokeWidth={2.5} />
             <p className="mt-4 text-xl font-black tracking-[-0.03em]">+200 coins per referral</p>
             <p className="mt-1 text-sm font-bold text-black/70">Your friend gets +50 bonus too</p>

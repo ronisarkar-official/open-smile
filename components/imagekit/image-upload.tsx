@@ -245,7 +245,7 @@ export function ImageUpload({
           onDrop={handleDrop}
           onClick={() => !disabled && !isUploading && inputRef.current?.click()}
           className={cn(
-            "relative flex flex-col items-center justify-center border-[3px] border-dashed border-border bg-card p-6 text-center shadow-[3px_3px_0_var(--outline)] transition-[background-color,border-color,box-shadow,transform] duration-150 cursor-pointer",
+            "relative flex flex-col items-center justify-center border-[length:var(--border-width)] border-dashed border-border rounded-xl bg-card p-6 text-center shadow-brutal transition-[background-color,border-color,box-shadow,transform] duration-150 cursor-pointer",
             isDragging
               ? "border-primary bg-primary/5 scale-[0.99]"
               : "border-border hover:border-primary/50 hover:bg-muted/30",
@@ -277,7 +277,7 @@ export function ImageUpload({
             </div>
           ) : (
             <>
-              <div className="mb-3 border-[3px] border-border bg-primary p-3 text-primary-foreground">
+              <div className="mb-3 border-[length:var(--border-width)] border-border rounded-lg bg-primary p-3 text-primary-foreground">
                 <UploadCloud className="h-6 w-6" />
               </div>
               <p className="text-sm font-medium text-foreground">

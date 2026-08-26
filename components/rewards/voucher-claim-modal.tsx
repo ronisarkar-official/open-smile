@@ -3,7 +3,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import {
-  AlertCircle,
   ArrowRight,
   Camera,
   Check,
@@ -18,7 +17,6 @@ import {
 } from 'lucide-react';
 import { CoinIcon } from '@/components/ui/coin-icon';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import type { VoucherItem, ClaimedVoucher } from './voucher-data';
 
 interface VoucherClaimModalProps {
@@ -33,7 +31,6 @@ interface VoucherClaimModalProps {
 function generateVoucherCode(brandId: string): { code: string; pin: string } {
   const prefix = brandId.slice(0, 4).toUpperCase();
   const randNum1 = Math.floor(1000 + Math.random() * 9000);
-  const randNum2 = Math.floor(1000 + Math.random() * 9000);
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let randChars = '';
   for (let i = 0; i < 4; i++) {
@@ -158,12 +155,12 @@ export function VoucherClaimModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className="relative w-full max-w-lg border-[3px] border-black bg-card p-5 sm:p-7 shadow-[8px_8px_0_#000] max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-lg border-[length:var(--border-width)] border-black rounded-xl bg-card p-5 sm:p-7 shadow-brutal-xl max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 flex size-8 items-center justify-center border-[2px] border-black bg-muted text-foreground transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+          className="absolute right-4 top-4 flex size-8 items-center justify-center border-[length:var(--border-width)] border-black rounded-md bg-muted text-foreground transition-transform hover:scale-105 active:scale-95 cursor-pointer"
           aria-label="Close dialog"
         >
           <X className="size-4" strokeWidth={3} />
@@ -172,7 +169,7 @@ export function VoucherClaimModal({
         {claimedData ? (
           <div className="space-y-5">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 border-[2px] border-black bg-emerald-400 px-2.5 py-0.5 font-mono text-[11px] font-black uppercase text-black">
+              <span className="inline-flex items-center gap-1 border-[length:var(--border-width)] border-black rounded-md bg-emerald-400 px-2.5 py-0.5 font-mono text-[11px] font-black uppercase text-black">
                 <Sparkles className="size-3.5" strokeWidth={2.5} />
                 Voucher Claimed!
               </span>
@@ -187,11 +184,11 @@ export function VoucherClaimModal({
               </p>
             </div>
 
-            <div className="border-[3px] border-black bg-muted p-4 sm:p-5 shadow-[4px_4px_0_#000] space-y-4">
+            <div className="border-[length:var(--border-width)] border-black rounded-xl bg-muted p-4 sm:p-5 shadow-brutal space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div
-                    className="flex size-9 items-center justify-center border-[2px] border-black font-display font-black text-xs text-white"
+                    className="flex size-9 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg font-display font-black text-xs text-white"
                     style={{ backgroundColor: claimedData.logoBg }}
                   >
                     {claimedData.brandName.slice(0, 3).toUpperCase()}
@@ -201,12 +198,12 @@ export function VoucherClaimModal({
                     <p className="font-mono text-[11px] font-bold text-muted-foreground">{claimedData.valueFormatted} Voucher</p>
                   </div>
                 </div>
-                <span className="border-[2px] border-black bg-primary px-2 py-0.5 font-mono text-xs font-black">
+                <span className="border-[length:var(--border-width)] border-black rounded-md bg-primary px-2 py-0.5 font-mono text-xs font-black">
                   {claimedData.valueFormatted}
                 </span>
               </div>
 
-              <div className="border-[2px] border-black bg-card p-3">
+              <div className="border-[length:var(--border-width)] border-black rounded-lg bg-card p-3">
                 <p className="font-mono text-[10px] font-black uppercase text-muted-foreground tracking-wider">
                   Voucher / Gift Card Code
                 </p>
@@ -217,7 +214,7 @@ export function VoucherClaimModal({
                   <Button
                     size="sm"
                     onClick={() => copyToClipboard(claimedData.code, false)}
-                    className="shrink-0 border-[2px] border-black bg-primary text-black font-mono text-xs font-bold gap-1.5 h-8 px-3 shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
+                    className="shrink-0 border-[length:var(--border-width)] border-black rounded-md bg-primary text-primary-foreground font-mono text-xs font-bold gap-1.5 h-8 px-3 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
                   >
                     {copiedCode ? <Check className="size-3.5" strokeWidth={3} /> : <Copy className="size-3.5" />}
                     <span>{copiedCode ? 'Copied!' : 'Copy'}</span>
@@ -226,7 +223,7 @@ export function VoucherClaimModal({
               </div>
 
               {claimedData.pin && (
-                <div className="flex items-center justify-between border-[2px] border-black bg-card px-3 py-2">
+                <div className="flex items-center justify-between border-[length:var(--border-width)] border-black rounded-lg bg-card px-3 py-2">
                   <div>
                     <span className="font-mono text-[10px] font-black uppercase text-muted-foreground">Security PIN: </span>
                     <span className="font-mono text-sm font-black ml-1">{claimedData.pin}</span>
@@ -235,7 +232,7 @@ export function VoucherClaimModal({
                     variant="outline"
                     size="sm"
                     onClick={() => copyToClipboard(claimedData.pin, true)}
-                    className="border-[1.5px] border-black font-mono text-[11px] font-bold h-7 px-2.5"
+                    className="border-[length:var(--border-width)] border-black rounded-md font-mono text-[11px] font-bold h-7 px-2.5"
                   >
                     {copiedPin ? 'Copied' : 'Copy PIN'}
                   </Button>
@@ -252,7 +249,7 @@ export function VoucherClaimModal({
               </div>
             </div>
 
-            <div className="border-[2px] border-black bg-card p-3.5 text-xs space-y-2">
+            <div className="border-[length:var(--border-width)] border-black rounded-lg bg-card p-3.5 text-xs space-y-2">
               <p className="font-title font-black uppercase tracking-wider text-[11px] flex items-center gap-1.5">
                 <Info className="size-3.5 text-primary" />
                 How to Redeem:
@@ -267,7 +264,7 @@ export function VoucherClaimModal({
             <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
               <Button
                 asChild
-                className="flex-1 border-[3px] border-black bg-primary text-black font-title font-black text-xs uppercase tracking-wider h-11 shadow-[3px_3px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                className="flex-1 border-[length:var(--border-width)] border-black rounded-lg bg-primary text-primary-foreground font-title font-black text-xs uppercase tracking-wider h-11 shadow-brutal active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
               >
                 <a href={claimedData.websiteUrl} target="_blank" rel="noopener noreferrer" className="gap-2">
                   <span>Open {claimedData.brandName}</span>
@@ -281,7 +278,7 @@ export function VoucherClaimModal({
                   onClose();
                   onNavigateToTab?.('my-vouchers');
                 }}
-                className="border-[2px] border-black bg-card font-mono text-xs font-bold uppercase tracking-wider h-11"
+                className="border-[length:var(--border-width)] border-black rounded-lg bg-card font-mono text-xs font-bold uppercase tracking-wider h-11"
               >
                 View in My Vouchers
               </Button>
@@ -290,7 +287,7 @@ export function VoucherClaimModal({
         ) : hasEnoughCoins ? (
           <div className="space-y-5">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 border-[2px] border-black bg-primary px-2.5 py-0.5 font-mono text-[11px] font-black uppercase text-black">
+              <span className="inline-flex items-center gap-1 border-[length:var(--border-width)] border-black rounded-md bg-primary px-2.5 py-0.5 font-mono text-[11px] font-black uppercase text-primary-foreground">
                 <Gift className="size-3.5" strokeWidth={2.5} />
                 Redeem Voucher
               </span>
@@ -305,11 +302,11 @@ export function VoucherClaimModal({
               </p>
             </div>
 
-            <div className="border-[3px] border-black bg-card p-4 sm:p-5 shadow-[4px_4px_0_#000] space-y-3.5">
-              <div className="flex items-center justify-between border-b-[2px] border-black/10 pb-3">
+            <div className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-4 sm:p-5 shadow-brutal space-y-3.5">
+              <div className="flex items-center justify-between border-b-[length:var(--border-width)] border-black/10 pb-3">
                 <div className="flex items-center gap-2.5">
                   <div
-                    className="flex size-10 items-center justify-center border-[2px] border-black font-display font-black text-xs text-white"
+                    className="flex size-10 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg font-display font-black text-xs text-white"
                     style={{ backgroundColor: voucher.logoBg }}
                   >
                     {voucher.brandName.slice(0, 3).toUpperCase()}
@@ -320,7 +317,7 @@ export function VoucherClaimModal({
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="border-[2px] border-black bg-primary px-2.5 py-1 font-mono text-sm font-black">
+                  <span className="border-[length:var(--border-width)] border-black rounded-md bg-primary px-2.5 py-1 font-mono text-sm font-black">
                     {voucher.valueFormatted}
                   </span>
                 </div>
@@ -341,7 +338,7 @@ export function VoucherClaimModal({
                     <CoinIcon className="size-3.5" />
                   </span>
                 </div>
-                <div className="flex justify-between border-t-[2px] border-black pt-2 font-black text-sm">
+                <div className="flex justify-between border-t-[length:var(--border-width)] border-black pt-2 font-black text-sm">
                   <span>Balance After Claim:</span>
                   <span className="tabular-nums text-foreground flex items-center gap-1">
                     <span>{remainingCoinsAfter}</span>
@@ -351,7 +348,7 @@ export function VoucherClaimModal({
               </div>
             </div>
 
-            <div className="border-[2px] border-black bg-muted/60 p-3 text-xs space-y-1.5">
+            <div className="border-[length:var(--border-width)] border-black rounded-lg bg-muted/60 p-3 text-xs space-y-1.5">
               <p className="font-mono text-[11px] font-black uppercase text-foreground">Terms & Delivery:</p>
               <ul className="list-disc list-inside text-[11px] text-muted-foreground space-y-0.5">
                 <li>Instant digital voucher code generation.</li>
@@ -365,7 +362,7 @@ export function VoucherClaimModal({
                 variant="outline"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="border-[2px] border-black bg-card font-mono text-xs font-bold uppercase tracking-wider h-11"
+                className="border-[length:var(--border-width)] border-black rounded-lg bg-card font-mono text-xs font-bold uppercase tracking-wider h-11"
               >
                 Cancel
               </Button>
@@ -373,7 +370,7 @@ export function VoucherClaimModal({
               <Button
                 onClick={handleClaim}
                 disabled={isSubmitting}
-                className="flex-1 border-[3px] border-black bg-primary text-black font-title font-black text-xs uppercase tracking-wider h-11 shadow-[3px_3px_0_#000] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none gap-2"
+                className="flex-1 border-[length:var(--border-width)] border-black rounded-lg bg-primary text-primary-foreground font-title font-black text-xs uppercase tracking-wider h-11 shadow-brutal active:translate-x-[2px] active:translate-y-[2px] active:shadow-none gap-2"
               >
                 <CoinIcon className="size-4" />
                 <span>{isSubmitting ? 'Issuing Code...' : `Confirm & Redeem (${voucher.coinsCost})`}</span>
@@ -383,7 +380,7 @@ export function VoucherClaimModal({
         ) : (
           <div className="space-y-5">
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 border-[2px] border-black bg-amber-400 px-2.5 py-0.5 font-mono text-[11px] font-black uppercase text-black">
+              <span className="inline-flex items-center gap-1 border-[length:var(--border-width)] border-black rounded-md bg-amber-400 px-2.5 py-0.5 font-mono text-[11px] font-black uppercase text-black">
                 <Lock className="size-3.5" strokeWidth={2.5} />
                 Coins Needed
               </span>
@@ -398,7 +395,7 @@ export function VoucherClaimModal({
               </p>
             </div>
 
-            <div className="border-[3px] border-black bg-card p-4 sm:p-5 shadow-[4px_4px_0_#000] space-y-3">
+            <div className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-4 sm:p-5 shadow-brutal space-y-3">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-xs font-bold text-muted-foreground">Progress towards voucher</span>
                 <span className="font-mono text-xs font-black tabular-nums flex items-center gap-1">
@@ -407,9 +404,9 @@ export function VoucherClaimModal({
                 </span>
               </div>
 
-              <div className="relative h-4 w-full border-[2px] border-black bg-muted">
+              <div className="relative h-4 w-full border-[length:var(--border-width)] border-black rounded-md bg-muted">
                 <div
-                  className="absolute inset-y-0 left-0 bg-primary border-r-[2px] border-black transition-all duration-300"
+                  className="absolute inset-y-0 left-0 bg-primary border-r-[length:var(--border-width)] border-black rounded-l-md transition-all duration-300"
                   style={{ width: `${Math.min((userCoins / voucher.coinsCost) * 100, 100)}%` }}
                 />
               </div>
@@ -419,7 +416,7 @@ export function VoucherClaimModal({
               </p>
             </div>
 
-            <div className="border-[2px] border-black bg-primary/15 p-4 space-y-3">
+            <div className="border-[length:var(--border-width)] border-black rounded-xl bg-primary/15 p-4 space-y-3">
               <p className="font-title font-black text-xs uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="size-4 text-primary" />
                 Quick Ways to Earn {coinsNeeded} Coins:
@@ -429,7 +426,7 @@ export function VoucherClaimModal({
                 <Link
                   href="/capture"
                   onClick={onClose}
-                  className="flex items-center justify-between border-[2px] border-black bg-card p-2.5 transition-transform hover:-translate-y-0.5 active:translate-y-0"
+                  className="flex items-center justify-between border-[length:var(--border-width)] border-black rounded-lg bg-card p-2.5 transition-transform hover:-translate-y-0.5 active:translate-y-0"
                 >
                   <div className="flex items-center gap-2">
                     <Camera className="size-4 text-primary" />
@@ -444,7 +441,7 @@ export function VoucherClaimModal({
                 <Link
                   href="/refer"
                   onClick={onClose}
-                  className="flex items-center justify-between border-[2px] border-black bg-card p-2.5 transition-transform hover:-translate-y-0.5 active:translate-y-0"
+                  className="flex items-center justify-between border-[length:var(--border-width)] border-black rounded-lg bg-card p-2.5 transition-transform hover:-translate-y-0.5 active:translate-y-0"
                 >
                   <div className="flex items-center gap-2">
                     <UserPlus className="size-4 text-accent-foreground" />
@@ -461,7 +458,7 @@ export function VoucherClaimModal({
             <div className="flex justify-end pt-2">
               <Button
                 onClick={onClose}
-                className="w-full border-[2px] border-black bg-card text-foreground font-mono text-xs font-bold uppercase tracking-wider h-10"
+                className="w-full border-[length:var(--border-width)] border-black rounded-lg bg-card text-foreground font-mono text-xs font-bold uppercase tracking-wider h-10"
               >
                 Close & Keep Exploring
               </Button>

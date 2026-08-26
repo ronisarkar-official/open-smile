@@ -46,16 +46,16 @@ export default function PublicProfilePage() {
     <>
       <Navbar />
       <main id="main-content" className="flex-1">
-        <section className="border-b-[3px] border-black bg-card">
+        <section className="border-b-[length:var(--border-width)] border-black bg-card">
           <div className="mx-auto grid w-full max-w-7xl gap-8 px-5 py-12 sm:px-6 lg:grid-cols-[auto_1fr] lg:items-center lg:gap-12 lg:py-16">
             <div className="flex flex-col items-center lg:items-start">
               <div className="relative">
-                <Avatar className="size-28 border-[3px] border-black shadow-[8px_8px_0_#000] sm:size-32">
+                <Avatar className="size-28 border-[length:var(--border-width)] border-black shadow-brutal-lg sm:size-32">
                   <AvatarFallback className="bg-primary text-3xl font-black sm:text-4xl">
                     {userProfile.avatar}
                   </AvatarFallback>
                 </Avatar>
-                <div className="absolute -bottom-2 -right-2 flex items-center gap-1 border-[2px] border-black bg-secondary px-2 py-1 font-mono text-[10px] font-bold">
+                <div className="absolute -bottom-2 -right-2 flex items-center gap-1 border-[length:var(--border-width)] border-black rounded-md bg-secondary px-2 py-1 font-mono text-[10px] font-bold">
                   <Flame className="size-3" strokeWidth={3} />
                   {userProfile.streak}
                 </div>
@@ -81,7 +81,7 @@ export default function PublicProfilePage() {
 
               <div className="mt-6 grid grid-cols-3 gap-3">
                 {statCards.map(({ label, value, icon: StatIcon, color }) => (
-                  <div key={label} className={`${color} border-[3px] border-black p-3 shadow-[3px_3px_0_#000] sm:p-4`}>
+                  <div key={label} className={`${color} border-[length:var(--border-width)] border-black rounded-lg p-3 shadow-brutal sm:p-4`}>
                     <StatIcon className="size-5" strokeWidth={2.5} />
                     <p className="mt-2 font-mono text-2xl font-black tabular-nums sm:text-3xl">{value}</p>
                     <p className="font-mono text-[9px] font-bold tracking-wider uppercase sm:text-[10px]">{label}</p>
@@ -105,13 +105,13 @@ export default function PublicProfilePage() {
             {publicSmiles.map((post) => (
               <article key={post.id} className="brutal-surface brutal-lift bg-card">
                 <div className={`${post.bg} relative flex aspect-square items-center justify-center`}>
-                  <div className="absolute left-3 top-3 flex items-center gap-1 border-[2px] border-black bg-card px-2 py-1">
+                  <div className="absolute left-3 top-3 flex items-center gap-1 border-[length:var(--border-width)] border-black rounded-xs bg-card px-2 py-1">
                     <ScanFace className="size-3" strokeWidth={2.5} />
                     <span className="font-mono text-[10px] font-bold tabular-nums">{post.score}</span>
                   </div>
                   <Smile className="size-16 opacity-25" strokeWidth={1.5} />
                 </div>
-                <div className="flex items-center justify-between border-t-[3px] border-black p-3">
+                <div className="flex items-center justify-between border-t-[length:var(--border-width)] border-black p-3">
                   <span className="font-mono text-[10px] font-bold text-muted-foreground">{post.timeAgo}</span>
                   <div className="flex items-center gap-1">
                     <Heart className="size-3.5" strokeWidth={2} />

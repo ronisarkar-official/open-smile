@@ -1,12 +1,9 @@
 import type { Metadata } from 'next';
 import {
-	Camera,
 	Heart,
-	MessageCircle,
 	RefreshCw,
 	ScanFace,
 	Smile,
-	Sparkles,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -101,10 +98,10 @@ export default function ExplorePage() {
 					<button
 						key={filter}
 						type="button"
-						className={`border-[3px] border-black px-4 py-2 font-mono text-xs font-bold tracking-wider uppercase transition-all ${
+						className={`border-[length:var(--border-width)] border-black rounded-md px-4 py-2 font-mono text-xs font-bold tracking-wider uppercase transition-all ${
 							i === 0 ?
-								'bg-primary shadow-[3px_3px_0_#000]'
-							:	'bg-card shadow-[3px_3px_0_#000] hover:bg-muted'
+								'bg-primary shadow-brutal-sm'
+							:	'bg-card shadow-brutal-sm hover:bg-muted'
 						} brutal-lift`}>
 						{filter}
 					</button>
@@ -120,7 +117,7 @@ export default function ExplorePage() {
 						className="brutal-surface brutal-lift mb-5 break-inside-avoid bg-card">
 						<div
 							className={`${post.bg} relative flex aspect-[4/3] items-center justify-center`}>
-							<div className="absolute left-3 top-3 flex items-center gap-1.5 border-[2px] border-black bg-card px-2 py-1">
+							<div className="absolute left-3 top-3 flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-xs bg-card px-2 py-1">
 								<ScanFace
 									className="size-3.5"
 									strokeWidth={2.5}
@@ -134,10 +131,10 @@ export default function ExplorePage() {
 								strokeWidth={1.5}
 							/>
 						</div>
-						<div className="border-t-[3px] border-black p-4">
+						<div className="border-t-[length:var(--border-width)] border-black p-4">
 							<div className="flex items-center justify-between">
 								<div className="flex items-center gap-2.5">
-									<Avatar className="size-8 border-[2px] border-black">
+									<Avatar className="size-8 border-[length:var(--border-width)] border-black">
 										<AvatarFallback className="text-xs font-bold">
 											{post.avatar}
 										</AvatarFallback>
@@ -151,7 +148,7 @@ export default function ExplorePage() {
 								</div>
 								<button
 									type="button"
-									className="flex items-center gap-1.5 border-[2px] border-black bg-card px-2.5 py-1.5 font-mono text-xs font-bold transition-all hover:-translate-y-0.5 hover:bg-secondary hover:shadow-[2px_2px_0_#000] active:translate-y-0.5 active:shadow-none">
+									className="flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-card px-2.5 py-1.5 font-mono text-xs font-bold transition-all hover:-translate-y-0.5 hover:bg-secondary hover:shadow-brutal-xs active:translate-y-0.5 active:shadow-none">
 									<Heart
 										className="size-3.5"
 										strokeWidth={2.5}
@@ -168,7 +165,7 @@ export default function ExplorePage() {
 				<Button
 					variant="outline"
 					size="lg"
-					className="gap-2 shadow-[4px_4px_0_#000]">
+					className="gap-2 shadow-brutal">
 					<RefreshCw className="size-4" />
 					Refresh feed
 				</Button>

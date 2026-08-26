@@ -13,11 +13,13 @@ if (isDev) connectSrc.push('ws:', 'wss:'); // dev HMR websockets
 
 const cspParts = [
 	`default-src 'self'`,
-	`script-src ${scriptSrc.join(' ')}`,
+	`script-src ${scriptSrc.join(' ')} 'wasm-unsafe-eval'`,
 	`style-src 'self' 'unsafe-inline'`,
 	`img-src 'self' data: blob: https://ik.imagekit.io https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://xubohuah.github.io`,
 	`font-src 'self' data:`,
 	`connect-src ${connectSrc.join(' ')}`,
+	`media-src 'self' blob: data:`,
+	`worker-src 'self' blob:`,
 	`frame-src 'self'`,
 	`frame-ancestors 'none'`,
 	`base-uri 'self'`,
@@ -39,7 +41,7 @@ const securityHeaders = [
 	{ key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
 	{
 		key: 'Permissions-Policy',
-		value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
+		value: 'camera=(self), microphone=(), geolocation=(), interest-cohort=()',
 	},
 ];
 

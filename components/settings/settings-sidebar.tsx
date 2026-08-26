@@ -24,7 +24,7 @@ export function SettingsSidebar({
 	userInitials,
 }: SettingsSidebarProps) {
 	return (
-		<nav className="w-[230px] shrink-0 border-r-[3px] border-black bg-muted/30 overflow-y-auto py-3 hidden sm:block">
+		<nav className="w-[230px] shrink-0 border-r-[length:var(--border-width)] border-black bg-muted/30 overflow-y-auto py-3 hidden sm:block">
 			{/* Nav groups */}
 			{NAV_GROUPS.map((group, gi) => (
 				<div key={group.title} className={cn(gi > 0 && 'mt-4')}>
@@ -41,11 +41,11 @@ export function SettingsSidebar({
 									key={item.id}
 									onClick={() => onSectionChange('profile')}
 									className={cn(
-										'flex items-center gap-2.5 mx-3 px-2.5 py-1.5 text-xs uppercase tracking-wider font-bold transition-all',
-										'w-[calc(100%-24px)] border-[2px]',
+										'flex items-center gap-2.5 mx-3 px-2.5 py-1.5 text-xs uppercase tracking-wider font-bold rounded-md transition-all',
+										'w-[calc(100%-24px)] border-[length:var(--border-width)]',
 										isActive
-											? 'border-black bg-primary text-black shadow-[2px_2px_0_#000]'
-											: 'border-transparent text-foreground hover:border-black hover:bg-muted hover:shadow-[1px_1px_0_#000]',
+											? 'border-black bg-primary text-primary-foreground shadow-brutal-sm'
+											: 'border-transparent text-foreground hover:border-black hover:bg-muted hover:shadow-brutal-xs',
 									)}>
 									<Avatar className="h-5 w-5 border border-black shrink-0">
 										<AvatarImage src={userAvatar} alt={userName} />
@@ -65,11 +65,11 @@ export function SettingsSidebar({
 								key={item.id}
 								onClick={() => onSectionChange(item.id)}
 								className={cn(
-									'flex items-center gap-2.5 mx-3 px-2.5 py-1.5 text-xs uppercase tracking-wider font-bold transition-all',
-									'w-[calc(100%-24px)] border-[2px]',
+									'flex items-center gap-2.5 mx-3 px-2.5 py-1.5 text-xs uppercase tracking-wider font-bold rounded-md transition-all',
+									'w-[calc(100%-24px)] border-[length:var(--border-width)]',
 									isActive
-										? 'border-black bg-primary text-black shadow-[2px_2px_0_#000]'
-										: 'border-transparent text-foreground hover:border-black hover:bg-muted hover:shadow-[1px_1px_0_#000]',
+										? 'border-black bg-primary text-primary-foreground shadow-brutal-sm'
+										: 'border-transparent text-foreground hover:border-black hover:bg-muted hover:shadow-brutal-xs',
 								)}>
 								<Icon className="h-4 w-4 shrink-0" strokeWidth={isActive ? 2.5 : 2} />
 								<span className="truncate">{item.label}</span>
@@ -91,13 +91,13 @@ export function SettingsMobileNav({
 	onSectionChange: (section: SettingsSection) => void;
 }) {
 	return (
-		<div className="sm:hidden border-b-[3px] border-black p-3 bg-muted/20">
+		<div className="sm:hidden border-b-[length:var(--border-width)] border-black p-3 bg-muted/20">
 			<select
 				value={activeSection}
 				onChange={(e) =>
 					onSectionChange(e.target.value as SettingsSection)
 				}
-				className="w-full border-[2px] border-black bg-card px-3 py-2 font-mono text-xs font-bold uppercase shadow-[2px_2px_0_#000] focus:outline-none">
+				className="w-full border-[length:var(--border-width)] border-black rounded-md bg-card px-3 py-2 font-mono text-xs font-bold uppercase shadow-brutal-sm focus:outline-none">
 				{NAV_GROUPS.flatMap((g) =>
 					g.items.map((item) => (
 						<option key={item.id} value={item.id}>

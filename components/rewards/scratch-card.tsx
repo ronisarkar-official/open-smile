@@ -10,6 +10,7 @@ export interface ScratchCardProps {
   brushSize?: number;
   isScratched?: boolean;
   onComplete?: () => void;
+  onScratchAttempt?: () => boolean;
   children: React.ReactNode;
   className?: string;
   coverText?: string;
@@ -23,10 +24,11 @@ export function ScratchCard({
   brushSize = 22,
   isScratched = false,
   onComplete,
+  onScratchAttempt,
   children,
   className,
   coverText = 'SCRATCH TO REVEAL',
-  coverColor = '#FFD23F',
+  coverColor = '#FF2D78',
 }: ScratchCardProps) {
   const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const containerRef = React.useRef<HTMLDivElement | null>(null);
@@ -200,6 +202,7 @@ export function ScratchCard({
 
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (completed) return;
+    if (onScratchAttempt && !onScratchAttempt()) return;
     isDrawingRef.current = true;
     const pos = getPositionFromClient(e.clientX, e.clientY);
     lastPointRef.current = pos;
@@ -237,7 +240,7 @@ export function ScratchCard({
       ref={containerRef}
       style={{ width, height }}
       className={cn(
-        'relative select-none overflow-hidden border-[3px] border-black bg-card shadow-[6px_6px_0_#000] touch-none',
+        'relative select-none overflow-hidden border-[length:var(--border-width)] border-black rounded-xl bg-card shadow-brutal-lg touch-none',
         className
       )}
     >

@@ -5,12 +5,9 @@ import Link from 'next/link';
 import {
   ArrowRight,
   Camera,
-  CheckCircle2,
   Gift,
   History,
-  Sparkles,
   Trophy,
-  Zap,
 } from 'lucide-react';
 import { CoinIcon } from '@/components/ui/coin-icon';
 import { ScratchCardModal, type ScratchCardItem } from '@/components/rewards/scratch-card-modal';
@@ -25,7 +22,7 @@ const initialCards: ScratchCardItem[] = [
     date: 'Today',
     coins: 35,
     isScratched: false,
-    themeColor: '#FFD23F',
+    themeColor: '#FF2D78',
     badge: 'NEW',
   },
   {
@@ -35,7 +32,7 @@ const initialCards: ScratchCardItem[] = [
     date: 'Yesterday',
     coins: 200,
     isScratched: false,
-    themeColor: '#88D498',
+    themeColor: '#22C55E',
     badge: 'SUPER',
   },
   {
@@ -45,7 +42,7 @@ const initialCards: ScratchCardItem[] = [
     date: 'Aug 22, 2026',
     coins: 50,
     isScratched: true,
-    themeColor: '#FF6B6B',
+    themeColor: '#7B61FF',
   },
   {
     id: 'sc-4',
@@ -54,7 +51,7 @@ const initialCards: ScratchCardItem[] = [
     date: 'Aug 21, 2026',
     coins: 40,
     isScratched: true,
-    themeColor: '#74B9FF',
+    themeColor: '#C6F135',
   },
   {
     id: 'sc-5',
@@ -63,7 +60,7 @@ const initialCards: ScratchCardItem[] = [
     date: 'Aug 18, 2026',
     coins: 100,
     isScratched: true,
-    themeColor: '#FFD23F',
+    themeColor: '#FBBF24',
   },
   {
     id: 'sc-6',
@@ -72,7 +69,7 @@ const initialCards: ScratchCardItem[] = [
     date: 'Aug 17, 2026',
     coins: 20,
     isScratched: true,
-    themeColor: '#88D498',
+    themeColor: '#22C55E',
   },
 ];
 
@@ -108,36 +105,36 @@ export function ScratchCardGallery() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <div className="border-[3px] border-black bg-primary p-4 shadow-[4px_4px_0_#000] flex items-center justify-between">
+        <div className="border-[length:var(--border-width)] border-black rounded-lg bg-primary p-4 shadow-brutal flex items-center justify-between">
           <div>
-            <p className="font-mono text-[11px] font-black uppercase text-black">
+            <p className="font-mono text-[11px] font-black uppercase text-primary-foreground">
               Total Scratch Wins
             </p>
-            <p className="font-mono text-3xl font-black text-black mt-1 flex items-center gap-1.5">
+            <p className="font-mono text-3xl font-black text-primary-foreground mt-1 flex items-center gap-1.5">
               <span>+{totalCoinsWon}</span>
-              <CoinIcon className="size-6 text-black" />
+              <CoinIcon className="size-6 text-primary-foreground" />
             </p>
           </div>
-          <div className="flex size-10 items-center justify-center border-[2px] border-black bg-card shadow-[2px_2px_0_#000]">
-            <Trophy className="size-5 text-black" strokeWidth={2.5} />
+          <div className="flex size-10 items-center justify-center border-[length:var(--border-width)] border-black rounded-md bg-card shadow-brutal-sm">
+            <Trophy className="size-5 text-foreground" strokeWidth={2.5} />
           </div>
         </div>
 
-        <div className="border-[3px] border-black bg-secondary p-4 shadow-[4px_4px_0_#000] flex items-center justify-between">
+        <div className="border-[length:var(--border-width)] border-black rounded-lg bg-secondary p-4 shadow-brutal flex items-center justify-between">
           <div>
-            <p className="font-mono text-[11px] font-black uppercase text-black">
+            <p className="font-mono text-[11px] font-black uppercase text-secondary-foreground">
               Ready to Scratch
             </p>
-            <p className="font-mono text-3xl font-black text-black mt-1">
+            <p className="font-mono text-3xl font-black text-secondary-foreground mt-1">
               {unscratchedCount} {unscratchedCount === 1 ? 'Card' : 'Cards'}
             </p>
           </div>
-          <div className="flex size-10 items-center justify-center border-[2px] border-black bg-card shadow-[2px_2px_0_#000]">
-            <Gift className="size-5 text-black" strokeWidth={2.5} />
+          <div className="flex size-10 items-center justify-center border-[length:var(--border-width)] border-black rounded-md bg-card shadow-brutal-sm">
+            <Gift className="size-5 text-foreground" strokeWidth={2.5} />
           </div>
         </div>
 
-        <div className="border-[3px] border-black bg-accent p-4 shadow-[4px_4px_0_#000] flex items-center justify-between">
+        <div className="border-[length:var(--border-width)] border-black rounded-lg bg-accent p-4 shadow-brutal flex items-center justify-between">
           <div>
             <p className="font-mono text-[11px] font-black uppercase text-black">
               Scratched History
@@ -146,20 +143,20 @@ export function ScratchCardGallery() {
               {scratchedCount}
             </p>
           </div>
-          <div className="flex size-10 items-center justify-center border-[2px] border-black bg-card shadow-[2px_2px_0_#000]">
+          <div className="flex size-10 items-center justify-center border-[length:var(--border-width)] border-black rounded-md bg-card shadow-brutal-sm">
             <History className="size-5 text-black" strokeWidth={2.5} />
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between flex-wrap gap-3 border-b-[2px] border-black/15 pb-3">
+      <div className="flex items-center justify-between flex-wrap gap-3 border-b-[length:var(--border-width)] border-black/15 pb-3">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setFilter('all')}
             className={cn(
-              'border-[2px] px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider cursor-pointer transition-all',
+              'border-[length:var(--border-width)] rounded-md px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider cursor-pointer transition-all',
               filter === 'all'
-                ? 'border-black bg-primary text-black shadow-[2px_2px_0_#000]'
+                ? 'border-black bg-primary text-primary-foreground shadow-brutal-sm'
                 : 'border-transparent bg-card text-muted-foreground hover:border-black'
             )}
           >
@@ -168,15 +165,15 @@ export function ScratchCardGallery() {
           <button
             onClick={() => setFilter('unscratched')}
             className={cn(
-              'border-[2px] px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5',
+              'border-[length:var(--border-width)] rounded-md px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider cursor-pointer transition-all flex items-center gap-1.5',
               filter === 'unscratched'
-                ? 'border-black bg-secondary text-black shadow-[2px_2px_0_#000]'
+                ? 'border-black bg-secondary text-secondary-foreground shadow-brutal-sm'
                 : 'border-transparent bg-card text-muted-foreground hover:border-black'
             )}
           >
             <span>Ready to Scratch</span>
             {unscratchedCount > 0 && (
-              <span className="flex size-4 items-center justify-center border border-black bg-black font-mono text-[10px] text-white">
+              <span className="flex size-4 items-center justify-center border border-black rounded-xs bg-black font-mono text-[10px] text-white">
                 {unscratchedCount}
               </span>
             )}
@@ -184,9 +181,9 @@ export function ScratchCardGallery() {
           <button
             onClick={() => setFilter('history')}
             className={cn(
-              'border-[2px] px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider cursor-pointer transition-all',
+              'border-[length:var(--border-width)] rounded-md px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider cursor-pointer transition-all',
               filter === 'history'
-                ? 'border-black bg-card text-foreground shadow-[2px_2px_0_#000]'
+                ? 'border-black bg-card text-foreground shadow-brutal-sm'
                 : 'border-transparent bg-card text-muted-foreground hover:border-black'
             )}
           >
@@ -205,8 +202,8 @@ export function ScratchCardGallery() {
       </div>
 
       {filteredCards.length === 0 ? (
-        <div className="border-[3px] border-black bg-card p-8 text-center shadow-[4px_4px_0_#000]">
-          <div className="mx-auto flex size-12 items-center justify-center border-[2px] border-black bg-muted">
+        <div className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-8 text-center shadow-brutal">
+          <div className="mx-auto flex size-12 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg bg-muted">
             <Gift className="size-6 text-muted-foreground" />
           </div>
           <h3 className="mt-3 font-title text-lg font-black">No Scratch Cards Found</h3>
@@ -229,14 +226,14 @@ export function ScratchCardGallery() {
                 key={card.id}
                 onClick={() => handleCardClick(card)}
                 className={cn(
-                  'group relative flex min-h-48 flex-col justify-between border-[3px] border-black p-4 cursor-pointer transition-all brutal-lift select-none',
+                  'group relative flex min-h-48 flex-col justify-between border-[length:var(--border-width)] border-black rounded-lg p-4 cursor-pointer transition-all brutal-lift select-none',
                   isUnscratched
-                    ? 'bg-primary shadow-[5px_5px_0_#000] hover:shadow-[7px_7px_0_#000]'
-                    : 'bg-card shadow-[3px_3px_0_#000] hover:shadow-[5px_5px_0_#000]'
+                    ? 'bg-primary shadow-brutal-lg'
+                    : 'bg-card shadow-brutal'
                 )}
               >
                 {isUnscratched && (
-                  <span className="absolute -top-2.5 -right-2.5 border-[2px] border-black bg-secondary px-2 py-0.5 font-mono text-[9px] font-black uppercase text-black shadow-[2px_2px_0_#000] animate-bounce">
+                  <span className="absolute -top-2.5 -right-2.5 border-[length:var(--border-width)] border-black rounded-md bg-secondary px-2 py-0.5 font-mono text-[9px] font-black uppercase text-secondary-foreground shadow-brutal-sm animate-bounce">
                     Tap to Scratch
                   </span>
                 )}
@@ -244,14 +241,14 @@ export function ScratchCardGallery() {
                 <div className="flex items-start justify-between gap-1">
                   <span
                     className={cn(
-                      'border border-black px-1.5 py-0.2 font-mono text-[9px] font-bold uppercase',
+                      'border border-black rounded-xs px-1.5 py-0.2 font-mono text-[9px] font-bold uppercase',
                       isUnscratched ? 'bg-card text-foreground' : 'bg-muted text-muted-foreground'
                     )}
                   >
                     {card.source}
                   </span>
                   {card.badge && (
-                    <span className="border border-black bg-accent px-1.5 py-0.2 font-mono text-[9px] font-black text-black">
+                    <span className="border border-black rounded-xs bg-accent px-1.5 py-0.2 font-mono text-[9px] font-black text-black">
                       {card.badge}
                     </span>
                   )}
@@ -260,7 +257,7 @@ export function ScratchCardGallery() {
                 <div className="my-auto flex flex-col items-center py-2 text-center">
                   {isUnscratched ? (
                     <>
-                      <div className="flex size-12 items-center justify-center border-[2px] border-black bg-card shadow-[2px_2px_0_#000] group-hover:scale-105 transition-transform">
+                      <div className="flex size-12 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg bg-card shadow-brutal-sm group-hover:scale-105 transition-transform">
                         <Gift className="size-6 text-primary-foreground" strokeWidth={2.5} />
                       </div>
                       <p className="mt-2 font-mono text-xs font-black uppercase tracking-wider text-black">
@@ -269,7 +266,7 @@ export function ScratchCardGallery() {
                     </>
                   ) : (
                     <>
-                      <div className="flex size-11 items-center justify-center border-[2px] border-black bg-secondary/30">
+                      <div className="flex size-11 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg bg-secondary/30">
                         <CoinIcon className="size-6 text-secondary" />
                       </div>
                       <p className="mt-2 font-mono text-2xl font-black text-foreground flex items-center gap-1.5">
@@ -280,7 +277,7 @@ export function ScratchCardGallery() {
                   )}
                 </div>
 
-                <div className="border-t-[2px] border-black/15 pt-2">
+                <div className="border-t-[length:var(--border-width)] border-black/15 pt-2">
                   <p className="font-title text-xs font-black truncate">{card.title}</p>
                   <p className="font-mono text-[10px] text-muted-foreground font-semibold mt-0.5">
                     {card.date} • {isUnscratched ? 'Ready' : 'Claimed'}

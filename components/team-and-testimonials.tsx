@@ -153,7 +153,7 @@ export function TeamAndTestimonialsSection() {
             {TeamData.map((team) => (
               <div
                 key={team.id}
-                className="flex flex-col items-center justify-between rounded-[22px] border border-neutral-200/90 bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] transition duration-200 hover:shadow-[0_6px_20px_rgba(0,0,0,0.06)]"
+                className="flex flex-col items-center justify-between rounded-xl border border-neutral-200/90 bg-white p-6 shadow-[0_2px_10px_rgba(0,0,0,0.03)] transition duration-200 hover:shadow-[0_6px_20px_rgba(0,0,0,0.06)]"
               >
                 {/* Circular Avatar with matching backdrop */}
                 <div
@@ -214,7 +214,7 @@ export function TeamAndTestimonialsSection() {
             {testimonialsData.map((testimonial) => (
               <div
                 key={testimonial.id}
-                className="relative flex flex-col sm:flex-row items-stretch rounded-[22px] border border-neutral-300/90 bg-[#FEE564] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.03)]"
+                className="relative flex flex-col sm:flex-row items-stretch rounded-xl border border-neutral-300/90 bg-[#FEE564] p-6 sm:p-7 shadow-[0_2px_10px_rgba(0,0,0,0.03)]"
               >
                 {/* Left Side: Avatar, Sparkle, Author details */}
                 <div className="flex flex-col justify-between sm:w-[42%] sm:shrink-0 pr-0 sm:pr-4 pb-4 sm:pb-0">

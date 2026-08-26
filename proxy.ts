@@ -3,7 +3,32 @@ import type { NextRequest } from "next/server";
 
 // Next.js 16: "middleware" is renamed to "proxy"
 // Proxy defaults to Node.js runtime
+const protectedRoutes = [
+  "/dashboard",
+  "/leaderboard",
+  "/explore",
+  "/rewards",
+  "/refer",
+];
+
 export function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isProtected = protectedRoutes.some(
+    (route) => pathname === route || pathname.startsWith(`${route}/`)
+  );
+
+  if (isProtected) {
+    const sessionCookie =
+      request.cookies.get("better-auth.session_token") ||
+      request.cookies.get("__Secure-better-auth.session_token");
+
+    if (!sessionCookie) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("redirectTo", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return NextResponse.next();
 }
 

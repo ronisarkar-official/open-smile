@@ -32,7 +32,7 @@ export function CoinIcon({
         cx="11.5"
         cy="11.5"
         r="8.75"
-        fill="#FFD23F"
+        fill="#FBBF24"
         stroke="#000000"
         strokeWidth="1.2"
         strokeLinecap="round"
@@ -44,7 +44,7 @@ export function CoinIcon({
         cx="11.5"
         cy="11.5"
         r="6.5"
-        fill="#FFE169"
+        fill="#FDE68A"
         stroke="#000000"
         strokeWidth="1.5"
       />
@@ -116,7 +116,7 @@ export function CoinBadge({
   return (
     <span
       className={cn(
-        'inline-flex items-center border-[2px] border-black bg-primary font-mono font-black text-black tabular-nums shadow-[2px_2px_0_#000]',
+        'inline-flex items-center border-[length:var(--border-width)] border-black rounded-md bg-primary font-mono font-black text-primary-foreground tabular-nums shadow-brutal-sm',
         sizeStyles[size],
         className
       )}

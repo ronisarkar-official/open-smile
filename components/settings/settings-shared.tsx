@@ -197,13 +197,13 @@ export function ActionButton({
 		<button
 			onClick={onClick}
 			className={cn(
-				'px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border-[2px] transition-all whitespace-nowrap cursor-pointer brutal-lift',
+				'px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border-[length:var(--border-width)] rounded-md transition-all whitespace-nowrap cursor-pointer brutal-lift',
 				variant === 'default' &&
-					'border-black bg-card text-foreground shadow-[2px_2px_0_#000] hover:bg-muted',
+					'border-black bg-card text-foreground shadow-brutal-sm hover:bg-muted',
 				variant === 'primary' &&
-					'border-black bg-primary text-black shadow-[2px_2px_0_#000] hover:bg-primary/90',
+					'border-black bg-primary text-primary-foreground shadow-brutal-sm hover:bg-primary/90',
 				variant === 'destructive' &&
-					'border-black bg-destructive/10 text-destructive shadow-[2px_2px_0_#000] hover:bg-destructive/20',
+					'border-black bg-destructive/10 text-destructive shadow-brutal-sm hover:bg-destructive/20',
 				className
 			)}>
 			{children}
@@ -217,6 +217,7 @@ export function Toggle({
 }: {
 	checked?: boolean;
 	onChange?: (val: boolean) => void;
+	className?: string;
 }) {
 	return (
 		<button
@@ -224,12 +225,12 @@ export function Toggle({
 			aria-checked={checked}
 			onClick={() => onChange?.(!checked)}
 			className={cn(
-				'relative inline-flex h-5 w-9 items-center border-[2px] border-black transition-colors cursor-pointer',
+				'relative inline-flex h-5 w-9 items-center border-[length:var(--border-width)] border-black rounded-md transition-colors cursor-pointer',
 				checked ? 'bg-primary' : 'bg-muted',
 			)}>
 			<span
 				className={cn(
-					'inline-block h-3 w-3 bg-black transition-transform',
+					'inline-block h-3 w-3 bg-black rounded-sm transition-transform',
 					checked ? 'translate-x-4' : 'translate-x-0.5',
 				)}
 			/>

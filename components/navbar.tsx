@@ -20,7 +20,7 @@ export function Navbar() {
   const closeMenu = () => setMenuOpen(false);
 
   return (
-    <header className="sticky top-0 z-[100] border-b-[3px] border-black bg-background">
+    <header className="sticky top-0 z-[100] border-b-[length:var(--border-width)] border-black bg-background">
       <nav className="mx-auto flex min-h-18 w-full max-w-[1280px] items-center justify-between gap-5 px-5 py-3 sm:px-6">
         <Link href="/" className="shrink-0 focus-visible:outline-3 focus-visible:outline-offset-4" aria-label="Open Smile home">
           <Logo className="h-8 w-auto sm:h-9" />
@@ -31,7 +31,7 @@ export function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="px-3 py-2 text-sm font-semibold transition-[background-color] duration-200 hover:bg-primary focus-visible:bg-primary focus-visible:outline-3 focus-visible:outline-offset-2"
+              className="px-3 py-2 text-sm font-semibold transition-[background-color] duration-200 hover:bg-primary rounded-md focus-visible:bg-primary focus-visible:outline-3 focus-visible:outline-offset-2"
             >
               {link.label}
             </a>
@@ -40,7 +40,7 @@ export function Navbar() {
 
         <div className="hidden items-center gap-3 md:flex">
           {isPending ? (
-            <div className="h-11 w-28 animate-pulse border-[3px] border-black bg-muted" aria-label="Loading account controls" />
+            <div className="h-11 w-28 animate-pulse border-[length:var(--border-width)] border-black rounded-lg bg-muted" aria-label="Loading account controls" />
           ) : session?.user ? (
             <>
               <Button asChild variant="outline" size="sm">
@@ -80,14 +80,14 @@ export function Navbar() {
       </nav>
 
       {menuOpen && (
-        <div className="border-t-[3px] border-black bg-card p-5 md:hidden">
+        <div className="border-t-[length:var(--border-width)] border-black bg-card p-5 md:hidden">
           <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-3">
             {links.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={closeMenu}
-                className="border-[3px] border-black bg-background px-4 py-3 font-bold transition-[background-color] duration-200 hover:bg-primary"
+                className="border-[length:var(--border-width)] border-black rounded-lg bg-background px-4 py-3 font-bold transition-[background-color] duration-200 hover:bg-primary"
               >
                 {link.label}
               </a>

@@ -147,7 +147,7 @@ const AlertToast = React.forwardRef<HTMLDivElement, AlertToastProps>(
 						onClick={onClose}
 						aria-label="Close"
 						className={cn(
-							'flex size-11 items-center justify-center border-[3px] border-current opacity-100 transition-[background-color,transform] hover:-translate-x-0.5 hover:-translate-y-0.5 focus:outline-none focus:ring-[3px] focus:ring-black focus:ring-offset-2',
+							'flex size-11 items-center justify-center border-[length:var(--border-width)] border-current rounded-md opacity-100 transition-[background-color,transform] hover:-translate-x-0.5 hover:-translate-y-0.5 focus:outline-none focus:ring-[3px] focus:ring-black focus:ring-offset-2',
 							styleVariant === 'default' ?
 								'text-black hover:bg-black/10'
 							:	'hover:bg-black/20',

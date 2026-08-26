@@ -13,9 +13,9 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
 
   return (
     <main id="main-content" className="flex min-h-[100dvh] items-center justify-center bg-background px-5 py-12">
-      <div className="w-full max-w-xl border-[3px] border-black bg-card p-7 text-center shadow-[8px_8px_0_#000] sm:p-10">
+      <div className="w-full max-w-xl border-[length:var(--border-width)] border-black rounded-xl bg-card p-7 text-center shadow-brutal-xl sm:p-10">
         <Logo className="mx-auto h-9 w-auto" />
-        <div className="mx-auto mt-9 flex size-16 items-center justify-center border-[3px] border-black bg-secondary">
+        <div className="mx-auto mt-9 flex size-16 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg bg-secondary shadow-brutal-sm">
           <AlertTriangle className="size-8" strokeWidth={2.5} />
         </div>
         <p className="mt-7 font-mono text-xs font-bold tracking-[0.14em] uppercase">A quick stumble</p>

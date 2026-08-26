@@ -21,6 +21,7 @@ interface ScratchCardModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onCardScratched: (cardId: string, coinsWon: number) => void;
+	onScratchAttempt?: () => boolean;
 }
 
 export function ScratchCardModal({
@@ -28,6 +29,7 @@ export function ScratchCardModal({
 	isOpen,
 	onClose,
 	onCardScratched,
+	onScratchAttempt,
 }: ScratchCardModalProps) {
 	const [isCompleted, setIsCompleted] = React.useState(false);
 
@@ -64,7 +66,7 @@ export function ScratchCardModal({
 					<button
 						type="button"
 						onClick={onClose}
-						className="absolute -top-3.5 -right-3.5 z-30 flex size-9 items-center justify-center border-[2.5px] border-black bg-background font-bold shadow-[3px_3px_0_#000] transition-all hover:-translate-y-0.5 hover:bg-muted active:translate-x-0.5 active:translate-y-0.5 active:shadow-[1px_1px_0_#000]"
+						className="absolute -top-3.5 -right-3.5 z-30 flex size-9 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg bg-background font-bold shadow-brutal transition-all hover:-translate-y-0.5 hover:bg-muted active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
 						aria-label="Close">
 						<X className="size-4.5 stroke-[2.5] text-foreground" />
 					</button>
@@ -74,12 +76,13 @@ export function ScratchCardModal({
 						height={350}
 						finishPercent={45}
 						isScratched={card.isScratched}
-						coverColor={card.themeColor || '#FFD23F'}
+						coverColor={card.themeColor || '#FF2D78'}
 						coverText="SCRATCH HERE"
+						onScratchAttempt={onScratchAttempt}
 						onComplete={handleComplete}>
 						<div className="flex size-full flex-col items-center justify-center text-center">
 							<div className="flex flex-col items-center my-auto">
-								<div className="flex size-14 items-center justify-center border-[2px] border-black bg-secondary shadow-[3px_3px_0_#000]">
+								<div className="flex size-14 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg bg-secondary shadow-brutal">
 									<Coins
 										className="size-8 text-black"
 										strokeWidth={2.5}

@@ -33,17 +33,15 @@ import {
 	Bell,
 	Camera,
 	ChevronsUpDown,
-	Coins,
-	Compass,
 	Flame,
 	Gift,
 	LayoutDashboard,
 	LogOut,
 	Smile,
 	Settings,
-	Sparkles,
 	Trophy,
 	UserPlus,
+	Compass,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SettingsDialog } from '@/components/settings/dialog';
@@ -158,16 +156,13 @@ export const DashboardSidebar = ({
 
 	const isActive = (url: string) => pathname === url;
 
-	const navItems = [...mainNav, ...secondaryNav];
-	const currentPage = navItems.find((item) => isActive(item.url));
-
 	const UserMenu = ({ className }: { className?: string }) => (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
 				<button
 					type="button"
 					className={cn(
-						'flex items-center gap-2 border-[2px] border-black bg-card px-2 py-1.5 text-left shadow-[2px_2px_0_#000] brutal-lift cursor-pointer outline-none focus-visible:outline-3 focus-visible:outline-ring',
+						'flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-card px-2 py-1.5 text-left shadow-brutal-sm brutal-lift cursor-pointer outline-none focus-visible:outline-3 focus-visible:outline-ring',
 						className,
 					)}
 					aria-label="Open account menu">
@@ -176,20 +171,20 @@ export const DashboardSidebar = ({
 							src={userAvatar}
 							alt={userName}
 						/>
-						<AvatarFallback className="bg-primary text-black font-bold text-xs">
+						<AvatarFallback className="bg-primary text-primary-foreground font-bold text-xs">
 							{userInitials}
 						</AvatarFallback>
 					</Avatar>
 				</button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent
-				className="w-60 border-[3px] border-black bg-card shadow-[5px_5px_0_#000] p-1"
+				className="w-60 border-[length:var(--border-width)] border-black rounded-lg bg-card shadow-brutal-lg p-1"
 				side="bottom"
 				align="end"
 				sideOffset={8}>
-				<DropdownMenuLabel className="p-2 font-normal border-b-[2px] border-black bg-muted/40">
+				<DropdownMenuLabel className="p-2 font-normal border-b-[length:var(--border-width)] border-black bg-muted/40">
 					<div className="flex items-center gap-2.5 text-left">
-						<Avatar className="h-8 w-8 border-[2px] border-black shrink-0">
+						<Avatar className="h-8 w-8 border-[length:var(--border-width)] border-black shrink-0">
 							<AvatarImage
 								src={userAvatar}
 								alt={userName}
@@ -218,7 +213,7 @@ export const DashboardSidebar = ({
 						Notifications
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
-				<DropdownMenuSeparator className="bg-black h-[2px]" />
+				<DropdownMenuSeparator className="bg-black h-[length:var(--border-width)]" />
 				<DropdownMenuItem
 					className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider text-destructive cursor-pointer hover:bg-destructive/10 focus:bg-destructive/10"
 					onClick={() =>
@@ -242,18 +237,18 @@ export const DashboardSidebar = ({
 			<SidebarProvider>
 				<Sidebar
 					collapsible="icon"
-					className="hidden md:flex border-r-[3px] border-black bg-sidebar">
-					<SidebarHeader className="border-b-[3px] border-black p-3">
+					className="hidden md:flex border-r-[length:var(--border-width)] border-black bg-sidebar">
+					<SidebarHeader className="border-b-[length:var(--border-width)] border-black p-3">
 						<SidebarMenu>
 							<SidebarMenuItem>
 								<Link href="/dashboard">
 									<SidebarMenuButton
 										size="lg"
-										className="group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:justify-center! hover:bg-primary/10">
-										<div className="flex aspect-square size-9 items-center justify-center border-[3px] border-black bg-primary text-black shadow-[2px_2px_0_#000] shrink-0">
+										className="group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center hover:bg-primary/10">
+										<div className="flex aspect-square size-9 items-center justify-center border-[length:var(--border-width)] border-black rounded-md bg-primary text-primary-foreground shadow-brutal-xs shrink-0">
 											<Smile className="m-auto size-5" strokeWidth={2.5} />
 										</div>
-										<div className="grid flex-1 text-left leading-tight ml-1">
+										<div className="grid flex-1 text-left leading-tight ml-1 group-data-[collapsible=icon]:hidden">
 											<span className="truncate font-black tracking-tight text-base font-title">
 												OPEN SMILE
 											</span>
@@ -271,7 +266,7 @@ export const DashboardSidebar = ({
 						<div className="px-1 pt-1 group-data-[collapsible=icon]:hidden">
 							<Link
 								href="/capture"
-								className="flex items-center justify-center gap-2 border-[3px] border-black bg-primary px-3 py-2.5 font-title font-black text-xs uppercase tracking-wider text-black shadow-[3px_3px_0_#000] brutal-lift hover:bg-primary/90">
+								className="flex items-center justify-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-primary px-3 py-2.5 font-title font-black text-xs uppercase tracking-wider text-primary-foreground shadow-brutal brutal-lift hover:bg-primary/90">
 								<Camera className="size-4" strokeWidth={2.5} />
 								<span>Capture Smile</span>
 							</Link>
@@ -291,10 +286,11 @@ export const DashboardSidebar = ({
 													tooltip={item.title}
 													isActive={active}
 													className={cn(
-														'border-[2px] transition-all font-title font-bold text-sm tracking-tight',
+														'border-[length:var(--border-width)] rounded-md transition-all font-title font-bold text-sm tracking-tight',
+														'group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:shadow-none',
 														active
-															? 'border-black bg-primary text-black shadow-[3px_3px_0_#000]'
-															: 'border-transparent text-foreground hover:border-black hover:bg-muted/70 hover:shadow-[2px_2px_0_#000]',
+															? 'border-black bg-primary text-primary-foreground shadow-brutal'
+															: 'border-transparent text-foreground hover:border-black hover:bg-muted/70 hover:shadow-brutal-sm',
 													)}>
 													<item.icon className="size-4" strokeWidth={active ? 2.5 : 2} />
 													<span className="font-bold">{item.title}</span>
@@ -321,10 +317,11 @@ export const DashboardSidebar = ({
 													isActive={active}
 													onClick={() => openSettings('profile')}
 													className={cn(
-														'border-[2px] transition-all font-title font-bold text-sm tracking-tight',
+														'border-[length:var(--border-width)] rounded-md transition-all font-title font-bold text-sm tracking-tight',
+														'group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:shadow-none',
 														active
-															? 'border-black bg-primary text-black shadow-[3px_3px_0_#000]'
-															: 'border-transparent text-foreground hover:border-black hover:bg-muted/70 hover:shadow-[2px_2px_0_#000]',
+															? 'border-black bg-primary text-primary-foreground shadow-brutal'
+															: 'border-transparent text-foreground hover:border-black hover:bg-muted/70 hover:shadow-brutal-sm',
 													)}>
 													<item.icon className="size-4" strokeWidth={active ? 2.5 : 2} />
 													<span className="font-bold">{item.title}</span>
@@ -335,10 +332,11 @@ export const DashboardSidebar = ({
 														tooltip={item.title}
 														isActive={active}
 														className={cn(
-															'border-[2px] transition-all font-title font-bold text-sm tracking-tight',
+															'border-[length:var(--border-width)] rounded-md transition-all font-title font-bold text-sm tracking-tight',
+															'group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:shadow-none',
 															active
-																? 'border-black bg-primary text-black shadow-[3px_3px_0_#000]'
-																: 'border-transparent text-foreground hover:border-black hover:bg-muted/70 hover:shadow-[2px_2px_0_#000]',
+																? 'border-black bg-primary text-primary-foreground shadow-brutal'
+																: 'border-transparent text-foreground hover:border-black hover:bg-muted/70 hover:shadow-brutal-sm',
 														)}>
 														<item.icon className="size-4" strokeWidth={active ? 2.5 : 2} />
 														<span className="font-bold">{item.title}</span>
@@ -352,40 +350,40 @@ export const DashboardSidebar = ({
 						</SidebarGroup>
 					</SidebarContent>
 
-					<SidebarFooter className="border-t-[3px] border-black p-2">
+					<SidebarFooter className="border-t-[length:var(--border-width)] border-black p-2">
 						<SidebarMenu>
 							<SidebarMenuItem>
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
 										<SidebarMenuButton
 											size="lg"
-											className="border-[2px] border-black bg-card shadow-[2px_2px_0_#000] hover:bg-muted brutal-lift">
+											className="border-[length:var(--border-width)] border-black rounded-lg bg-card shadow-brutal-sm hover:bg-muted brutal-lift group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:shadow-none group-data-[collapsible=icon]:rounded-full">
 											<Avatar className="h-8 w-8 border border-black shrink-0">
 												<AvatarImage
 													src={userAvatar}
 													alt={userName}
 												/>
-												<AvatarFallback className="bg-primary text-black font-black text-xs">
+												<AvatarFallback className="bg-primary text-primary-foreground font-black text-xs">
 													{userInitials}
 												</AvatarFallback>
 											</Avatar>
-											<div className="grid flex-1 text-left leading-tight min-w-0">
+											<div className="grid flex-1 text-left leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
 												<span className="truncate font-black text-sm font-title">
 													{userName}
 												</span>
 												<span className="truncate font-mono text-[10px] text-muted-foreground">{userEmail}</span>
 											</div>
-											<ChevronsUpDown className="ml-auto size-4" strokeWidth={2.5} />
+											<ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" strokeWidth={2.5} />
 										</SidebarMenuButton>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent
-										className="w-[--radix-dropdown-menu-trigger-width] min-w-56 border-[3px] border-black bg-card shadow-[5px_5px_0_#000] p-1"
+										className="w-[--radix-dropdown-menu-trigger-width] min-w-56 border-[length:var(--border-width)] border-black rounded-lg bg-card shadow-brutal-lg p-1"
 										side="bottom"
 										align="end"
 										sideOffset={4}>
-										<DropdownMenuLabel className="p-2 font-normal border-b-[2px] border-black bg-muted/40">
+										<DropdownMenuLabel className="p-2 font-normal border-b-[length:var(--border-width)] border-black bg-muted/40">
 											<div className="flex items-center gap-2 px-1 text-left text-sm">
-												<Avatar className="h-8 w-8 border-[2px] border-black">
+												<Avatar className="h-8 w-8 border-[length:var(--border-width)] border-black">
 													<AvatarImage
 														src={userAvatar}
 														alt={userName}
@@ -414,7 +412,7 @@ export const DashboardSidebar = ({
 												Notifications
 											</DropdownMenuItem>
 										</DropdownMenuGroup>
-										<DropdownMenuSeparator className="bg-black h-[2px]" />
+										<DropdownMenuSeparator className="bg-black h-[length:var(--border-width)]" />
 										<DropdownMenuItem
 											className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider text-destructive cursor-pointer hover:bg-destructive/10 focus:bg-destructive/10"
 											onClick={() =>
@@ -438,20 +436,17 @@ export const DashboardSidebar = ({
 				</Sidebar>
 
 				<SidebarInset>
-					<header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b-[3px] border-black bg-background transition-[width,height] ease-linear">
+					<header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b-[length:var(--border-width)] border-black bg-background transition-[width,height] ease-linear">
 						<div className="flex flex-1 items-center justify-between gap-3 px-4 sm:px-6">
 							<div className="flex items-center gap-3">
-								<SidebarTrigger className="-ml-1 hidden md:flex border-[2px] border-black bg-card shadow-[2px_2px_0_#000] hover:bg-muted size-9" />
-								
-
-								
+								<SidebarTrigger className="-ml-1 hidden md:flex border-[length:var(--border-width)] border-black rounded-md bg-card shadow-brutal-sm hover:bg-muted size-9" />
 							</div>
 
 							<div className="flex items-center gap-2 sm:gap-3">
 								<Link
 									href="/rewards"
 									title="View Coin Rewards"
-									className="flex items-center gap-1.5 border-[2px] border-black bg-primary px-2.5 py-1 text-black shadow-[2px_2px_0_#000] brutal-lift">
+									className="flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-primary px-2.5 py-1 text-primary-foreground shadow-brutal-sm brutal-lift">
 									<CoinIcon className="size-4" strokeWidth={2.5} />
 									<span className="font-mono text-xs font-black tabular-nums">247</span>
 								</Link>
@@ -459,14 +454,14 @@ export const DashboardSidebar = ({
 								<Link
 									href="/dashboard"
 									title="Active Smile Streak"
-									className="flex items-center gap-1.5 border-[2px] border-black bg-secondary px-2.5 py-1 text-black shadow-[2px_2px_0_#000] brutal-lift">
+									className="flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-secondary px-2.5 py-1 text-secondary-foreground shadow-brutal-sm brutal-lift">
 									<Flame className="size-4" strokeWidth={2.5} />
 									<span className="font-mono text-xs font-black tabular-nums">3d</span>
 								</Link>
 
 								<Link
 									href="/capture"
-									className="hidden sm:inline-flex items-center gap-1.5 border-[2px] border-black bg-accent px-3 py-1 font-title font-bold text-xs uppercase tracking-wider text-black shadow-[2px_2px_0_#000] brutal-lift">
+									className="hidden sm:inline-flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-accent px-3 py-1 font-title font-bold text-xs uppercase tracking-wider text-black shadow-brutal-sm brutal-lift">
 									<Camera className="size-3.5" strokeWidth={2.5} />
 									<span>Smile</span>
 								</Link>
@@ -483,7 +478,7 @@ export const DashboardSidebar = ({
 			</SidebarProvider>
 
 			<nav
-				className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-stretch border-t-[3px] border-black bg-card md:hidden shadow-[0_-3px_0_#000]"
+				className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-stretch border-t-[length:var(--border-width)] border-black bg-card md:hidden shadow-[0_calc(-1*var(--shadow-offset))_0_var(--outline)]"
 				style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
 				aria-label="Primary">
 				{mobileTabs.map((tab) => {
@@ -496,7 +491,7 @@ export const DashboardSidebar = ({
 							className={cn(
 								'flex flex-1 flex-col items-center justify-center gap-1 transition-all',
 								active
-									? 'bg-primary text-black font-bold border-t-[3px] border-black -mt-[3px]'
+									? 'bg-primary text-primary-foreground font-bold border-t-[length:var(--border-width)] border-black -mt-[length:var(--border-width)]'
 									: 'text-foreground hover:bg-muted/50',
 							)}
 							aria-current={active ? 'page' : undefined}>
@@ -530,4 +525,3 @@ export const DashboardSidebar = ({
 		</>
 	);
 };
-

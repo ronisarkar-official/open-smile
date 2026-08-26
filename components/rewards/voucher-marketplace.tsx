@@ -2,26 +2,17 @@
 
 import * as React from 'react';
 import {
-  Award,
-  Check,
-  CheckCircle2,
-  ChevronDown,
-  CreditCard,
-  ExternalLink,
   Film,
-  Filter,
   Gift,
   Headphones,
-  Info,
   Lock,
   Search,
   Shirt,
   ShoppingBag,
   SlidersHorizontal,
   Sparkles,
-  TrendingUp,
   Utensils,
-  Zap,
+  CheckCircle2,
 } from 'lucide-react';
 import { CoinIcon } from '@/components/ui/coin-icon';
 import { Button } from '@/components/ui/button';
@@ -108,63 +99,6 @@ export function VoucherMarketplace({
 
   return (
     <div className="space-y-6">
-      <section
-        className="border-[3px] border-black bg-card p-5 sm:p-7 shadow-[6px_6px_0_#000]"
-        aria-label="Voucher Marketplace Hero"
-      >
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 border-[2px] border-black bg-primary px-2.5 py-0.5 font-mono text-[11px] font-black uppercase text-black">
-                <ShoppingBag className="size-3.5" strokeWidth={2.5} />
-                Brand Voucher Store
-              </span>
-              <span className="border-[2px] border-black bg-muted px-2 py-0.5 font-mono text-[11px] font-bold">
-                8 Partner Brands • Instant E-Delivery
-              </span>
-            </div>
-            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight mt-2">
-              Redeem Coins for Real Gift Vouchers
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground max-w-2xl leading-relaxed">
-              Convert your smile coins into instant shopping, fashion, audio, and food vouchers from Amazon, Flipkart, boAt, Myntra, and more.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3 border-[2px] border-black bg-primary/20 px-4 py-3 shrink-0 self-start md:self-auto">
-            <CoinIcon className="size-6 text-black" />
-            <div>
-              <p className="font-mono text-[10px] font-black uppercase text-muted-foreground">Ready to Redeem</p>
-              <p className="font-mono text-lg font-black tabular-nums text-foreground">
-                {affordableCount} {affordableCount === 1 ? 'Voucher' : 'Vouchers'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 flex flex-wrap gap-2 border-t-[2px] border-black/10 pt-4">
-          {VOUCHER_CATEGORIES.map((cat) => {
-            const Icon = getCategoryIcon(cat.id);
-            const isSelected = selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={cn(
-                  'flex items-center gap-1.5 border-[2px] px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider cursor-pointer transition-all',
-                  isSelected
-                    ? 'border-black bg-primary text-black shadow-[2px_2px_0_#000]'
-                    : 'border-black/20 bg-muted/50 text-muted-foreground hover:border-black hover:text-foreground'
-                )}
-              >
-                <Icon className="size-3.5" strokeWidth={2.5} />
-                <span>{cat.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -172,7 +106,7 @@ export function VoucherMarketplace({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search Amazon, Flipkart, boAt, Myntra..."
-            className="pl-9 h-10 border-[2px] border-black bg-card font-mono text-xs shadow-[2px_2px_0_#000] focus-visible:ring-0 focus-visible:shadow-[3px_3px_0_#000]"
+            className="pl-9 h-10 border-[length:var(--border-width)] border-black rounded-lg bg-card font-mono text-xs shadow-brutal-sm focus-visible:ring-0 focus-visible:shadow-brutal"
           />
         </div>
 
@@ -180,9 +114,9 @@ export function VoucherMarketplace({
           <button
             onClick={() => setOnlyAffordable((prev) => !prev)}
             className={cn(
-              'flex items-center gap-1.5 border-[2px] px-3 h-10 font-mono text-xs font-bold uppercase tracking-wider cursor-pointer transition-all whitespace-nowrap',
+              'flex items-center gap-1.5 border-[length:var(--border-width)] rounded-lg px-3 h-10 font-mono text-xs font-bold uppercase tracking-wider cursor-pointer transition-all whitespace-nowrap',
               onlyAffordable
-                ? 'border-black bg-emerald-300 text-black shadow-[2px_2px_0_#000]'
+                ? 'border-black bg-emerald-300 text-black shadow-brutal-sm'
                 : 'border-black/30 bg-card text-muted-foreground hover:border-black hover:text-foreground'
             )}
           >
@@ -190,7 +124,7 @@ export function VoucherMarketplace({
             <span>Affordable Now ({affordableCount})</span>
           </button>
 
-          <div className="flex items-center gap-1.5 border-[2px] border-black bg-card px-2.5 h-10 shadow-[2px_2px_0_#000]">
+          <div className="flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-lg bg-card px-2.5 h-10 shadow-brutal-sm">
             <SlidersHorizontal className="size-3.5 text-muted-foreground shrink-0" />
             <select
               value={sortBy}
@@ -207,7 +141,7 @@ export function VoucherMarketplace({
       </div>
 
       {filteredVouchers.length === 0 ? (
-        <div className="border-[3px] border-black bg-card p-8 sm:p-12 text-center shadow-[4px_4px_0_#000]">
+        <div className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-8 sm:p-12 text-center shadow-brutal">
           <ShoppingBag className="mx-auto size-12 text-muted-foreground" strokeWidth={1.5} />
           <h3 className="mt-3 font-display text-xl font-black">No matching vouchers found</h3>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -220,7 +154,7 @@ export function VoucherMarketplace({
               setSelectedCategory('all');
               setOnlyAffordable(false);
             }}
-            className="mt-4 border-[2px] border-black bg-primary text-black font-mono text-xs font-bold uppercase"
+            className="mt-4 border-[length:var(--border-width)] border-black rounded-lg bg-primary text-primary-foreground font-mono text-xs font-bold uppercase"
           >
             Clear Filters
           </Button>
@@ -236,15 +170,15 @@ export function VoucherMarketplace({
               <article
                 key={voucher.id}
                 className={cn(
-                  'relative flex flex-col justify-between border-[3px] border-black bg-card p-5 shadow-[5px_5px_0_#000] transition-all duration-150',
-                  isAffordable ? 'hover:-translate-y-1 hover:shadow-[7px_7px_0_#000]' : 'opacity-95'
+                  'relative flex flex-col justify-between border-[length:var(--border-width)] border-black rounded-xl bg-card p-5 shadow-brutal-lg transition-all duration-150',
+                  isAffordable ? 'hover:-translate-y-1 hover:shadow-brutal-xl' : 'opacity-95'
                 )}
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
                       <div
-                        className="flex size-11 items-center justify-center border-[2px] border-black font-display font-black text-xs text-white shadow-[2px_2px_0_#000]"
+                        className="flex size-11 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg font-display font-black text-xs text-white shadow-brutal-sm"
                         style={{ backgroundColor: voucher.logoBg }}
                       >
                         {voucher.brandName.slice(0, 3).toUpperCase()}
@@ -259,7 +193,7 @@ export function VoucherMarketplace({
                       </div>
                     </div>
 
-                    <span className="border-[2px] border-black bg-primary px-2.5 py-1 font-mono text-sm font-black tracking-tight shrink-0 shadow-[1.5px_1.5px_0_#000]">
+                    <span className="border-[length:var(--border-width)] border-black rounded-md bg-primary px-2.5 py-1 font-mono text-sm font-black tracking-tight shrink-0 shadow-brutal-xs">
                       {voucher.valueFormatted}
                     </span>
                   </div>
@@ -275,14 +209,14 @@ export function VoucherMarketplace({
 
                   {voucher.highlightTag && (
                     <div className="mt-3">
-                      <span className="inline-block border border-black bg-muted px-2 py-0.5 font-mono text-[10px] font-black uppercase text-foreground">
+                      <span className="inline-block border border-black rounded-xs bg-muted px-2 py-0.5 font-mono text-[10px] font-black uppercase text-foreground">
                         {voucher.highlightTag}
                       </span>
                     </div>
                   )}
                 </div>
 
-                <div className="mt-5 pt-3 border-t-[2px] border-black/10 space-y-3">
+                <div className="mt-5 pt-3 border-t-[length:var(--border-width)] border-black/10 space-y-3">
                   <div className="flex items-center justify-between font-mono text-xs">
                     <span className="text-muted-foreground font-bold">Cost</span>
                     <div className="flex items-center gap-1.5">
@@ -308,7 +242,7 @@ export function VoucherMarketplace({
                           <CoinIcon className="size-3" />
                         </span>
                       </div>
-                      <div className="relative h-2 w-full border border-black bg-muted overflow-hidden">
+                      <div className="relative h-2 w-full border border-black rounded-sm bg-muted overflow-hidden">
                         <div
                           className="absolute inset-y-0 left-0 bg-primary border-r border-black transition-all duration-300"
                           style={{ width: `${progress}%` }}
@@ -324,9 +258,9 @@ export function VoucherMarketplace({
                   <Button
                     onClick={() => handleOpenClaim(voucher)}
                     className={cn(
-                      'w-full border-[2px] border-black font-title font-black text-xs uppercase tracking-wider h-10 gap-2 shadow-[2px_2px_0_#000] active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer',
+                      'w-full border-[length:var(--border-width)] border-black font-title font-black text-xs uppercase tracking-wider h-10 gap-2 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer',
                       isAffordable
-                        ? 'bg-primary text-black hover:bg-primary/90'
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                         : 'bg-card text-muted-foreground hover:text-foreground hover:bg-muted'
                     )}
                   >

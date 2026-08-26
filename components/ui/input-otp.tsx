@@ -55,7 +55,7 @@ function InputOTPSlot({
       data-slot="input-otp-slot"
       data-active={isActive}
       className={cn(
-        "relative flex size-11 items-center justify-center border-r-[3px] border-border bg-card text-sm outline-none first:border-l-0 last:border-r-0 aria-invalid:border-destructive data-[active=true]:z-10 data-[active=true]:bg-primary data-[active=true]:ring-3 data-[active=true]:ring-ring/50 data-[active=true]:aria-invalid:border-destructive data-[active=true]:aria-invalid:ring-destructive/20",
+        "relative flex size-11 items-center justify-center border-r-[length:var(--border-width)] border-border bg-card text-sm outline-none first:border-l-0 last:border-r-0 aria-invalid:border-destructive data-[active=true]:z-10 data-[active=true]:bg-primary data-[active=true]:ring-3 data-[active=true]:ring-ring/50 data-[active=true]:aria-invalid:border-destructive data-[active=true]:aria-invalid:ring-destructive/20",
         className
       )}
       {...props}
@@ -78,8 +78,7 @@ function InputOTPSeparator({ ...props }: React.ComponentProps<"div">) {
       role="separator"
       {...props}
     >
-      <MinusIcon
-      />
+      <MinusIcon />
     </div>
   )
 }

@@ -144,3 +144,56 @@ export async function cleanupExpiredOtpCodes() {
 export async function cleanupExpiredRateLimits() {
 	await getPool().query("DELETE FROM rate_limits WHERE expires_at <= NOW()");
 }
+
+/* ── Smile captures ── */
+
+export async function insertSmileCapture(
+	userId: string,
+	smileScore: number,
+	coinsAwarded: number
+) {
+	const { rows } = await getPool().query(
+		`INSERT INTO smile_captures (user_id, smile_score, coins_awarded)
+		 VALUES ($1, $2, $3)
+		 RETURNING *`,
+		[userId, smileScore, coinsAwarded]
+	);
+	return rows[0];
+}
+
+export async function getLastCaptureTime(userId: string): Promise<Date | null> {
+	const { rows } = await getPool().query(
+		`SELECT created_at FROM smile_captures
+		 WHERE user_id = $1
+		 ORDER BY created_at DESC
+		 LIMIT 1`,
+		[userId]
+	);
+	return rows[0]?.created_at ?? null;
+}
+
+/* ── Coin ledger (append-only, balance = SUM) ── */
+
+export async function insertCoinLedgerEntry(
+	userId: string,
+	coins: number,
+	reason: string
+) {
+	const { rows } = await getPool().query(
+		`INSERT INTO coin_ledger (user_id, coins, reason)
+		 VALUES ($1, $2, $3)
+		 RETURNING *`,
+		[userId, coins, reason]
+	);
+	return rows[0];
+}
+
+export async function getUserCoinBalance(userId: string): Promise<number> {
+	const { rows } = await getPool().query(
+		`SELECT COALESCE(SUM(coins), 0)::int AS balance
+		 FROM coin_ledger
+		 WHERE user_id = $1`,
+		[userId]
+	);
+	return rows[0].balance;
+}

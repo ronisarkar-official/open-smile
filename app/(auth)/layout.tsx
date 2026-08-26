@@ -13,7 +13,7 @@ const highlights = [
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="grid min-h-[100dvh] bg-background lg:h-[100dvh] lg:overflow-hidden lg:grid-cols-[minmax(22rem,0.85fr)_minmax(0,1.15fr)]">
-      <aside className="relative hidden overflow-hidden border-r-[3px] border-black bg-primary p-8 lg:flex lg:flex-col xl:p-10">
+      <aside className="relative hidden overflow-hidden border-r-[length:var(--border-width)] border-black bg-primary p-8 lg:flex lg:flex-col xl:p-10">
         <Link href="/" className="relative z-10 w-fit focus-visible:outline-3 focus-visible:outline-offset-4">
           <Logo className="h-9 w-auto" />
         </Link>
@@ -28,14 +28,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
         <div className="relative z-10 grid grid-cols-3 gap-3">
           {highlights.map(({ label, icon: Icon, color }) => (
-            <div key={label} className={`${color} border-[3px] border-black p-3`}>
+            <div key={label} className={`${color} border-[length:var(--border-width)] border-black rounded-lg p-3`}>
               <Icon className="size-6" strokeWidth={2.5} />
               <p className="mt-8 text-xs font-black leading-4">{label}</p>
             </div>
           ))}
         </div>
-        <div className="absolute bottom-[-2rem] right-[-2rem] size-40 border-[3px] border-black bg-secondary" />
-        <div className="absolute right-12 top-24 size-12 border-[3px] border-black bg-accent" />
+        <div className="absolute bottom-[-2rem] right-[-2rem] size-40 border-[length:var(--border-width)] border-black rounded-xl bg-secondary" />
+        <div className="absolute right-12 top-24 size-12 border-[length:var(--border-width)] border-black rounded-md bg-accent" />
       </aside>
 
       <div className="flex min-h-[100dvh] items-center justify-center p-4 sm:p-6 lg:min-h-0 lg:p-6 xl:p-8">

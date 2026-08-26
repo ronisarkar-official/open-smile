@@ -9,7 +9,6 @@ import {
 	DropdownMenuItem,
 } from '@/components/animate-ui/components/radix/dropdown-menu';
 import { useTheme } from '@/components/theme-provider';
-import { SettingsRow, ActionButton } from '@/components/settings/settings-shared';
 
 export function PreferencesContent() {
 	const { theme, setTheme } = useTheme();
@@ -37,7 +36,7 @@ export function PreferencesContent() {
 
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
-							<button className="flex w-40 items-center justify-between border-[2px] border-black bg-card px-3 py-1.5 text-xs font-bold text-foreground shadow-[2px_2px_0_#000] brutal-lift cursor-pointer select-none">
+							<button className="flex w-40 items-center justify-between border-[length:var(--border-width)] border-black rounded-lg bg-card px-3 py-1.5 text-xs font-bold text-foreground shadow-brutal-sm brutal-lift cursor-pointer select-none">
 								<span className="font-mono text-xs">
 									{theme === 'light'
 										? 'Light'
@@ -48,7 +47,7 @@ export function PreferencesContent() {
 								<ChevronDown className="h-3.5 w-3.5 text-foreground" />
 							</button>
 						</DropdownMenuTrigger>
-						<DropdownMenuContent className="w-40 border-[2px] border-black bg-card shadow-[4px_4px_0_#000] p-1">
+						<DropdownMenuContent className="w-40 border-[length:var(--border-width)] border-black rounded-lg bg-card shadow-brutal p-1">
 							<DropdownMenuItem
 								className="font-mono text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-primary/20"
 								onClick={() => setTheme('light')}>

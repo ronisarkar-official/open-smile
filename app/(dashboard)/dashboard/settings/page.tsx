@@ -44,7 +44,7 @@ export default function SettingsPage() {
   if (isPending) {
     return (
       <main className="mx-auto flex min-h-[60vh] w-full max-w-4xl items-center justify-center p-4">
-        <div className="flex items-center gap-2 border-[2px] border-black bg-card px-4 py-3 shadow-[4px_4px_0_#000]">
+        <div className="flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-card px-4 py-3 shadow-brutal">
           <Loader2 className="size-5 animate-spin text-primary" />
           <span className="font-mono text-xs font-bold uppercase">Loading Settings...</span>
         </div>
@@ -60,7 +60,7 @@ export default function SettingsPage() {
             asChild
             variant="outline"
             size="sm"
-            className="h-9 border-[2px] border-black bg-card px-2.5 font-mono text-xs font-bold shadow-[2px_2px_0_#000]"
+            className="h-9 border-[length:var(--border-width)] border-black rounded-md bg-card px-2.5 font-mono text-xs font-bold shadow-brutal-sm"
           >
             <Link href="/dashboard" className="gap-1">
               <ArrowLeft className="size-4" strokeWidth={2.5} />
@@ -89,14 +89,14 @@ export default function SettingsPage() {
               },
             })
           }
-          className="border-[2px] border-black bg-card font-mono text-xs font-bold uppercase text-destructive shadow-[2px_2px_0_#000] hover:bg-destructive/10"
+          className="border-[length:var(--border-width)] border-black rounded-md bg-card font-mono text-xs font-bold uppercase text-destructive shadow-brutal-sm hover:bg-destructive/10"
         >
           <LogOut className="size-3.5" strokeWidth={2.5} />
           <span className="hidden sm:inline ml-1">Log out</span>
         </Button>
       </div>
 
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b-[2px] border-black/15">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b-[length:var(--border-width)] border-black/15">
         {mobileNavSections.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -105,9 +105,9 @@ export default function SettingsPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                'flex items-center gap-2 border-[2px] px-3.5 py-2 font-mono text-xs font-bold uppercase tracking-wider whitespace-nowrap cursor-pointer transition-all',
+                'flex items-center gap-2 border-[length:var(--border-width)] rounded-md px-3.5 py-2 font-mono text-xs font-bold uppercase tracking-wider whitespace-nowrap cursor-pointer transition-all',
                 active
-                  ? 'border-black bg-primary text-black shadow-[3px_3px_0_#000]'
+                  ? 'border-black bg-primary text-primary-foreground shadow-brutal-sm'
                   : 'border-transparent bg-card text-muted-foreground hover:border-black hover:text-foreground'
               )}
             >
@@ -118,7 +118,7 @@ export default function SettingsPage() {
         })}
       </div>
 
-      <div className="mt-6 border-[3px] border-black bg-card p-4 sm:p-6 shadow-[6px_6px_0_#000]">
+      <div className="mt-6 border-[length:var(--border-width)] border-black rounded-xl bg-card p-4 sm:p-6 shadow-brutal-lg">
         {activeTab === 'profile' ? (
           <ProfileContent
             userName={userName}

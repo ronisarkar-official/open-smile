@@ -360,15 +360,15 @@ export function ProfileContent({
 				<div className="flex items-center gap-4 py-4">
 					<Avatar
 						onClick={triggerUpload}
-						className="h-14 w-14 border-[3px] border-black shadow-[3px_3px_0_#000] shrink-0 cursor-pointer hover:opacity-90 transition-opacity">
+						className="h-14 w-14 border-[length:var(--border-width)] border-black shadow-brutal shrink-0 cursor-pointer hover:opacity-90 transition-opacity">
 						<AvatarImage src={avatar} alt={userName} />
-						<AvatarFallback className="bg-primary text-black text-lg font-black font-title">
+						<AvatarFallback className="bg-primary text-primary-foreground text-lg font-black font-title">
 							{userInitials}
 						</AvatarFallback>
 					</Avatar>
 					<div className="flex-1 min-w-0">
 						<p className="font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1">Preferred name</p>
-						<div className="bg-card border-[2px] border-black shadow-[2px_2px_0_#000] px-3 py-1.5 text-sm font-bold text-foreground w-fit max-w-full truncate font-title">
+						<div className="bg-card border-[length:var(--border-width)] border-black rounded-md shadow-brutal-sm px-3 py-1.5 text-sm font-bold text-foreground w-fit max-w-full truncate font-title">
 							{userName}
 						</div>
 						<p className="text-xs text-muted-foreground mt-2">
@@ -409,7 +409,7 @@ export function ProfileContent({
 							action={
 								isGoogleLinked ? (
 									<div className="flex items-center gap-2">
-										<span className="inline-flex items-center px-2 py-0.5 font-mono text-[10px] font-bold uppercase bg-success/20 text-success-foreground border-[2px] border-black">
+										<span className="inline-flex items-center px-2 py-0.5 font-mono text-[10px] font-bold uppercase bg-success/20 text-success-foreground border-[length:var(--border-width)] border-black rounded-md">
 											Connected
 										</span>
 										{accounts.length > 1 && (
@@ -426,7 +426,7 @@ export function ProfileContent({
 										size="sm"
 										onClick={() => handleLinkSocial('google')}
 										disabled={linkingProvider === 'google'}
-										className="h-8 text-xs font-bold gap-1.5 border-[2px] border-black shadow-[2px_2px_0_#000]">
+										className="h-8 text-xs font-bold gap-1.5 border-[length:var(--border-width)] border-black shadow-brutal-sm">
 										<GoogleIcon className="h-3.5 w-3.5" />
 										{linkingProvider === 'google' ? 'Linking...' : 'Link Google'}
 									</Button>
@@ -442,7 +442,7 @@ export function ProfileContent({
 							action={
 								isGitHubLinked ? (
 									<div className="flex items-center gap-2">
-										<span className="inline-flex items-center px-2 py-0.5 font-mono text-[10px] font-bold uppercase bg-success/20 text-success-foreground border-[2px] border-black">
+										<span className="inline-flex items-center px-2 py-0.5 font-mono text-[10px] font-bold uppercase bg-success/20 text-success-foreground border-[length:var(--border-width)] border-black rounded-md">
 											Connected
 										</span>
 										{accounts.length > 1 && (
@@ -459,7 +459,7 @@ export function ProfileContent({
 										size="sm"
 										onClick={() => handleLinkSocial('github')}
 										disabled={linkingProvider === 'github'}
-										className="h-8 text-xs font-bold gap-1.5 border-[2px] border-black shadow-[2px_2px_0_#000]">
+										className="h-8 text-xs font-bold gap-1.5 border-[length:var(--border-width)] border-black shadow-brutal-sm">
 										<GitHubIcon className="h-3.5 w-3.5" />
 										{linkingProvider === 'github' ? 'Linking...' : 'Link GitHub'}
 									</Button>
@@ -501,21 +501,21 @@ export function ProfileContent({
 				{showPasswordForm && (
 					<form
 						onSubmit={handlePasswordSubmit}
-						className="my-3 p-4 border-[2px] border-black bg-muted/30 shadow-[3px_3px_0_#000] space-y-3">
+						className="my-3 p-4 border-[length:var(--border-width)] border-black rounded-lg bg-muted/30 shadow-brutal space-y-3">
 						<div className="flex items-center gap-2 text-xs font-bold font-title text-foreground">
 							<KeyRound className="h-4 w-4 text-primary" strokeWidth={2.5} />
 							{hasPasswordAccount ? 'Update Account Password' : 'Set Account Password'}
 						</div>
 
 						{passError && (
-							<div className="flex items-center gap-2 bg-destructive/10 border-[2px] border-black p-2.5 text-xs font-bold text-destructive">
+							<div className="flex items-center gap-2 bg-destructive/10 border-[length:var(--border-width)] border-black rounded-md p-2.5 text-xs font-bold text-destructive">
 								<XCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
 								<span>{passError}</span>
 							</div>
 						)}
 
 						{passSuccess && (
-							<div className="flex items-center gap-2 bg-success/20 border-[2px] border-black p-2.5 text-xs font-bold text-success-foreground">
+							<div className="flex items-center gap-2 bg-success/20 border-[length:var(--border-width)] border-black rounded-md p-2.5 text-xs font-bold text-success-foreground">
 								<CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" strokeWidth={2.5} />
 								<span>{passSuccess}</span>
 							</div>
@@ -720,7 +720,7 @@ export function ProfileContent({
 			</div>
 
 			{/* DANGER ZONE */}
-			<div className="mt-8 border-[3px] border-black bg-destructive/10 p-4 shadow-[4px_4px_0_#000] space-y-3">
+			<div className="mt-8 border-[length:var(--border-width)] border-black rounded-lg bg-destructive/10 p-4 shadow-brutal-md space-y-3">
 				<div className="flex items-center justify-between flex-wrap gap-3">
 					<div>
 						<p className="text-xs font-black text-destructive uppercase tracking-wider font-mono">Delete Account</p>
@@ -732,7 +732,7 @@ export function ProfileContent({
 						variant="destructive"
 						size="sm"
 						onClick={() => setDeleteModalOpen(true)}
-						className="h-8 text-xs font-black uppercase tracking-wider border-[2px] border-black shadow-[2px_2px_0_#000]">
+						className="h-8 text-xs font-black uppercase tracking-wider border-[length:var(--border-width)] border-black shadow-brutal-sm">
 						<Trash2 className="mr-1.5 h-3.5 w-3.5" />
 						Delete Account
 					</Button>
@@ -742,9 +742,9 @@ export function ProfileContent({
 			{/* DELETE ACCOUNT CONFIRMATION MODAL */}
 			{deleteModalOpen && (
 				<div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60">
-					<div className="w-full max-w-md border-[3px] border-black bg-background p-6 shadow-[8px_8px_0_#000] space-y-4">
+					<div className="w-full max-w-md border-[length:var(--border-width)] border-black rounded-xl bg-background p-6 shadow-brutal-xl space-y-4">
 						<div className="flex items-center gap-3 text-destructive">
-							<div className="p-2 border-[2px] border-black bg-destructive/10">
+							<div className="p-2 border-[length:var(--border-width)] border-black rounded-md bg-destructive/10">
 								<AlertTriangle className="h-6 w-6" strokeWidth={2.5} />
 							</div>
 							<div>
@@ -758,7 +758,7 @@ export function ProfileContent({
 						</p>
 
 						{deleteError && (
-							<div className="p-2.5 bg-destructive/10 border-[2px] border-black text-xs font-bold text-destructive">
+							<div className="p-2.5 bg-destructive/10 border-[length:var(--border-width)] border-black rounded-md text-xs font-bold text-destructive">
 								{deleteError}
 							</div>
 						)}
