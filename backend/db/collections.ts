@@ -169,3 +169,30 @@ export async function getUserCoinBalance(userId: string): Promise<number> {
 	);
 	return rows[0].balance;
 }
+
+export async function getUserStreak(userId: string): Promise<number> {
+	const { rows } = await getPool().query(
+		`WITH daily_captures AS (
+			SELECT DISTINCT DATE(created_at AT TIME ZONE 'UTC') AS capture_date
+			FROM smile_captures
+			WHERE user_id = $1
+		),
+		ranked AS (
+			SELECT 
+				capture_date,
+				capture_date - (ROW_NUMBER() OVER (ORDER BY capture_date DESC) * INTERVAL '1 day') AS grp
+			FROM daily_captures
+		)
+		SELECT COALESCE(COUNT(*), 0)::int AS streak
+		FROM ranked
+		WHERE grp = (
+			SELECT grp FROM ranked ORDER BY capture_date DESC LIMIT 1
+		)
+		AND (
+			(SELECT MAX(capture_date) FROM daily_captures) >= (CURRENT_DATE - INTERVAL '1 day')
+		)`,
+		[userId]
+	);
+	return rows[0]?.streak ?? 0;
+}
+

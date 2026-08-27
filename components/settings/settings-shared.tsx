@@ -2,40 +2,13 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import {
-	User,
-	SlidersHorizontal,
-	Bell,
-	Mail,
-	Settings,
-	Users,
-	Import,
-	Sparkles,
-	Link2,
-	Globe,
-	Smile,
-	WifiOff,
-	Building2,
-} from 'lucide-react';
+import { User, SlidersHorizontal, Bell } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-export type SettingsSection =
-	| 'profile'
-	| 'preferences'
-	| 'notifications'
-	| 'mail'
-	| 'general'
-	| 'people'
-	| 'import'
-	| 'ai'
-	| 'connections'
-	| 'public-pages'
-	| 'emoji'
-	| 'offline'
-	| 'teamspaces';
+export type SettingsSection = 'profile' | 'preferences' | 'notifications';
 
 export interface NavItem {
 	id: SettingsSection;
@@ -56,33 +29,10 @@ export const NAV_GROUPS: NavGroup[] = [
 	{
 		title: 'Account',
 		items: [
-			{ id: 'profile', label: 'Profile', icon: User },
+			{ id: 'profile', label: 'Profile & Security', icon: User },
 			{ id: 'preferences', label: 'Preferences', icon: SlidersHorizontal },
 			{ id: 'notifications', label: 'Notifications', icon: Bell },
-			{ id: 'mail', label: 'Mail & Calendar', icon: Mail },
 		],
-	},
-	{
-		title: 'Workspace',
-		items: [
-			{ id: 'general', label: 'General', icon: Settings },
-			{ id: 'people', label: 'People', icon: Users },
-			{ id: 'import', label: 'Import', icon: Import },
-		],
-	},
-	{
-		title: 'Features',
-		items: [
-			{ id: 'ai', label: 'AI', icon: Sparkles },
-			{ id: 'connections', label: 'Connections', icon: Link2 },
-			{ id: 'public-pages', label: 'Public pages', icon: Globe },
-			{ id: 'emoji', label: 'Emoji', icon: Smile },
-			{ id: 'offline', label: 'Offline', icon: WifiOff },
-		],
-	},
-	{
-		title: 'Admin',
-		items: [{ id: 'teamspaces', label: 'Teamspaces', icon: Building2 }],
 	},
 ];
 
@@ -95,56 +45,16 @@ export const SECTION_META: Record<
 	{ title: string; description: string }
 > = {
 	profile: {
-		title: 'Profile',
-		description: 'Manage your profile, login information, and devices',
+		title: 'Profile & Security',
+		description: 'Manage your profile, login information, and active sessions',
 	},
 	preferences: {
 		title: 'Preferences',
-		description: 'Customize your app experience',
+		description: 'Customize your theme and display appearance',
 	},
 	notifications: {
 		title: 'Notifications',
-		description: 'Manage how you receive notifications',
-	},
-	mail: {
-		title: 'Mail & Calendar',
-		description: 'Configure mail and calendar integrations',
-	},
-	general: {
-		title: 'General',
-		description: 'Manage workspace settings',
-	},
-	people: {
-		title: 'People',
-		description: 'Manage members and permissions',
-	},
-	import: {
-		title: 'Import',
-		description: 'Import data from other tools',
-	},
-	ai: {
-		title: 'AI',
-		description: 'Configure AI features and usage',
-	},
-	connections: {
-		title: 'Connections',
-		description: 'Manage connected apps and integrations',
-	},
-	'public-pages': {
-		title: 'Public pages',
-		description: 'Manage publicly shared pages',
-	},
-	emoji: {
-		title: 'Emoji',
-		description: 'Customize emoji preferences',
-	},
-	offline: {
-		title: 'Offline',
-		description: 'Configure offline access settings',
-	},
-	teamspaces: {
-		title: 'Teamspaces',
-		description: 'Manage team spaces and permissions',
+		description: 'Configure security and email notification preferences',
 	},
 };
 

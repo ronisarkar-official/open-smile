@@ -5,6 +5,7 @@ import {
 	insertSmileCapture,
 	insertCoinLedgerEntry,
 	getLastCaptureTime,
+	getUserCoinBalance,
 } from '@/backend/db';
 
 const COOLDOWN_MS = 60 * 60 * 1000;
@@ -51,11 +52,13 @@ export async function POST(request: NextRequest) {
 
 		await insertSmileCapture(user.id, smileScore, coinsAwarded);
 		await insertCoinLedgerEntry(user.id, coinsAwarded, 'capture');
+		const balance = await getUserCoinBalance(user.id);
 
 		return NextResponse.json({
 			coins_awarded: coinsAwarded,
 			streak_multiplier: streakMultiplier,
 			smile_score: smileScore,
+			balance,
 		});
 	} catch (err) {
 		console.error('Capture submit error:', err);

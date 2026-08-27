@@ -12,6 +12,7 @@ import {
 import { CoinIcon } from "@/components/ui/coin-icon";
 import { auth } from "@/backend/auth";
 import { Button } from "@/components/ui/button";
+import { UserCoinBalance, UserStreak } from "@/components/icons";
 
 const recentActivity = [
   { id: 1, score: 94, coins: 12, time: "Today, 9:15 AM", quality: "Great Smile" },
@@ -23,8 +24,6 @@ export default async function DashboardPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   const user = session?.user;
   const firstName = user?.name?.split(" ")[0] ?? "there";
-
-  const currentCoins = 247;
 
   return (
     <main id="main-content" className="mx-auto w-full max-w-6xl px-3 py-6 sm:px-6">
@@ -83,7 +82,7 @@ export default async function DashboardPage() {
           </div>
           <div className="mt-3">
             <p className="font-mono text-4xl font-black tabular-nums tracking-tight">
-              {currentCoins}
+              <UserCoinBalance />
             </p>
             <p className="font-mono text-xs text-muted-foreground mt-1 font-semibold flex items-center gap-1">
               <CoinIcon className="size-3.5" />
@@ -103,7 +102,7 @@ export default async function DashboardPage() {
           </div>
           <div className="mt-3">
             <p className="font-mono text-4xl font-black tabular-nums tracking-tight">
-              3 Days
+              <UserStreak suffix=" Days" />
             </p>
             <p className="font-mono text-xs text-muted-foreground mt-1 font-semibold">
               🔥 1.5x coin multiplier active

@@ -11,7 +11,6 @@ import {
 	Sidebar,
 	SidebarHeader,
 	SidebarContent,
-	SidebarFooter,
 	SidebarRail,
 	SidebarGroup,
 	SidebarGroupLabel,
@@ -32,7 +31,6 @@ import {
 import {
 	Bell,
 	Camera,
-	ChevronsUpDown,
 	Flame,
 	Gift,
 	LayoutDashboard,
@@ -48,6 +46,7 @@ import { SettingsDialog } from '@/components/settings/dialog';
 import type { SettingsSection } from '@/components/settings/settings-shared';
 import { cn } from '@/lib/utils';
 import { CoinIcon } from '@/components/ui/coin-icon';
+import { UserCoinBalance, UserStreak } from '@/components/icons';
 
 const mainNav = [
 	{
@@ -82,44 +81,31 @@ const mainNav = [
 	},
 ];
 
-const secondaryNav = [
-	{
-		title: 'Settings',
-		url: '/dashboard/settings',
-		icon: Settings,
-	},
-];
-
 const mobileTabs = [
 	{
 		title: 'Dashboard',
 		url: '/dashboard',
 		icon: LayoutDashboard,
-		kind: 'link' as const,
 	},
 	{
 		title: 'Capture',
 		url: '/capture',
 		icon: Camera,
-		kind: 'link' as const,
 	},
 	{
 		title: 'Board',
 		url: '/leaderboard',
 		icon: Trophy,
-		kind: 'link' as const,
 	},
 	{
 		title: 'Explore',
 		url: '/explore',
 		icon: Compass,
-		kind: 'link' as const,
 	},
 	{
 		title: 'Settings',
 		url: '/dashboard/settings',
 		icon: Settings,
-		kind: 'link' as const,
 	},
 ];
 
@@ -133,9 +119,7 @@ export const DashboardSidebar = ({
 	const [settingsOpen, setSettingsOpen] = React.useState(false);
 	const [settingsSection, setSettingsSection] =
 		React.useState<SettingsSection>('profile');
-	const [avatarOverride, setAvatarOverride] = React.useState<string | null>(
-		null,
-	);
+	const [avatarOverride, setAvatarOverride] = React.useState<string | null>(null);
 
 	const openSettings = (section: SettingsSection = 'profile') => {
 		setSettingsSection(section);
@@ -155,82 +139,6 @@ export const DashboardSidebar = ({
 			.slice(0, 2) || 'U';
 
 	const isActive = (url: string) => pathname === url;
-
-	const UserMenu = ({ className }: { className?: string }) => (
-		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<button
-					type="button"
-					className={cn(
-						'flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-card px-2 py-1.5 text-left shadow-brutal-sm brutal-lift cursor-pointer outline-none focus-visible:outline-3 focus-visible:outline-ring',
-						className,
-					)}
-					aria-label="Open account menu">
-					<Avatar className="h-7 w-7 border border-black">
-						<AvatarImage
-							src={userAvatar}
-							alt={userName}
-						/>
-						<AvatarFallback className="bg-primary text-primary-foreground font-bold text-xs">
-							{userInitials}
-						</AvatarFallback>
-					</Avatar>
-				</button>
-			</DropdownMenuTrigger>
-			<DropdownMenuContent
-				className="w-60 border-[length:var(--border-width)] border-black rounded-lg bg-card shadow-brutal-lg p-1"
-				side="bottom"
-				align="end"
-				sideOffset={8}>
-				<DropdownMenuLabel className="p-2 font-normal border-b-[length:var(--border-width)] border-black bg-muted/40">
-					<div className="flex items-center gap-2.5 text-left">
-						<Avatar className="h-8 w-8 border-[length:var(--border-width)] border-black shrink-0">
-							<AvatarImage
-								src={userAvatar}
-								alt={userName}
-							/>
-							<AvatarFallback className="bg-primary font-black text-xs">
-								{userInitials}
-							</AvatarFallback>
-						</Avatar>
-						<div className="grid flex-1 text-left leading-tight min-w-0">
-							<span className="truncate font-black text-sm">{userName}</span>
-							<span className="truncate text-xs font-mono text-muted-foreground">{userEmail}</span>
-						</div>
-					</div>
-				</DropdownMenuLabel>
-				<DropdownMenuGroup className="p-1">
-					<DropdownMenuItem
-						onClick={() => openSettings('profile')}
-						className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-primary/20 focus:bg-primary/20">
-						<Settings className="size-4" strokeWidth={2.5} />
-						Settings
-					</DropdownMenuItem>
-					<DropdownMenuItem
-						onClick={() => openSettings('notifications')}
-						className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-accent/20 focus:bg-accent/20">
-						<Bell className="size-4" strokeWidth={2.5} />
-						Notifications
-					</DropdownMenuItem>
-				</DropdownMenuGroup>
-				<DropdownMenuSeparator className="bg-black h-[length:var(--border-width)]" />
-				<DropdownMenuItem
-					className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider text-destructive cursor-pointer hover:bg-destructive/10 focus:bg-destructive/10"
-					onClick={() =>
-						signOut({
-							fetchOptions: {
-								onSuccess: () => {
-									window.location.href = '/';
-								},
-							},
-						})
-					}>
-					<LogOut className="size-4" strokeWidth={2.5} />
-					Log out
-				</DropdownMenuItem>
-			</DropdownMenuContent>
-		</DropdownMenu>
-	);
 
 	return (
 		<>
@@ -301,89 +209,70 @@ export const DashboardSidebar = ({
 								})}
 							</SidebarMenu>
 						</SidebarGroup>
-
-						<SidebarGroup>
-							<SidebarGroupLabel className="font-mono text-[10px] font-black uppercase tracking-[0.14em] text-foreground/70 px-2">
-								Account
-							</SidebarGroupLabel>
-							<SidebarMenu className="gap-1.5">
-								{secondaryNav.map((item) => {
-									const active = settingsOpen || isActive(item.url);
-									return (
-										<SidebarMenuItem key={item.title}>
-											{item.title === 'Settings' ? (
-												<SidebarMenuButton
-													tooltip={item.title}
-													isActive={active}
-													onClick={() => openSettings('profile')}
-													className={cn(
-														'border-[length:var(--border-width)] rounded-md transition-all font-title font-bold text-sm tracking-tight',
-														'group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:shadow-none',
-														active
-															? 'border-black bg-primary text-primary-foreground shadow-brutal'
-															: 'border-transparent text-foreground hover:border-black hover:bg-muted/70 hover:shadow-brutal-sm',
-													)}>
-													<item.icon className="size-4" strokeWidth={active ? 2.5 : 2} />
-													<span className="font-bold">{item.title}</span>
-												</SidebarMenuButton>
-											) : (
-												<Link href={item.url}>
-													<SidebarMenuButton
-														tooltip={item.title}
-														isActive={active}
-														className={cn(
-															'border-[length:var(--border-width)] rounded-md transition-all font-title font-bold text-sm tracking-tight',
-															'group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:shadow-none',
-															active
-																? 'border-black bg-primary text-primary-foreground shadow-brutal'
-																: 'border-transparent text-foreground hover:border-black hover:bg-muted/70 hover:shadow-brutal-sm',
-														)}>
-														<item.icon className="size-4" strokeWidth={active ? 2.5 : 2} />
-														<span className="font-bold">{item.title}</span>
-													</SidebarMenuButton>
-												</Link>
-											)}
-										</SidebarMenuItem>
-									);
-								})}
-							</SidebarMenu>
-						</SidebarGroup>
 					</SidebarContent>
+					<SidebarRail />
+				</Sidebar>
 
-					<SidebarFooter className="border-t-[length:var(--border-width)] border-black p-2">
-						<SidebarMenu>
-							<SidebarMenuItem>
+				<SidebarInset>
+					<header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b-[length:var(--border-width)] border-black bg-background transition-[width,height] ease-linear">
+						<div className="flex flex-1 items-center justify-between gap-3 px-4 sm:px-6">
+							<div className="flex items-center gap-3">
+								<SidebarTrigger className="-ml-1 hidden md:flex border-[length:var(--border-width)] border-black rounded-md bg-card shadow-brutal-sm hover:bg-muted size-9" />
+							</div>
+
+							<div className="flex items-center gap-2 sm:gap-3">
+								<Link
+									href="/rewards"
+									title="View Coin Rewards"
+									className="group flex flex-col items-center justify-center text-center">
+									<CoinIcon className="size-7 sm:size-8 transition-transform duration-150 group-hover:scale-105" strokeWidth={2.5} />
+									<UserCoinBalance className="font-mono text-xs font-black tabular-nums leading-tight mt-0.5" />
+								</Link>
+
+								<Link
+									href="/capture"
+									title="Active Smile Streak"
+									className="group flex flex-col items-center justify-center text-center">
+									<Flame className="size-7 sm:size-8 text-secondary transition-transform duration-150 group-hover:scale-105" strokeWidth={2.5} />
+									<UserStreak className="font-mono text-xs font-black tabular-nums leading-tight mt-0.5" />
+								</Link>
+
+								{/* Notifications Direct Link */}
+								<Link
+									href="/notifications"
+									title="Notifications"
+									aria-label="View notifications"
+									className="relative flex items-center justify-center p-2 text-foreground/80 hover:text-foreground transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-md">
+									<Bell className="size-5" strokeWidth={2.2} />
+									<span className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-primary border border-black" />
+								</Link>
+
+								{/* User Menu */}
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
-										<SidebarMenuButton
-											size="lg"
-											className="border-[length:var(--border-width)] border-black rounded-lg bg-card shadow-brutal-sm hover:bg-muted brutal-lift group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:shadow-none group-data-[collapsible=icon]:rounded-full">
-											<Avatar className="h-8 w-8 border border-black shrink-0">
+										<button
+											type="button"
+											className="flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-card px-2 py-1.5 text-left shadow-brutal-sm brutal-lift cursor-pointer outline-none focus-visible:outline-3 focus-visible:outline-ring ml-1"
+											aria-label="Open account menu">
+											<Avatar className="h-7 w-7 border border-black">
 												<AvatarImage
 													src={userAvatar}
 													alt={userName}
 												/>
-												<AvatarFallback className="bg-primary text-primary-foreground font-black text-xs">
+												<AvatarFallback className="bg-primary text-primary-foreground font-bold text-xs">
 													{userInitials}
 												</AvatarFallback>
 											</Avatar>
-											<div className="grid flex-1 text-left leading-tight min-w-0 group-data-[collapsible=icon]:hidden">
-												<span className="truncate font-black text-sm font-title">
-													{userName}
-												</span>
-												<span className="truncate font-mono text-[10px] text-muted-foreground">{userEmail}</span>
-											</div>
-											<ChevronsUpDown className="ml-auto size-4 group-data-[collapsible=icon]:hidden" strokeWidth={2.5} />
-										</SidebarMenuButton>
+										</button>
 									</DropdownMenuTrigger>
 									<DropdownMenuContent
-										className="w-[--radix-dropdown-menu-trigger-width] min-w-56 border-[length:var(--border-width)] border-black rounded-lg bg-card shadow-brutal-lg p-1"
+										className="w-60 border-[length:var(--border-width)] border-black rounded-lg bg-card shadow-brutal-lg p-1"
 										side="bottom"
 										align="end"
-										sideOffset={4}>
+										sideOffset={8}>
 										<DropdownMenuLabel className="p-2 font-normal border-b-[length:var(--border-width)] border-black bg-muted/40">
-											<div className="flex items-center gap-2 px-1 text-left text-sm">
-												<Avatar className="h-8 w-8 border-[length:var(--border-width)] border-black">
+											<div className="flex items-center gap-2.5 text-left">
+												<Avatar className="h-8 w-8 border-[length:var(--border-width)] border-black shrink-0">
 													<AvatarImage
 														src={userAvatar}
 														alt={userName}
@@ -392,9 +281,9 @@ export const DashboardSidebar = ({
 														{userInitials}
 													</AvatarFallback>
 												</Avatar>
-												<div className="grid flex-1 text-left text-sm leading-tight min-w-0">
-													<span className="truncate font-black">{userName}</span>
-													<span className="truncate font-mono text-xs text-muted-foreground">{userEmail}</span>
+												<div className="grid flex-1 text-left leading-tight min-w-0">
+													<span className="truncate font-black text-sm">{userName}</span>
+													<span className="truncate text-xs font-mono text-muted-foreground">{userEmail}</span>
 												</div>
 											</div>
 										</DropdownMenuLabel>
@@ -405,11 +294,13 @@ export const DashboardSidebar = ({
 												<Settings className="size-4" strokeWidth={2.5} />
 												Settings
 											</DropdownMenuItem>
-											<DropdownMenuItem
-												onClick={() => openSettings('notifications')}
-												className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-accent/20 focus:bg-accent/20">
-												<Bell className="size-4" strokeWidth={2.5} />
-												Notifications
+											<DropdownMenuItem asChild>
+												<Link
+													href="/notifications"
+													className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-accent/20 focus:bg-accent/20">
+													<Bell className="size-4" strokeWidth={2.5} />
+													Notifications
+												</Link>
 											</DropdownMenuItem>
 										</DropdownMenuGroup>
 										<DropdownMenuSeparator className="bg-black h-[length:var(--border-width)]" />
@@ -429,44 +320,6 @@ export const DashboardSidebar = ({
 										</DropdownMenuItem>
 									</DropdownMenuContent>
 								</DropdownMenu>
-							</SidebarMenuItem>
-						</SidebarMenu>
-					</SidebarFooter>
-					<SidebarRail />
-				</Sidebar>
-
-				<SidebarInset>
-					<header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b-[length:var(--border-width)] border-black bg-background transition-[width,height] ease-linear">
-						<div className="flex flex-1 items-center justify-between gap-3 px-4 sm:px-6">
-							<div className="flex items-center gap-3">
-								<SidebarTrigger className="-ml-1 hidden md:flex border-[length:var(--border-width)] border-black rounded-md bg-card shadow-brutal-sm hover:bg-muted size-9" />
-							</div>
-
-							<div className="flex items-center gap-2 sm:gap-3">
-								<Link
-									href="/rewards"
-									title="View Coin Rewards"
-									className="flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-primary px-2.5 py-1 text-primary-foreground shadow-brutal-sm brutal-lift">
-									<CoinIcon className="size-4" strokeWidth={2.5} />
-									<span className="font-mono text-xs font-black tabular-nums">247</span>
-								</Link>
-
-								<Link
-									href="/dashboard"
-									title="Active Smile Streak"
-									className="flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-secondary px-2.5 py-1 text-secondary-foreground shadow-brutal-sm brutal-lift">
-									<Flame className="size-4" strokeWidth={2.5} />
-									<span className="font-mono text-xs font-black tabular-nums">3d</span>
-								</Link>
-
-								<Link
-									href="/capture"
-									className="hidden sm:inline-flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-accent px-3 py-1 font-title font-bold text-xs uppercase tracking-wider text-black shadow-brutal-sm brutal-lift">
-									<Camera className="size-3.5" strokeWidth={2.5} />
-									<span>Smile</span>
-								</Link>
-
-								<UserMenu className="md:hidden ml-1" />
 							</div>
 						</div>
 					</header>
@@ -477,6 +330,7 @@ export const DashboardSidebar = ({
 				</SidebarInset>
 			</SidebarProvider>
 
+			{/* Mobile Bottom Tab Bar */}
 			<nav
 				className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-stretch border-t-[length:var(--border-width)] border-black bg-card md:hidden shadow-[0_calc(-1*var(--shadow-offset))_0_var(--outline)]"
 				style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}

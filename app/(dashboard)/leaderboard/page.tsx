@@ -5,6 +5,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { UserCoinBalance } from "@/components/icons";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
@@ -132,7 +133,13 @@ export default function LeaderboardPage() {
                 <TrendingUp className="size-3.5 text-success" />
                 <span className="font-mono text-xs font-bold text-success">+{Math.floor(Math.random() * 5) + 1}</span>
               </div>
-              <span className="font-mono text-sm font-black tabular-nums">{user.score.toLocaleString()}</span>
+              <span className="font-mono text-sm font-black tabular-nums">
+                {'isCurrentUser' in user && user.isCurrentUser ? (
+                  <UserCoinBalance />
+                ) : (
+                  user.score.toLocaleString()
+                )}
+              </span>
             </div>
           ))}
         </div>

@@ -14,7 +14,6 @@ import {
 	CheckCircle2,
 	XCircle,
 	LogOut,
-	Unlink,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { authClient, signOut } from '@/lib/auth-client';
@@ -23,7 +22,6 @@ import { GoogleIcon, GitHubIcon } from '@/components/icons';
 import {
 	SettingsRow,
 	ActionButton,
-	Toggle,
 } from '@/components/settings/settings-shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -383,7 +381,11 @@ export function ProfileContent({
 				<SettingsRow
 					label="Email"
 					description={userEmail}
-					action={<ActionButton>Manage email</ActionButton>}
+					action={
+						<span className="inline-flex items-center px-2 py-0.5 font-mono text-[10px] font-bold uppercase bg-success/20 text-success-foreground border-[length:var(--border-width)] border-black rounded-md">
+							Verified
+						</span>
+					}
 				/>
 			</div>
 
@@ -615,19 +617,6 @@ export function ProfileContent({
 						</div>
 					</form>
 				)}
-
-				<div className="border-t border-border" />
-				<SettingsRow
-					label="Two-step verification"
-					description="Add an extra layer of protection to your account"
-					action={<ActionButton>Setup 2FA</ActionButton>}
-				/>
-				<div className="border-t border-border" />
-				<SettingsRow
-					label="Passkeys"
-					description="Sign in with device biometrics or hardware keys"
-					action={<ActionButton>Add passkey</ActionButton>}
-				/>
 			</div>
 
 			{/* =================================================================== */}
@@ -702,21 +691,6 @@ export function ProfileContent({
 						})}
 					</div>
 				)}
-			</div>
-
-			{/* =================================================================== */}
-			{/* SECTION 5: SUPPORT & DANGER ZONE                                    */}
-			{/* =================================================================== */}
-			<div>
-				<h3 className="text-xs font-semibold text-foreground uppercase tracking-wider mb-3">
-					Support & Preferences
-				</h3>
-				<div className="border-t border-border" />
-				<SettingsRow
-					label="Support access"
-					description="Grant support team temporary access to troubleshoot issues"
-					action={<Toggle />}
-				/>
 			</div>
 
 			{/* DANGER ZONE */}

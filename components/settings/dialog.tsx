@@ -4,11 +4,11 @@ import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { AnimatePresence, motion } from 'motion/react';
 import { X } from 'lucide-react';
-import { type SettingsSection, SECTION_META } from '@/components/settings/settings-shared';
+import { type SettingsSection } from '@/components/settings/settings-shared';
 import { SettingsSidebar, SettingsMobileNav } from '@/components/settings/settings-sidebar';
 import { ProfileContent } from '@/components/settings/profile-content';
 import { PreferencesContent } from '@/components/settings/preferences-content';
-import { PlaceholderContent } from '@/components/settings/placeholder-content';
+import { NotificationsContent } from '@/components/settings/notifications-content';
 
 // ---------------------------------------------------------------------------
 // Main Settings Dialog
@@ -115,36 +115,25 @@ export function SettingsDialog({
 									</DialogPrimitive.Close>
 
 									{/* Render active section content */}
-                  <AnimatePresence mode="wait" initial={false}>
+									<AnimatePresence mode="wait" initial={false}>
 										<motion.div
 											key={activeSection}
 											initial={{ opacity: 0, x: 8 }}
 											animate={{ opacity: 1, x: 0 }}
 											exit={{ opacity: 0, x: -8 }}
 											transition={{ duration: 0.15 }}>
-										{activeSection === 'profile' ? (
-											<ProfileContent
-												userName={userName}
-												userEmail={userEmail}
-												userAvatar={avatar}
-												userInitials={userInitials}
-												onAvatarChange={handleAvatarChange}
-											/>
-										) : activeSection === 'preferences' ? (
-											<PreferencesContent />
-										) : (
-												<PlaceholderContent
-													title={
-														SECTION_META[
-															activeSection
-														].title
-													}
-													description={
-														SECTION_META[
-															activeSection
-														].description
-													}
+											{activeSection === 'profile' ? (
+												<ProfileContent
+													userName={userName}
+													userEmail={userEmail}
+													userAvatar={avatar}
+													userInitials={userInitials}
+													onAvatarChange={handleAvatarChange}
 												/>
+											) : activeSection === 'preferences' ? (
+												<PreferencesContent />
+											) : (
+												<NotificationsContent />
 											)}
 										</motion.div>
 									</AnimatePresence>

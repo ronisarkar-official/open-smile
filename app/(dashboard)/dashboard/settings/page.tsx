@@ -13,7 +13,7 @@ import {
 import { useSession, signOut } from '@/lib/auth-client';
 import { ProfileContent } from '@/components/settings/profile-content';
 import { PreferencesContent } from '@/components/settings/preferences-content';
-import { PlaceholderContent } from '@/components/settings/placeholder-content';
+import { NotificationsContent } from '@/components/settings/notifications-content';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { SettingsSection } from '@/components/settings/settings-shared';
@@ -130,10 +130,7 @@ export default function SettingsPage() {
         ) : activeTab === 'preferences' ? (
           <PreferencesContent />
         ) : (
-          <PlaceholderContent
-            title="Notification Settings"
-            description="Manage your email and daily habit reminder preferences."
-          />
+          <NotificationsContent />
         )}
       </div>
     </main>

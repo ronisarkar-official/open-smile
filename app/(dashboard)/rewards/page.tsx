@@ -14,6 +14,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { CoinIcon } from '@/components/ui/coin-icon';
+import { useUserCoins, emitCoinBalanceUpdate, UserCoinBalance } from '@/components/ui/user-coin-balance';
 import { ScratchCardGallery } from '@/components/rewards/scratch-card-gallery';
 import { VoucherMarketplace } from '@/components/rewards/voucher-marketplace';
 import { ClaimedVouchersList } from '@/components/rewards/claimed-vouchers-list';
@@ -64,11 +65,13 @@ const badges = [
 
 export default function RewardsPage() {
   const [activeTab, setActiveTab] = React.useState<'marketplace' | 'my-vouchers' | 'scratch' | 'badges'>('marketplace');
-  const [userCoins, setUserCoins] = React.useState(620);
+  const { balance: userCoins, setBalance: setUserCoins } = useUserCoins();
   const [claimedVouchers, setClaimedVouchers] = React.useState<ClaimedVoucher[]>(INITIAL_CLAIMED_VOUCHERS);
 
   const handleClaimSuccess = (voucher: VoucherItem, claim: ClaimedVoucher) => {
-    setUserCoins((prev) => Math.max(0, prev - voucher.coinsCost));
+    const updated = Math.max(0, userCoins - voucher.coinsCost);
+    setUserCoins(updated);
+    emitCoinBalanceUpdate(updated);
     setClaimedVouchers((prev) => [claim, ...prev]);
   };
 
@@ -95,7 +98,7 @@ export default function RewardsPage() {
           <div>
             <p className="font-mono text-[10px] font-black uppercase text-black">Your Balance</p>
             <p className="font-mono text-2xl sm:text-3xl font-black text-black tabular-nums flex items-center gap-1.5">
-              <span>{userCoins}</span>
+              <UserCoinBalance />
               <CoinIcon className="size-5" />
             </p>
           </div>
@@ -183,7 +186,7 @@ export default function RewardsPage() {
                     Rewards Roadmap
                   </p>
                   <h2 className="mt-1 text-2xl font-black font-title tracking-tight sm:text-3xl">
-                    {userCoins} Coins Earned
+                    <UserCoinBalance suffix=" Coins Earned" />
                   </h2>
                   <p className="text-xs text-muted-foreground mt-1">
                     Hit coin thresholds to unlock higher denomination brand vouchers and exclusive merchant perks.
