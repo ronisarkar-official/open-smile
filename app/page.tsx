@@ -17,7 +17,7 @@ import { auth } from "@/backend/auth";
 import { Navbar } from "@/components/navbar";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { Button } from "@/components/ui/button";
-import { TeamAndTestimonialsSection } from "@/components/team-and-testimonials";
+import { MyTeam, Footer } from "@/components/landing";
 
 const steps = [
   {
@@ -173,7 +173,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <TeamAndTestimonialsSection />
+        <MyTeam />
 
         <section id="beta" className="border-y-[length:var(--border-width)] border-black bg-primary">
           <div className="mx-auto grid w-full max-w-7xl gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end lg:py-20">
@@ -192,10 +192,7 @@ export default async function Home() {
           </div>
         </section>
       </main>
-      <footer className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-5 py-8 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <p className="font-semibold">© 2026 Open Smile</p>
-        <p className="text-muted-foreground">A brighter little habit, built with privacy in mind.</p>
-      </footer>
+      <Footer />
     </>
   );
 }

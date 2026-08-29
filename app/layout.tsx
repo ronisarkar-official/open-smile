@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Space_Mono, Syne } from "next/font/google";
+import { Inter, Space_Grotesk, Space_Mono, Sora } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/session-provider";
 import { ToastProvider } from "@/hooks/use-toast";
@@ -34,9 +34,9 @@ const spaceMono = Space_Mono({
   weight: ["400", "700"],
 });
 
-const syne = Syne({
+const sora = Sora({
   subsets: ["latin"],
-  variable: "--font-syne",
+  variable: "--font-sora",
   display: "swap",
 });
 
@@ -61,7 +61,7 @@ export default function RootLayout({
       lang="en"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${inter.variable} ${spaceGrotesk.variable} ${spaceMono.variable} ${syne.variable} h-full font-sans antialiased`}
+      className={`${inter.variable} ${spaceGrotesk.variable} ${spaceMono.variable} ${sora.variable} h-full font-sans antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />

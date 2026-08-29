@@ -104,9 +104,9 @@
   --outline: #0f0f0f;
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-title: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
-  --font-impact: var(--font-syne), ui-sans-serif, system-ui, sans-serif;
+  --font-impact: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
   --font-code: var(--font-space-mono), ui-monospace, monospace;
-  --border-width: 2px;
+  --border-width: 1px;
   --border-width-sm: 1.5px;
   --border-width-lg: 2px;
   --shadow-offset: 2px;

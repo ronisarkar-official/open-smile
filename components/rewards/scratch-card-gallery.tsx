@@ -2,15 +2,8 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import {
-	ArrowRight,
-	Camera,
-	Gift,
-	History,
-	Trophy,
-	Sparkles,
-	CheckCircle2,
-} from 'lucide-react';
+import { motion } from 'motion/react';
+import { Gift, Trophy, CheckCircle2 } from 'lucide-react';
 import { CoinIcon } from '@/components/ui/coin-icon';
 import {
 	ScratchCardModal,
@@ -46,7 +39,7 @@ const initialCards: ScratchCardItem[] = [
 		source: 'Habit Reward',
 		date: 'Aug 22, 2026',
 		coins: 50,
-		isScratched: true,
+		isScratched: false,
 		themeColor: '#7B61FF',
 	},
 	{
@@ -78,6 +71,104 @@ const initialCards: ScratchCardItem[] = [
 	},
 ];
 
+interface ScratchCardTileProps {
+	card: ScratchCardItem;
+	index: number;
+	onSelect: (card: ScratchCardItem) => void;
+}
+
+function ScratchCardTile({ card, index, onSelect }: ScratchCardTileProps) {
+	const isUnscratched = !card.isScratched;
+
+	return (
+		<motion.div
+			initial={{ opacity: 0, y: 12 }}
+			animate={{ opacity: 1, y: 0 }}
+			transition={{ delay: index * 0.04, duration: 0.25 }}
+			onClick={() => onSelect(card)}
+			className={cn(
+				'group relative flex min-h-52 flex-col justify-between border-[length:var(--border-width)] border-black rounded-xl p-4 cursor-pointer transition-all duration-200 brutal-lift select-none',
+				isUnscratched ?
+					'bg-primary shadow-brutal-lg hover:shadow-brutal-xl'
+				:	'bg-card shadow-brutal hover:shadow-brutal-md',
+			)}>
+			{isUnscratched && (
+				<span className="absolute -top-2.5 -right-2.5 border-[length:var(--border-width)] border-black rounded-md bg-secondary px-2 py-0.5 font-mono text-[9px] font-black uppercase text-secondary-foreground shadow-brutal-xs animate-bounce">
+					Tap to Scratch
+				</span>
+			)}
+
+			<div className="flex items-start justify-between gap-1">
+				<span
+					title={card.source}
+					className={cn(
+						'border border-black/30 rounded-xs px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase truncate max-w-[110px]',
+						isUnscratched ?
+							'bg-card/90 text-foreground'
+						:	'bg-muted text-muted-foreground',
+					)}>
+					{card.source}
+				</span>
+
+				{card.badge ?
+					<span className="border border-black rounded-xs bg-accent px-1.5 py-0.5 font-mono text-[9px] font-black text-black">
+						{card.badge}
+					</span>
+				: !isUnscratched ?
+					<span className="font-mono text-[9px] font-semibold text-muted-foreground">
+						{card.date}
+					</span>
+				:	null}
+			</div>
+
+			<div className="my-auto flex flex-col items-center justify-center py-2 text-center">
+				{isUnscratched ?
+					<>
+						<div className="flex size-12 items-center justify-center border-[length:var(--border-width)] border-black rounded-xl bg-card shadow-brutal-sm group-hover:scale-110 group-hover:rotate-3 transition-transform duration-200">
+							<Gift
+								className="size-6 text-primary-foreground"
+								strokeWidth={2.5}
+							/>
+						</div>
+						<p className="mt-2.5 font-title text-xs font-black uppercase tracking-tight text-black">
+							Mystery Reward
+						</p>
+						<p className="font-mono text-[9px] font-bold text-black/70 mt-0.5">
+							Win bonus coins
+						</p>
+					</>
+				:	<>
+						<div className="flex items-center justify-center gap-1.5">
+							<CoinIcon
+								className="size-8 shrink-0"
+								strokeWidth={2.5}
+							/>
+							<p className="font-mono text-3xl font-black text-foreground tabular-nums tracking-tight">
+								{card.coins}
+							</p>
+						</div>
+						<p className="font-mono text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-1">
+							Coins Won
+						</p>
+					</>
+				}
+			</div>
+
+			<div className="pt-2 text-center">
+				{!isUnscratched && (
+					<span className="inline-flex items-center gap-1 rounded-sm bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 font-mono text-[10px] font-black text-emerald-700 dark:text-emerald-400">
+						<CheckCircle2
+							className="size-3 shrink-0"
+							strokeWidth={2.5}
+						/>
+						Received
+					</span>
+				)}
+			</div>
+		</motion.div>
+	);
+}
+
 export function ScratchCardGallery() {
 	const [cards, setCards] = React.useState<ScratchCardItem[]>(initialCards);
 	const [selectedCard, setSelectedCard] =
@@ -88,14 +179,20 @@ export function ScratchCardGallery() {
 		.filter((c) => c.isScratched)
 		.reduce((acc, c) => acc + c.coins, 0);
 
+	const unscratchedCount = cards.filter((c) => !c.isScratched).length;
+
 	const handleCardClick = (card: ScratchCardItem) => {
 		setSelectedCard(card);
 		setModalOpen(true);
 	};
 
-	const handleCardScratched = (cardId: string) => {
+	// Matches ScratchCardModal's onCardScratched(cardId, coinsWon) signature —
+	// coinsWon is authoritative in case it ever differs from the stored value.
+	const handleCardScratched = (cardId: string, coinsWon: number) => {
 		setCards((prev) =>
-			prev.map((c) => (c.id === cardId ? { ...c, isScratched: true } : c)),
+			prev.map((c) =>
+				c.id === cardId ? { ...c, coins: coinsWon, isScratched: true } : c,
+			),
 		);
 	};
 
@@ -122,11 +219,14 @@ export function ScratchCardGallery() {
 			</div>
 
 			<div className="flex items-center justify-between flex-wrap gap-3 border-b-[length:var(--border-width)] border-black/15 pb-3">
-				<div className="flex items-center gap-2">
-					<h2 className="font-title text-base sm:text-lg font-black tracking-tight text-foreground">
-						Scratch Card History
-					</h2>
-				</div>
+				<h2 className="font-title text-base sm:text-lg font-black tracking-tight text-foreground">
+					Scratch Card History
+				</h2>
+				{unscratchedCount > 0 && (
+					<span className="font-mono text-[10px] font-bold text-muted-foreground">
+						{unscratchedCount} waiting to be scratched
+					</span>
+				)}
 			</div>
 
 			{cards.length === 0 ?
@@ -148,95 +248,14 @@ export function ScratchCardGallery() {
 					</Button>
 				</div>
 			:	<div className="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-4">
-					{cards.map((card) => {
-						const isUnscratched = !card.isScratched;
-
-						return (
-							<div
-								key={card.id}
-								onClick={() => handleCardClick(card)}
-								className={cn(
-									'group relative flex min-h-52 flex-col justify-between border-[length:var(--border-width)] border-black rounded-xl p-4 cursor-pointer transition-all duration-200 brutal-lift select-none',
-									isUnscratched ?
-										'bg-primary shadow-brutal-lg hover:shadow-brutal-xl'
-									:	'bg-card shadow-brutal hover:shadow-brutal-md',
-								)}>
-								{isUnscratched && (
-									<span className="absolute -top-2.5 -right-2.5 border-[length:var(--border-width)] border-black rounded-md bg-secondary px-2 py-0.5 font-mono text-[9px] font-black uppercase text-secondary-foreground shadow-brutal-xs animate-bounce">
-										Tap to Scratch
-									</span>
-								)}
-
-								<div className="flex items-start justify-between gap-1">
-									<span
-										className={cn(
-											'border border-black/30 rounded-xs px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase truncate max-w-[110px]',
-											isUnscratched ?
-												'bg-card/90 text-foreground'
-											:	'bg-muted text-muted-foreground',
-										)}>
-										{card.source}
-									</span>
-									{card.badge ?
-										<span className="border border-black rounded-xs bg-accent px-1.5 py-0.5 font-mono text-[9px] font-black text-black">
-											{card.badge}
-										</span>
-									: !isUnscratched ?
-										<span className="font-mono text-[9px] font-semibold text-muted-foreground">
-											{card.date}
-										</span>
-									:	null}
-								</div>
-
-								<div className="my-auto flex flex-col items-center justify-center py-2 text-center">
-									{isUnscratched ?
-										<>
-											<div className="flex size-12 items-center justify-center border-[length:var(--border-width)] border-black rounded-xl bg-card shadow-brutal-sm group-hover:scale-110 group-hover:rotate-3 transition-transform duration-200">
-												<Gift
-													className="size-6 text-primary-foreground"
-													strokeWidth={2.5}
-												/>
-											</div>
-											<p className="mt-2.5 font-title text-xs font-black uppercase tracking-tight text-black">
-												Mystery Reward
-											</p>
-											<p className="font-mono text-[9px] font-bold text-black/70 mt-0.5">
-												Win bonus coins
-											</p>
-										</>
-									:	<>
-											<div className="flex items-center justify-center gap-1.5">
-												<CoinIcon
-													className="size-8 shrink-0"
-													strokeWidth={2.5}
-												/>
-												<p className="font-mono text-3xl font-black text-foreground tabular-nums tracking-tight">
-													{card.coins}
-												</p>
-											</div>
-
-											<p className="font-mono text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-1">
-												Coins Won
-											</p>
-										</>
-									}
-								</div>
-
-								<div className="pt-2 text-center">
-									{isUnscratched ?
-										<></>
-									:	<span className="inline-flex items-center gap-1 rounded-sm bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 font-mono text-[10px] font-black text-emerald-700 dark:text-emerald-400">
-											<CheckCircle2
-												className="size-3 shrink-0"
-												strokeWidth={2.5}
-											/>
-											Received
-										</span>
-									}
-								</div>
-							</div>
-						);
-					})}
+					{cards.map((card, index) => (
+						<ScratchCardTile
+							key={card.id}
+							card={card}
+							index={index}
+							onSelect={handleCardClick}
+						/>
+					))}
 				</div>
 			}
 

@@ -1,4 +1,4 @@
-export { CoinIcon, CoinBadge, type CoinIconProps } from '@/components/ui/coin-icon';
+export { CoinIcon, type CoinIconProps } from '@/components/ui/coin-icon';
 export { UserCoinBalance, useUserCoins, emitCoinBalanceUpdate, type UserCoinBalanceProps } from '@/components/ui/user-coin-balance';
 export { UserStreak, useUserStreak, emitStreakUpdate, type UserStreakProps } from '@/components/ui/user-streak';
 

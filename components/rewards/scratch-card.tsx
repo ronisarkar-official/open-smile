@@ -70,7 +70,7 @@ export function ScratchCard({
     ctx.strokeRect(10, 10, width - 20, height - 20);
 
     ctx.fillStyle = '#000000';
-    ctx.font = '900 28px Syne, sans-serif';
+    ctx.font = '900 24px Sora, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('OPEN SMILE', width / 2, height / 2 - 40);
