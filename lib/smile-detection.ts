@@ -143,20 +143,48 @@ export function computeSmileScore(
 
 	const blendshapesList = result.faceBlendshapes?.[0]?.categories ?? [];
 
-	const blendshapes: Record<string, number> = {};
-	for (const bs of blendshapesList) {
-		blendshapes[bs.categoryName] = bs.score;
-	}
+	let mouthSmileLeft = 0;
+	let mouthSmileRight = 0;
+	let eyeSquintLeft = 0;
+	let eyeSquintRight = 0;
+	let mouthDimpleLeft = 0;
+	let mouthDimpleRight = 0;
+	let jawOpen = 0;
+	let eyeBlinkLeft = 0;
+	let eyeBlinkRight = 0;
 
-	const mouthSmileLeft = blendshapes['mouthSmileLeft'] ?? 0;
-	const mouthSmileRight = blendshapes['mouthSmileRight'] ?? 0;
-	const eyeSquintLeft = blendshapes['eyeSquintLeft'] ?? 0;
-	const eyeSquintRight = blendshapes['eyeSquintRight'] ?? 0;
-	const mouthDimpleLeft = blendshapes['mouthDimpleLeft'] ?? 0;
-	const mouthDimpleRight = blendshapes['mouthDimpleRight'] ?? 0;
-	const jawOpen = blendshapes['jawOpen'] ?? 0;
-	const eyeBlinkLeft = blendshapes['eyeBlinkLeft'] ?? 0;
-	const eyeBlinkRight = blendshapes['eyeBlinkRight'] ?? 0;
+	for (let i = 0; i < blendshapesList.length; i++) {
+		const bs = blendshapesList[i];
+		switch (bs.categoryName) {
+			case 'mouthSmileLeft':
+				mouthSmileLeft = bs.score;
+				break;
+			case 'mouthSmileRight':
+				mouthSmileRight = bs.score;
+				break;
+			case 'eyeSquintLeft':
+				eyeSquintLeft = bs.score;
+				break;
+			case 'eyeSquintRight':
+				eyeSquintRight = bs.score;
+				break;
+			case 'mouthDimpleLeft':
+				mouthDimpleLeft = bs.score;
+				break;
+			case 'mouthDimpleRight':
+				mouthDimpleRight = bs.score;
+				break;
+			case 'jawOpen':
+				jawOpen = bs.score;
+				break;
+			case 'eyeBlinkLeft':
+				eyeBlinkLeft = bs.score;
+				break;
+			case 'eyeBlinkRight':
+				eyeBlinkRight = bs.score;
+				break;
+		}
+	}
 
 	const maxSmile = Math.max(mouthSmileLeft, mouthSmileRight);
 	const avgSmile = (mouthSmileLeft + mouthSmileRight) / 2;
@@ -227,7 +255,15 @@ export function computeSmileScore(
 	return {
 		hasFace: true,
 		score,
-		blendshapes,
+		blendshapes: {
+			mouthSmileLeft,
+			mouthSmileRight,
+			eyeSquintLeft,
+			eyeSquintRight,
+			mouthDimpleLeft,
+			mouthDimpleRight,
+			jawOpen,
+		},
 		liveness: {
 			blinked:
 				eyeBlinkLeft > WEIGHTS.blinkThreshold ||

@@ -211,12 +211,24 @@ export function CaptureFlow({
 		[cancelCountdown],
 	);
 
+	const lastResultUiUpdateRef = React.useRef<number>(0);
+	const lastResultHadFaceRef = React.useRef<boolean>(false);
+
 	const handleSmileUpdate = React.useCallback(
 		(result: SmileDetectionResult | null) => {
 			lastResultRef.current = result;
-			setLastResult(result);
 
-			// Active smile verification during countdown
+			const now = Date.now();
+			const hasFaceNow = Boolean(result?.hasFace);
+			const faceChanged = hasFaceNow !== lastResultHadFaceRef.current;
+			const isUiDue = now - lastResultUiUpdateRef.current >= 150;
+
+			if (faceChanged || isUiDue) {
+				lastResultHadFaceRef.current = hasFaceNow;
+				lastResultUiUpdateRef.current = now;
+				setLastResult(result);
+			}
+
 			if (phase === 'COUNTDOWN') {
 				if (captureSourceRef.current === 'SMILE') {
 					const isSmiling =
@@ -224,7 +236,6 @@ export function CaptureFlow({
 						result.hasFace &&
 						result.score >= SMILE_HOLD_THRESHOLD;
 					if (!isSmiling) {
-						const now = Date.now();
 						if (!smileLostTimeRef.current) {
 							smileLostTimeRef.current = now;
 						} else if (
@@ -246,7 +257,6 @@ export function CaptureFlow({
 			}
 
 			if (result && result.hasFace && result.score >= SMILE_TRIGGER_THRESHOLD) {
-				const now = Date.now();
 				if (!smileStartTimeRef.current) {
 					smileStartTimeRef.current = now;
 				} else if (

@@ -20,14 +20,18 @@ export async function requestCameraStream(): Promise<MediaStream> {
 		return await navigator.mediaDevices.getUserMedia({
 			video: {
 				facingMode: { ideal: 'user' },
-				width: { ideal: 1280 },
-				height: { ideal: 720 },
+				width: { ideal: 1280, max: 1920 },
+				height: { ideal: 720, max: 1080 },
+				frameRate: { ideal: 30, max: 30 },
 			},
 			audio: false,
 		});
 	} catch {
 		return await navigator.mediaDevices.getUserMedia({
-			video: true,
+			video: {
+				facingMode: 'user',
+				frameRate: { ideal: 30, max: 30 },
+			},
 			audio: false,
 		});
 	}
@@ -63,7 +67,6 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 		ref
 	) {
 		const videoRef = React.useRef<HTMLVideoElement>(null);
-		const canvasRef = React.useRef<HTMLCanvasElement>(null);
 		const detectorRef = React.useRef<FaceLandmarker | null>(null);
 		const rafRef = React.useRef<number>(0);
 		const localStreamRef = React.useRef<MediaStream | null>(null);
@@ -87,6 +90,12 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 		const [hasFace, setHasFace] = React.useState(false);
 		const [isRetrying, setIsRetrying] = React.useState(false);
 
+		const lastInferenceTimeRef = React.useRef<number>(0);
+		const isDetectingRef = React.useRef<boolean>(false);
+		const lastUiUpdateRef = React.useRef<number>(0);
+		const hasFaceRef = React.useRef<boolean>(false);
+		const currentScoreRef = React.useRef<number>(0);
+
 		const getScreenshot = React.useCallback((): string | null => {
 			const video = videoRef.current;
 			if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
@@ -94,15 +103,18 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 			}
 			try {
 				const canvas = document.createElement('canvas');
-				canvas.width = video.videoWidth;
-				canvas.height = video.videoHeight;
+				const maxDim = 1280;
+				const width = Math.min(video.videoWidth, maxDim);
+				const height = Math.round((width / video.videoWidth) * video.videoHeight);
+				canvas.width = width;
+				canvas.height = height;
 				const ctx = canvas.getContext('2d');
 				if (!ctx) return null;
 
 				ctx.translate(canvas.width, 0);
 				ctx.scale(-1, 1);
 				ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-				return canvas.toDataURL('image/jpeg', 0.92);
+				return canvas.toDataURL('image/jpeg', 0.88);
 			} catch {
 				return null;
 			}
@@ -204,28 +216,48 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 			function tick() {
 				if (!running || !video) return;
 
+				const now = performance.now();
+				const timeSinceLastInference = now - lastInferenceTimeRef.current;
+
 				if (
+					!isDetectingRef.current &&
+					timeSinceLastInference >= 38 &&
 					video.readyState >= 2 &&
 					video.currentTime !== lastVideoTimeRef.current &&
 					video.videoWidth > 0
 				) {
 					lastVideoTimeRef.current = video.currentTime;
-					const now = performance.now();
+					lastInferenceTimeRef.current = now;
+					isDetectingRef.current = true;
 
 					if (detectorRef.current) {
-						const result = detectSmile(
-							detectorRef.current,
-							video,
-							now
-						);
+						try {
+							const result = detectSmile(
+								detectorRef.current,
+								video,
+								now
+							);
 
-						if (result) {
-							setCurrentScore(result.score);
-							setHasFace(result.hasFace);
-						} else {
-							setHasFace(false);
+							onSmileUpdateRef.current?.(result);
+
+							const hasFaceVal = Boolean(result?.hasFace);
+							const scoreVal = result?.score ?? 0;
+							const isFaceChanged = hasFaceVal !== hasFaceRef.current;
+							const isScoreSignificantlyChanged = Math.abs(scoreVal - currentScoreRef.current) >= 2;
+							const isUiUpdateDue = now - lastUiUpdateRef.current >= 75;
+
+							if (isFaceChanged || (isUiUpdateDue && isScoreSignificantlyChanged)) {
+								hasFaceRef.current = hasFaceVal;
+								currentScoreRef.current = scoreVal;
+								lastUiUpdateRef.current = now;
+								setHasFace(hasFaceVal);
+								setCurrentScore(scoreVal);
+							}
+						} finally {
+							isDetectingRef.current = false;
 						}
-						onSmileUpdateRef.current?.(result);
+					} else {
+						isDetectingRef.current = false;
 					}
 				}
 
@@ -289,10 +321,6 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 						muted
 						autoPlay
 						style={{ transform: 'scaleX(-1)' }}
-					/>
-					<canvas
-						ref={canvasRef}
-						className="absolute inset-0 size-full pointer-events-none"
 					/>
 
 					<div className="absolute inset-6 border-[length:var(--border-width-sm)] border-dashed border-foreground/20 rounded-lg pointer-events-none" />

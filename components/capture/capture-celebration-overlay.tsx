@@ -45,53 +45,50 @@ export function CaptureCelebrationOverlay({
 	isActive,
 	onAnimationComplete,
 }: CaptureCelebrationOverlayProps) {
-	const [confetti, setConfetti] = React.useState<ConfettiPiece[]>([]);
-	const [coins, setCoins] = React.useState<FlyingCoin[]>([]);
 	const [showFlash, setShowFlash] = React.useState(false);
+
+	const confetti = React.useMemo<ConfettiPiece[]>(() => {
+		const shapes: ('rect' | 'circle' | 'diamond')[] = ['rect', 'circle', 'diamond'];
+		return Array.from({ length: 26 }, (_, i) => {
+			const angle = (Math.PI * 2 * i) / 26 + (Math.sin(i * 99) * 0.4);
+			const distance = 140 + (i % 7) * 28;
+			return {
+				id: i,
+				x: 0,
+				y: 0,
+				color: BRUTAL_COLORS[i % BRUTAL_COLORS.length],
+				size: (i % 5) * 2 + 8,
+				rotation: (i * 45) % 360,
+				destX: Math.cos(angle) * distance,
+				destY: Math.sin(angle) * distance - 60,
+				shape: shapes[i % shapes.length],
+			};
+		});
+	}, []);
+
+	const coins = React.useMemo<FlyingCoin[]>(() => {
+		return Array.from({ length: 6 }, (_, i) => ({
+			id: i,
+			startX: (i - 2.5) * 35,
+			startY: 40 + (i % 3) * 15,
+			endX: (i - 2.5) * 85,
+			endY: -180 - (i % 4) * 35,
+			delay: i * 0.05,
+			scale: 0.9 + (i % 3) * 0.15,
+		}));
+	}, []);
 
 	React.useEffect(() => {
 		if (!isActive) {
-			setConfetti([]);
-			setCoins([]);
 			setShowFlash(false);
 			return;
 		}
 
 		setShowFlash(true);
-		const flashTimer = setTimeout(() => setShowFlash(false), 350);
-
-		const pieces: ConfettiPiece[] = Array.from({ length: 48 }).map((_, i) => {
-			const angle = (Math.PI * 2 * i) / 48 + (Math.random() - 0.5) * 0.5;
-			const distance = 160 + Math.random() * 320;
-			const shapes: ('rect' | 'circle' | 'diamond')[] = ['rect', 'circle', 'diamond'];
-			return {
-				id: i,
-				x: 0,
-				y: 0,
-				color: BRUTAL_COLORS[Math.floor(Math.random() * BRUTAL_COLORS.length)],
-				size: Math.floor(Math.random() * 12) + 8,
-				rotation: Math.random() * 360,
-				destX: Math.cos(angle) * distance,
-				destY: Math.sin(angle) * distance - 80,
-				shape: shapes[Math.floor(Math.random() * shapes.length)],
-			};
-		});
-		setConfetti(pieces);
-
-		const coinList: FlyingCoin[] = Array.from({ length: 10 }).map((_, i) => ({
-			id: i,
-			startX: (Math.random() - 0.5) * 120,
-			startY: 40 + Math.random() * 60,
-			endX: (Math.random() - 0.5) * 400,
-			endY: -220 - Math.random() * 180,
-			delay: i * 0.06,
-			scale: 0.8 + Math.random() * 0.5,
-		}));
-		setCoins(coinList);
-
+		const flashTimer = setTimeout(() => setShowFlash(false), 250);
 		const completeTimer = setTimeout(() => {
 			onAnimationComplete?.();
-		}, 1600);
+		}, 1400);
 
 		return () => {
 			clearTimeout(flashTimer);
@@ -106,11 +103,11 @@ export function CaptureCelebrationOverlay({
 			<AnimatePresence>
 				{showFlash && (
 					<motion.div
-						initial={{ opacity: 0.9 }}
+						initial={{ opacity: 0.8 }}
 						animate={{ opacity: 0 }}
 						exit={{ opacity: 0 }}
-						transition={{ duration: 0.35, ease: 'easeOut' }}
-						className="absolute inset-0 bg-background/80 backdrop-blur-xs"
+						transition={{ duration: 0.25, ease: 'easeOut' }}
+						className="absolute inset-0 bg-background/90"
 					/>
 				)}
 			</AnimatePresence>
@@ -128,23 +125,23 @@ export function CaptureCelebrationOverlay({
 						}}
 						animate={{
 							x: piece.destX,
-							y: piece.destY + 250,
-							scale: [0, 1.2, 0.9, 0],
-							rotate: piece.rotation + 720,
-							opacity: [1, 1, 0.9, 0],
+							y: piece.destY + 200,
+							scale: [0, 1.1, 0.9, 0],
+							rotate: piece.rotation + 540,
+							opacity: [1, 1, 0.8, 0],
 						}}
 						transition={{
-							duration: 1.4,
+							duration: 1.2,
 							ease: [0.22, 1, 0.36, 1],
 						}}
 						style={{
 							position: 'absolute',
 							width: piece.size,
-							height: piece.shape === 'rect' ? piece.size * 1.6 : piece.size,
+							height: piece.shape === 'rect' ? piece.size * 1.5 : piece.size,
 							backgroundColor: piece.color,
-							border: 'var(--border-width-sm) solid var(--border)',
+							border: '1.5px solid var(--border)',
 							borderRadius: piece.shape === 'circle' ? '9999px' : piece.shape === 'diamond' ? '2px' : '0px',
-							boxShadow: 'var(--brutal-shadow-xs)',
+							willChange: 'transform, opacity',
 						}}
 					/>
 				))}
@@ -162,47 +159,49 @@ export function CaptureCelebrationOverlay({
 						animate={{
 							x: coin.endX,
 							y: coin.endY,
-							scale: [0.2, coin.scale * 1.2, coin.scale, 0],
+							scale: [0.2, coin.scale * 1.1, coin.scale, 0],
 							opacity: [0, 1, 1, 0],
 							rotate: 360,
 						}}
 						transition={{
-							duration: 1.3,
+							duration: 1.1,
 							delay: coin.delay,
 							ease: [0.25, 1, 0.5, 1],
 						}}
+						style={{ willChange: 'transform, opacity' }}
 						className="absolute flex items-center justify-center rounded-full border-[length:var(--border-width-sm)] border-border bg-warning text-warning-foreground p-2 shadow-brutal-sm">
 						<CoinIcon className="size-6 text-warning-foreground" strokeWidth={2.5} />
 					</motion.div>
 				))}
 
 				<motion.div
-					initial={{ scale: 0, y: 80, rotate: -10 }}
+					initial={{ scale: 0, y: 60, rotate: -8 }}
 					animate={{
-						scale: [0, 1.25, 1, 1],
-						y: [80, -70, -20, -30],
-						rotate: [-10, 8, -4, 0],
+						scale: [0, 1.15, 1, 1],
+						y: [60, -50, -15, -20],
+						rotate: [-8, 6, -3, 0],
 					}}
 					transition={{
-						duration: 1.1,
+						duration: 1.0,
 						times: [0, 0.35, 0.7, 1],
 						ease: [0.34, 1.56, 0.64, 1],
 					}}
+					style={{ willChange: 'transform, opacity' }}
 					className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
 					<div className="relative flex size-24 items-center justify-center border-[length:var(--border-width)] border-border bg-accent rounded-2xl shadow-brutal-lg">
 						<span className="text-4xl select-none">😆</span>
 						<motion.div
-							animate={{ rotate: [0, 15, -15, 0] }}
-							transition={{ repeat: Infinity, duration: 0.6 }}
+							animate={{ scale: [1, 1.15, 1] }}
+							transition={{ repeat: 2, duration: 0.4 }}
 							className="absolute -top-3 -right-3 flex size-8 items-center justify-center border-[length:var(--border-width-sm)] border-border bg-primary text-primary-foreground rounded-lg shadow-brutal-xs">
 							<Star className="size-4 fill-primary-foreground text-primary-foreground" />
 						</motion.div>
 					</div>
 
 					<motion.div
-						initial={{ opacity: 0, y: 15, scale: 0.7 }}
+						initial={{ opacity: 0, y: 10, scale: 0.8 }}
 						animate={{ opacity: 1, y: 0, scale: 1 }}
-						transition={{ delay: 0.2, duration: 0.4 }}
+						transition={{ delay: 0.15, duration: 0.3 }}
 						className="mt-3 flex items-center gap-1.5 border-[length:var(--border-width-sm)] border-border bg-warning text-warning-foreground rounded-lg px-3.5 py-1 font-mono text-xs font-black tracking-wider uppercase shadow-brutal-sm">
 						<Zap className="size-3.5 fill-warning-foreground" />
 						+SMILE POWER
