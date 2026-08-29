@@ -46,6 +46,9 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-rank-1: var(--rank-1);
+  --color-rank-2: var(--rank-2);
+  --color-rank-3: var(--rank-3);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -92,6 +95,9 @@
   --chart-3: #C6F135;
   --chart-4: #22C55E;
   --chart-5: #FBBF24;
+  --rank-1: #F59E0B;
+  --rank-2: #94A3B8;
+  --rank-3: #D97706;
   --radius: 7px;
   --sidebar: #FDF8D4;
   --sidebar-foreground: #ffffff;
@@ -143,6 +149,9 @@
   --warning-foreground: #0f0f0f;
   --info: #7DD3FC;
   --info-foreground: #0f0f0f;
+  --rank-1: #FBBF24;
+  --rank-2: #CBD5E1;
+  --rank-3: #F59E0B;
   --border: #f5f3f0;
   --input: #f5f3f0;
   --ring: #9B85FF;
@@ -165,6 +174,15 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(-100%);
   }
 }
 
@@ -357,6 +375,10 @@
 
   .reveal-delay-3 {
     animation-delay: 240ms;
+  }
+
+  .animate-marquee {
+    animation: marquee 32s linear infinite;
   }
 
   .dark .border-black {

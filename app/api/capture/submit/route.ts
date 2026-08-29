@@ -8,6 +8,8 @@ import {
 	getUserCoinBalance,
 } from '@/backend/db';
 
+import { calculateSmileCoins } from '@/lib/reward-calculator';
+
 const COOLDOWN_MS = 60 * 60 * 1000;
 
 export async function POST(request: NextRequest) {
@@ -47,15 +49,18 @@ export async function POST(request: NextRequest) {
 		}
 
 		const streakMultiplier = 1.0;
-		const baseCoins = Math.max(1, Math.floor(smileScore / 10));
-		const coinsAwarded = Math.round(baseCoins * streakMultiplier);
+		const coinsCalculation = calculateSmileCoins(smileScore, streakMultiplier);
+		const coinsAwarded = coinsCalculation.totalCoins;
 
 		await insertSmileCapture(user.id, smileScore, coinsAwarded);
-		await insertCoinLedgerEntry(user.id, coinsAwarded, 'capture');
+		if (coinsAwarded > 0) {
+			await insertCoinLedgerEntry(user.id, coinsAwarded, 'capture');
+		}
 		const balance = await getUserCoinBalance(user.id);
 
 		return NextResponse.json({
 			coins_awarded: coinsAwarded,
+			reward: coinsCalculation,
 			streak_multiplier: streakMultiplier,
 			smile_score: smileScore,
 			balance,

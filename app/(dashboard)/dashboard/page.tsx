@@ -143,13 +143,13 @@ export default async function DashboardPage() {
             </h2>
             <Link
               href="/capture"
-              className="font-mono text-xs font-bold text-primary-foreground hover:underline"
+              className="inline-flex items-center border-[length:var(--border-width)] border-black rounded-md bg-primary/10 text-primary px-2.5 py-0.5 font-mono text-xs font-bold hover:bg-primary hover:text-primary-foreground transition-colors shadow-brutal-xs"
             >
               + New check
             </Link>
           </div>
 
-          <div className="divide-y-[length:var(--border-width)] divide-black/10">
+          <div className="divide-y-[length:var(--border-width)] divide-black/20">
             {recentActivity.map((item) => (
               <div key={item.id} className="py-3 flex items-center justify-between">
                 <div>
@@ -165,7 +165,7 @@ export default async function DashboardPage() {
                     {item.time}
                   </p>
                 </div>
-                <span className="border-[length:var(--border-width)] border-black rounded-md bg-primary px-2 py-0.5 font-mono text-xs font-black tabular-nums flex items-center gap-1">
+                <span className="border-[length:var(--border-width)] border-black rounded-md bg-primary text-primary-foreground px-2 py-0.5 font-mono text-xs font-black tabular-nums flex items-center gap-1 shadow-brutal-xs">
                   <span>+{item.coins}</span>
                   <CoinIcon className="size-3.5" />
                 </span>
@@ -191,7 +191,7 @@ export default async function DashboardPage() {
             </p>
           </div>
 
-          <div className="mt-4 pt-3 border-t-[length:var(--border-width)] border-black/15">
+          <div className="mt-4 pt-3 border-t-[length:var(--border-width)] border-black/20">
             <Button
               asChild
               variant="outline"

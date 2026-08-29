@@ -8,8 +8,6 @@ import {
 	Flame,
 	Heart,
 	Sparkles,
-	Star,
-	Zap,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CoinIcon } from '../icons';
@@ -58,8 +56,6 @@ export function NeubrutalistPhotoCard({
 		if (score >= 50) return '🙂';
 		return '😅';
 	}, [score]);
-
-	const coinsEarned = Math.max(5, Math.round(score));
 
 	return (
 		<motion.div

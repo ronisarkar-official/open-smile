@@ -139,16 +139,24 @@ function ScratchCardTile({ card, index, onSelect }: ScratchCardTileProps) {
 					</>
 				:	<>
 						<div className="flex items-center justify-center gap-1.5">
-							<CoinIcon
-								className="size-8 shrink-0"
-								strokeWidth={2.5}
-							/>
-							<p className="font-mono text-3xl font-black text-foreground tabular-nums tracking-tight">
-								{card.coins}
-							</p>
+							{card.coins > 0 ? (
+								<>
+									<CoinIcon
+										className="size-8 shrink-0"
+										strokeWidth={2.5}
+									/>
+									<p className="font-mono text-3xl font-black text-foreground tabular-nums tracking-tight">
+										{card.coins}
+									</p>
+								</>
+							) : (
+								<p className="font-mono text-xl font-black text-muted-foreground tracking-tight">
+									0 COINS
+								</p>
+							)}
 						</div>
 						<p className="font-mono text-[9px] font-bold uppercase tracking-wider text-muted-foreground mt-1">
-							Coins Won
+							{card.coins > 0 ? 'Coins Won' : 'Better Luck Next Time'}
 						</p>
 					</>
 				}

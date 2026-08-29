@@ -212,6 +212,7 @@ Longer-term (post-hackathon, if continued):
 - [ ] Scaffold the Next.js routes for the core loop.
 - [ ] Seed voucher codes for demo.
 - [ ] Build Supabase schema (per Section 10) + Realtime subscription for the leaderboard.
+- [ ] Live activity marquee: currently using a static placeholder component (`components/marquee/activity-marquee.tsx`); replace with live data from `coin_ledger` via `GET /api/activity/recent` in the real-data pass.
 
 ## 14. Related Documents
 

@@ -145,19 +145,20 @@ export const DashboardSidebar = ({
 			<SidebarProvider>
 				<Sidebar
 					collapsible="icon"
+					animateOnHover={false}
 					className="hidden md:flex border-r-[length:var(--border-width)] border-black bg-sidebar">
-					<SidebarHeader className="border-b-[length:var(--border-width)] border-black p-3">
-						<SidebarMenu>
-							<SidebarMenuItem>
-								<Link href="/dashboard">
+					<SidebarHeader className="p-3 group-data-[collapsible=icon]:p-1.5 group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:items-center">
+						<SidebarMenu className="group-data-[collapsible=icon]:items-center">
+							<SidebarMenuItem className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
+								<Link href="/dashboard" className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center">
 									<SidebarMenuButton
 										size="lg"
-										className="group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center hover:bg-primary/10">
+										className="min-h-0 group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!min-h-0 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:items-center hover:bg-primary/10">
 										<div className="flex aspect-square size-9 items-center justify-center border-[length:var(--border-width)] border-black rounded-md bg-primary text-primary-foreground shadow-brutal-xs shrink-0">
 											<Smile className="m-auto size-5" strokeWidth={2.5} />
 										</div>
 										<div className="grid flex-1 text-left leading-tight ml-1 group-data-[collapsible=icon]:hidden">
-											<span className="truncate font-black tracking-tight text-base font-title">
+											<span className="truncate font-black tracking-tight text-base font-title text-black">
 												OPEN SMILE
 											</span>
 											<span className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
@@ -170,7 +171,7 @@ export const DashboardSidebar = ({
 						</SidebarMenu>
 					</SidebarHeader>
 
-					<SidebarContent className="p-2 gap-4">
+					<SidebarContent className="p-2 gap-4 group-data-[collapsible=icon]:p-1.5 group-data-[collapsible=icon]:gap-2">
 						<div className="px-1 pt-1 group-data-[collapsible=icon]:hidden">
 							<Link
 								href="/capture"
@@ -180,28 +181,28 @@ export const DashboardSidebar = ({
 							</Link>
 						</div>
 
-						<SidebarGroup>
-							<SidebarGroupLabel className="font-mono text-[10px] font-black uppercase tracking-[0.14em] text-foreground/70 px-2">
+						<SidebarGroup className="group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:items-center">
+							<SidebarGroupLabel className="font-mono text-[10px] font-black uppercase tracking-[0.14em] text-foreground/70 px-2 group-data-[collapsible=icon]:hidden">
 								Menu
 							</SidebarGroupLabel>
-							<SidebarMenu className="gap-1.5">
+							<SidebarMenu className="gap-1.5 group-data-[collapsible=icon]:gap-2 group-data-[collapsible=icon]:items-center">
 								{mainNav.map((item) => {
 									const active = isActive(item.url);
 									return (
-										<SidebarMenuItem key={item.title}>
-											<Link href={item.url}>
+										<SidebarMenuItem key={item.title} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-full">
+											<Link href={item.url} className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:w-full">
 												<SidebarMenuButton
 													tooltip={item.title}
 													isActive={active}
 													className={cn(
 														'border-[length:var(--border-width)] rounded-md transition-all font-title font-bold text-sm tracking-tight',
-														'group-data-[collapsible=icon]:border-transparent group-data-[collapsible=icon]:shadow-none',
+														'group-data-[collapsible=icon]:!size-9 group-data-[collapsible=icon]:!min-h-0 group-data-[collapsible=icon]:!p-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:items-center',
 														active
-															? 'border-black bg-primary text-primary-foreground shadow-brutal'
-															: 'border-transparent text-foreground hover:border-black hover:bg-muted/70 hover:shadow-brutal-sm',
+															? '!border-black !bg-primary !text-primary-foreground shadow-brutal-sm'
+															: 'border-transparent text-foreground hover:border-black hover:bg-card/80 hover:shadow-brutal-xs',
 													)}>
-													<item.icon className="size-4" strokeWidth={active ? 2.5 : 2} />
-													<span className="font-bold">{item.title}</span>
+													<item.icon className="size-4.5 group-data-[collapsible=icon]:size-5 shrink-0" strokeWidth={active ? 2.5 : 2} />
+													<span className="font-bold group-data-[collapsible=icon]:hidden">{item.title}</span>
 												</SidebarMenuButton>
 											</Link>
 										</SidebarMenuItem>
@@ -210,14 +211,13 @@ export const DashboardSidebar = ({
 							</SidebarMenu>
 						</SidebarGroup>
 					</SidebarContent>
-					<SidebarRail />
 				</Sidebar>
 
 				<SidebarInset>
 					<header className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b-[length:var(--border-width)] border-black bg-background transition-[width,height] ease-linear">
 						<div className="flex flex-1 items-center justify-between gap-3 px-4 sm:px-6">
 							<div className="flex items-center gap-3">
-								<SidebarTrigger className="-ml-1 hidden md:flex border-[length:var(--border-width)] border-black rounded-md bg-card shadow-brutal-sm hover:bg-muted size-9" />
+								<SidebarTrigger className="-ml-1 hidden md:flex border-[length:var(--border-width)] border-black rounded-md bg-card shadow-brutal-sm hover:bg-muted size-9 min-h-0" />
 							</div>
 
 							<div className="flex items-center gap-2 sm:gap-3">

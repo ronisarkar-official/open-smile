@@ -4,47 +4,25 @@ import { redirect } from "next/navigation";
 import {
   ArrowDown,
   ArrowUpRight,
-  Camera,
   Coins,
-  LockKeyhole,
-  ScanFace,
   ShieldCheck,
   Smile,
   Sparkles,
-  Trophy,
 } from "lucide-react";
 import { auth } from "@/backend/auth";
 import { Navbar } from "@/components/navbar";
-import { WaitlistForm } from "@/components/waitlist-form";
 import { Button } from "@/components/ui/button";
-import { MyTeam, Footer } from "@/components/landing";
+import {
+  MyTeam,
+  Footer,
+  WhyItsDifferentBento,
+  HowItWorks,
+  TrustPrivacy,
+  FinalCta,
+} from "@/components/landing";
 
-const steps = [
-  {
-    number: "01",
-    title: "Take a quick smile check",
-    description: "Open your camera, follow the liveness prompt, and capture a genuine moment.",
-    icon: Camera,
-    color: "bg-primary",
-    fg: "text-primary-foreground",
-  },
-  {
-    number: "02",
-    title: "See your score instantly",
-    description: "The smile model runs in your browser. Your raw video never needs to leave it.",
-    icon: ScanFace,
-    color: "bg-accent",
-    fg: "text-accent-foreground",
-  },
-  {
-    number: "03",
-    title: "Turn smiles into rewards",
-    description: "Great smiles earn coins. Build a streak, climb the board, and unlock rewards.",
-    icon: Coins,
-    color: "bg-secondary",
-    fg: "text-secondary-foreground",
-  },
-];
+import { ActivityMarquee } from "@/components/marquee/activity-marquee";
+
 
 export default async function Home() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -120,78 +98,21 @@ export default async function Home() {
           </div>
         </section>
 
-        <section id="how-it-works" className="border-y-[length:var(--border-width)] border-black bg-card">
-          <div className="mx-auto w-full max-w-7xl px-5 py-16 sm:px-6 lg:py-24">
-            <div className="grid gap-6 lg:grid-cols-[0.7fr_1.3fr] lg:items-end">
-              <div>
-                <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">A tiny daily ritual</p>
-                <h2 className="mt-3 max-w-[10ch] text-4xl font-black tracking-[-0.06em] sm:text-5xl">The good kind of loop.</h2>
-              </div>
-              <p className="max-w-[55ch] text-lg leading-8 text-muted-foreground">No feeds to feed. No photos sold to train a cloud. Just a simple check-in that nudges you toward a brighter day.</p>
-            </div>
-            <ol className="mt-12 grid gap-6 lg:grid-cols-[1fr_1.15fr_0.9fr]">
-              {steps.map((step, index) => {
-                const Icon = step.icon;
-                return (
-                  <li key={step.number} className={`${step.color} ${step.fg} brutal-surface brutal-lift flex min-h-72 flex-col p-6 sm:p-7 ${index === 1 ? "lg:-translate-y-5" : ""}`}>
-                    <div className="flex items-start justify-between">
-                      <span className="font-mono text-sm font-black tabular-nums">{step.number}</span>
-                      <Icon className="size-9" strokeWidth={2.5} />
-                    </div>
-                    <div className="mt-auto">
-                      <h3 className="max-w-[16ch] text-2xl font-black tracking-[-0.04em]">{step.title}</h3>
-                      <p className="mt-3 max-w-[32ch] leading-7 opacity-75">{step.description}</p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-        </section>
+        <ActivityMarquee />
 
-        <section id="privacy" className="mx-auto grid w-full max-w-7xl gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[1fr_0.95fr] lg:items-center lg:py-24">
-          <div className="shadow-brutal-lg order-2 border-[length:var(--border-width)] border-black rounded-2xl bg-secondary p-5 sm:p-8 lg:order-1">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="border-[length:var(--border-width)] border-black rounded-lg bg-card p-5 sm:col-span-2">
-                <LockKeyhole className="size-8" />
-                <p className="mt-8 font-mono text-xs font-bold tracking-[0.12em] uppercase">Raw video stays with you</p>
-              </div>
-              <div className="border-[length:var(--border-width)] border-black rounded-lg bg-primary p-5 text-primary-foreground">
-                <span className="block font-mono text-4xl font-black">01</span>
-                <p className="mt-8 text-sm font-bold">On-device scoring</p>
-              </div>
-              <div className="border-[length:var(--border-width)] border-black rounded-lg bg-accent p-5 text-accent-foreground">
-                <span className="block font-mono text-4xl font-black">24h</span>
-                <p className="mt-8 text-sm font-bold">Photo expiry policy</p>
-              </div>
-            </div>
-          </div>
-          <div className="order-1 lg:order-2">
-            <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">Your face is not the product</p>
-            <h2 className="mt-3 max-w-[11ch] text-4xl font-black tracking-[-0.06em] sm:text-5xl">Big rewards. Small footprint.</h2>
-            <p className="mt-6 max-w-[52ch] text-lg leading-8 text-muted-foreground">Smile scoring happens locally in your browser. Captures are private by default, and any image you choose to share expires automatically after one day.</p>
-          </div>
-        </section>
+        <HowItWorks />
 
-        <MyTeam />
 
-        <section id="beta" className="border-y-[length:var(--border-width)] border-black bg-primary">
-          <div className="mx-auto grid w-full max-w-7xl gap-10 px-5 py-16 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-end lg:py-20">
-            <div>
-              <div className="flex items-center gap-3">
-                <Trophy className="size-8" strokeWidth={2.5} />
-                <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">Open Smile beta</p>
-              </div>
-              <h2 className="mt-5 max-w-[13ch] text-4xl font-black tracking-[-0.06em] sm:text-5xl">Be early. Bring your best grin.</h2>
-              <p className="mt-4 max-w-[55ch] text-lg leading-8 text-black/75">Join the waitlist and we&apos;ll let you know as soon as a new beta spot opens.</p>
-            </div>
-            <div className="w-full lg:w-lg">
-              <WaitlistForm />
-              <p className="mt-3 text-xs font-semibold text-black/65">One email when your beta spot is ready. Nothing else.</p>
-            </div>
-          </div>
-        </section>
+        <WhyItsDifferentBento />
+
+        <TrustPrivacy />
+
+
+        {/* <MyTeam /> */}
+
+        <FinalCta />
       </main>
+
       <Footer />
     </>
   );

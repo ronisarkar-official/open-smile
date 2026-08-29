@@ -2,16 +2,7 @@
 
 import * as React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import {
-	Sparkles,
-	Flame,
-	Smile,
-	ArrowRight,
-	Award,
-	Coins,
-	Share2,
-	Camera,
-} from 'lucide-react';
+import { Sparkles, ArrowRight, Coins, Share2, Camera, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NeubrutalistPhotoCard } from '@/components/capture/neubrutalist-photo-card';
 import { cn } from '@/lib/utils';
@@ -27,31 +18,135 @@ interface SmileResultScreenProps {
 	onShareToExplore?: () => void;
 }
 
+interface AiReaction {
+	comment: string;
+	mood: string;
+}
+
+const AI_REACTIONS: Record<
+	'legendary' | 'radiant' | 'solid' | 'warming' | 'subtle',
+	Array<{ comment: (score: number) => string; mood: string }>
+> = {
+	legendary: [
+		{
+			comment: () => 'Okay... that smile was dangerous. 😂',
+			mood: '🔥 TOO GOOD',
+		},
+		{
+			comment: (score) => `${score}?! Who taught you to smile like that?`,
+			mood: '👑 TOP TIER',
+		},
+		{
+			comment: () => '100 out of 100! That is the best smile I have seen all day.',
+			mood: '⚡ SUPERSTAR',
+		},
+		{
+			comment: (score) => `${score}/100?! You literally blinded the camera! 🔥`,
+			mood: '✨ PURE JOY',
+		},
+	],
+	radiant: [
+		{
+			comment: (score) => `${score}?! Who taught you to smile like that?`,
+			mood: '✨ BIG VIBES',
+		},
+		{
+			comment: () => 'Okay... that smile was dangerous. 😂',
+			mood: '🔥 ON FIRE',
+		},
+		{
+			comment: () => 'Nice one. But I know you can hit 100 next time!',
+			mood: '⚡ SO BRIGHT',
+		},
+		{
+			comment: (score) => `${score}! Now that is what I call a happy face.`,
+			mood: '🌟 10/10',
+		},
+	],
+	solid: [
+		{
+			comment: () => 'Nice one. But I know you can hit 100.',
+			mood: '🎯 NICE JOB',
+		},
+		{
+			comment: (score) => `${score} points! Really good, but try for 90+ next!`,
+			mood: '😄 HAPPY',
+		},
+		{
+			comment: (score) => `${score}?! Looking great! That is a very happy look.`,
+			mood: '💪 STRONG',
+		},
+		{
+			comment: () => 'I love this energy. Let’s keep it going!',
+			mood: '⚡ GOOD VIBES',
+		},
+	],
+	warming: [
+		{
+			comment: () => 'Cute smirk! But let’s see more teeth next time. 😁',
+			mood: '🌱 WARMING UP',
+		},
+		{
+			comment: (score) => `${score}? Good start, now give me a bigger smile!`,
+			mood: '👀 I SEE YOU',
+		},
+		{
+			comment: () => 'Nice try! I know you have an even bigger smile in you.',
+			mood: '😄 GETTING CLOSER',
+		},
+		{
+			comment: () => 'Almost there! Try laughing on the next one.',
+			mood: '🎯 TRY AGAIN',
+		},
+	],
+	subtle: [
+		{
+			comment: () => 'Was that a smile or did you just remember a meme? 😂',
+			mood: '😂 FUNNY',
+		},
+		{
+			comment: () => 'Are you trying not to laugh? Give me your real smile!',
+			mood: '👀 NICE TRY',
+		},
+		{
+			comment: () => 'I know you can hit 100. Hit retake and don’t hold back!',
+			mood: '🤔 TRY AGAIN',
+		},
+		{
+			comment: () => 'Warm-up round! Now show me your biggest smile!',
+			mood: '⚡ NEED MORE HYPE',
+		},
+	],
+};
+
+function getAiReaction(score: number): AiReaction {
+	let pool: Array<{ comment: (score: number) => string; mood: string }>;
+	if (score >= 95) {
+		pool = AI_REACTIONS.legendary;
+	} else if (score >= 85) {
+		pool = AI_REACTIONS.radiant;
+	} else if (score >= 70) {
+		pool = AI_REACTIONS.solid;
+	} else if (score >= 50) {
+		pool = AI_REACTIONS.warming;
+	} else {
+		pool = AI_REACTIONS.subtle;
+	}
+
+	const index = Math.floor(Math.random() * pool.length);
+	const selected = pool[index];
+	return {
+		comment: selected.comment(score),
+		mood: selected.mood,
+	};
+}
+
 function getVibeLabel(score: number) {
-	if (score >= 88) return 'AMAZING';
-	if (score >= 75) return 'ULTRA RADIANT';
-	if (score >= 60) return 'INFECTIOUS';
-	if (score >= 40) return 'WARM';
+	if (score >= 95) return 'SUPERSTAR';
+	if (score >= 85) return 'SHINING';
+	if (score >= 70) return 'BIG SMILE';
+	if (score >= 50) return 'WARM';
 	return 'CHILL';
-}
-
-function getEnergyLabel(score: number) {
-	if (score >= 85) return 'MAXIMUM';
-	if (score >= 70) return 'HIGH';
-	if (score >= 50) return 'VIBRANT';
-	return 'WARMING UP';
-}
-
-function getAiComment(score: number) {
-	if (score >= 88)
-		return 'Okay, that is definitely reward-worthy. The camera almost melted!';
-	if (score >= 75)
-		return "Solid smile detected! That is guaranteed to brighten anyone's day.";
-	if (score >= 60)
-		return 'Nice energy! The AI sensors thoroughly approve this vibe.';
-	if (score >= 40)
-		return 'A charming grin! Good vibes registered in the reward ledger.';
-	return "A subtle smirk! Let's get those coins and boost the power next round.";
 }
 
 const CONFETTI_COLORS = ['#FFD23F', '#FF6B6B', '#4ECDC4', '#A78BFA', '#FF9F1C'];
@@ -98,6 +193,13 @@ function ConfettiBurst() {
 	);
 }
 
+function getScoreBarColor(score: number) {
+	if (score >= 85) return 'bg-success';
+	if (score >= 70) return 'bg-accent';
+	if (score >= 50) return 'bg-warning';
+	return 'bg-primary';
+}
+
 export function SmileResultScreen({
 	imageSrc,
 	score,
@@ -136,8 +238,7 @@ export function SmileResultScreen({
 	}, [score, isHighScore]);
 
 	const vibe = getVibeLabel(score);
-	const energy = getEnergyLabel(score);
-	const comment = getAiComment(score);
+	const aiReaction = React.useMemo(() => getAiReaction(score), [score]);
 
 	return (
 		<motion.div
@@ -147,32 +248,13 @@ export function SmileResultScreen({
 			className="relative w-full space-y-6">
 			<AnimatePresence>{showConfetti && <ConfettiBurst />}</AnimatePresence>
 
-			<div className="flex flex-col items-center justify-center text-center">
-				<motion.div
-					initial={{ scale: 0.6, opacity: 0, rotate: -8 }}
-					animate={{ scale: 1, opacity: 1, rotate: 0 }}
-					transition={{
-						type: 'spring',
-						damping: 12,
-						stiffness: 260,
-						delay: 0.1,
-					}}
-					className="inline-flex items-center gap-2 border-[length:var(--border-width)] border-border bg-accent text-accent-foreground rounded-lg px-4 py-1.5 font-mono text-xs font-black tracking-widest uppercase shadow-brutal-sm">
-					<Award
-						className="size-4 text-accent-foreground"
-						strokeWidth={2.5}
-					/>
-					Challenge Aced
-				</motion.div>
-
-				<motion.h1
-					initial={{ opacity: 0, y: 10 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ delay: 0.15, duration: 0.3 }}
-					className="mt-3 font-title text-3xl font-black tracking-tight text-foreground sm:text-4xl md:text-5xl">
-					Smile Check Complete <span className="inline-block">✅</span>
-				</motion.h1>
-			</div>
+			<motion.h1
+				initial={{ scale: 0.9, opacity: 0 }}
+				animate={{ scale: 1, opacity: 1 }}
+				transition={{ type: 'spring', damping: 14, stiffness: 260, delay: 0.1 }}
+				className="text-center font-title text-3xl font-black tracking-tight text-foreground sm:text-4xl md:text-5xl">
+				Smile Check Complete <span className="inline-block">✅</span>
+			</motion.h1>
 
 			<div className="grid gap-6 md:grid-cols-2 lg:gap-8 items-start">
 				<div className="flex justify-center p-2">
@@ -190,22 +272,10 @@ export function SmileResultScreen({
 					transition={{ delay: 0.2, duration: 0.4 }}
 					className="flex flex-col gap-4 border-[length:var(--border-width)] border-border rounded-xl bg-card p-6 shadow-brutal-xl">
 					<div>
-						<div className="flex items-center justify-between border-b-[length:var(--border-width-sm)] border-border/20 pb-2">
-							<span className="font-mono text-xs font-black tracking-widest text-muted-foreground uppercase">
-								Smile Score
-							</span>
-							<span
-								className={cn(
-									'border-[length:var(--border-width-sm)] border-border rounded-md px-2 py-0.5 font-mono text-[11px] font-black uppercase shadow-brutal-xs',
-									isRewardClaimed ?
-										'bg-success text-success-foreground'
-									:	'bg-warning text-warning-foreground',
-								)}>
-								{isRewardClaimed ? 'Reward Claimed' : '+Coins Ready'}
-							</span>
-						</div>
-
-						<div className="mt-4 flex items-baseline gap-2">
+						<span className="font-mono text-xs font-black tracking-widest text-muted-foreground uppercase">
+							Smile Score
+						</span>
+						<div className="mt-2 flex items-baseline gap-2">
 							<span className="font-display text-7xl font-black tracking-tight text-foreground tabular-nums sm:text-8xl">
 								{displayScore}
 							</span>
@@ -214,45 +284,41 @@ export function SmileResultScreen({
 							</span>
 						</div>
 
-						<div className="mt-3 h-4 w-full border-[length:var(--border-width-sm)] border-border rounded-xs bg-muted overflow-hidden">
+						<div className="mt-3 h-3 w-full overflow-hidden rounded-xs border-[length:var(--border-width-sm)] border-border bg-muted">
 							<motion.div
+								className={cn('h-full', getScoreBarColor(score))}
 								initial={{ width: 0 }}
-								animate={{ width: `${score}%` }}
-								transition={{
-									duration: 1,
-									ease: [0.22, 1, 0.36, 1],
-									delay: 0.2,
-								}}
-								className="h-full bg-gradient-to-r from-primary via-warning to-accent"
+								animate={{ width: `${displayScore}%` }}
+								transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
 							/>
 						</div>
 					</div>
 
-					<div className="grid grid-cols-3 gap-2.5 pt-2">
-						<StatChip
-							icon={<Smile className="size-3.5 text-foreground" />}
-							label="Smile Power"
-							value={`${score}%`}
-						/>
-						<StatChip
-							icon={<Sparkles className="size-3.5 text-primary" />}
-							label="Vibe"
-							value={vibe}
-						/>
-						<StatChip
-							icon={<Flame className="size-3.5 text-destructive" />}
-							label="Energy"
-							value={energy}
-						/>
+					<div className="inline-flex w-fit items-center gap-1.5 border-[length:var(--border-width-sm)] border-border bg-primary/15 rounded-lg px-3 py-1.5 font-mono text-xs font-black uppercase tracking-wide text-foreground shadow-brutal-xs">
+						<Sparkles className="size-3.5 text-primary" />
+						{vibe}
 					</div>
 
 					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={{ delay: 0.5 }}
-						className="border-[length:var(--border-width-sm)] border-border bg-secondary/10 rounded-lg p-3.5 shadow-brutal-xs">
-						<p className="font-title text-sm font-black italic text-foreground">
-							"{comment}"
+						initial={{ opacity: 0, y: 8, scale: 0.98 }}
+						animate={{ opacity: 1, y: 0, scale: 1 }}
+						transition={{ delay: 0.35, duration: 0.35 }}
+						className="relative flex flex-col gap-2 rounded-lg border-[length:var(--border-width-sm)] border-border bg-muted/60 p-3.5 shadow-brutal-xs sm:p-4">
+						<div className="flex items-center justify-between gap-2">
+							<div className="flex items-center gap-1.5 font-mono text-[11px] font-black uppercase tracking-wider text-foreground">
+								<span className="flex size-5 items-center justify-center rounded-xs border-[length:var(--border-width-sm)] border-border bg-warning text-warning-foreground shadow-brutal-xs">
+									<Bot className="size-3.5" strokeWidth={2.5} />
+								</span>
+								<span>Smile AI Reaction</span>
+								<span className="inline-block size-1.5 rounded-full bg-success animate-pulse" />
+							</div>
+							<span className="rounded-xs border-[length:var(--border-width-sm)] border-border bg-card px-2 py-0.5 font-mono text-[10px] font-black uppercase tracking-wider text-muted-foreground shadow-brutal-xs">
+								{aiReaction.mood}
+							</span>
+						</div>
+
+						<p className="font-title text-base sm:text-lg font-black italic tracking-tight text-foreground leading-snug">
+							&ldquo;{aiReaction.comment}&rdquo;
 						</p>
 					</motion.div>
 
@@ -266,7 +332,6 @@ export function SmileResultScreen({
 									Reveal My Reward
 									<ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
 								</Button>
-
 								<p className="text-center font-mono text-xs font-bold text-muted-foreground">
 									You earned a surprise scratch card
 								</p>
@@ -280,11 +345,13 @@ export function SmileResultScreen({
 									<span>
 										{isSaving ?
 											'Recording to ledger...'
-										:	`+${coinsAwarded} Coins Deposited`}
+										: coinsAwarded > 0 ?
+											`+${coinsAwarded} Coins Deposited`
+										:	'0 Coins (Better luck next time!)'}
 									</span>
 								</div>
 								<span className="font-mono text-[10px] font-black uppercase text-success">
-									Claimed
+									{coinsAwarded > 0 ? 'Claimed' : 'Revealed'}
 								</span>
 							</div>
 						}
@@ -299,15 +366,10 @@ export function SmileResultScreen({
 								Share to Explore
 							</Button>
 							<Button
-								variant={isRewardClaimed ? 'default' : 'ghost'}
+								variant="default"
 								size="lg"
 								onClick={onRetake}
-								className={cn(
-									'flex-1 gap-2 font-mono text-xs font-bold uppercase tracking-wider',
-									isRewardClaimed ?
-										'border-[length:var(--border-width)] border-border bg-warning text-warning-foreground shadow-brutal-sm brutal-lift hover:bg-warning/90'
-									:	'text-muted-foreground hover:text-foreground',
-								)}>
+								className="flex-1 gap-2 border-[length:var(--border-width)] border-border bg-warning text-warning-foreground font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-sm brutal-lift hover:bg-warning/90">
 								<Camera className="size-4" />
 								Capture Again
 							</Button>
@@ -319,24 +381,3 @@ export function SmileResultScreen({
 	);
 }
 
-function StatChip({
-	icon,
-	label,
-	value,
-}: {
-	icon: React.ReactNode;
-	label: string;
-	value: string;
-}) {
-	return (
-		<div className="border-[length:var(--border-width-sm)] border-border bg-muted/50 rounded-lg p-2.5 shadow-brutal-xs">
-			<div className="flex items-center gap-1 font-mono text-[10px] font-bold text-muted-foreground uppercase">
-				{icon}
-				{label}
-			</div>
-			<p className="mt-1 font-mono text-xs font-black text-foreground truncate">
-				{value}
-			</p>
-		</div>
-	);
-}

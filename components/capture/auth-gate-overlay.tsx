@@ -56,11 +56,7 @@ export function AuthGateOverlay({
 				</div>
 
 				<div className="space-y-1.5">
-					{coinsAwarded > 0 && (
-						<div className="inline-flex items-center gap-1.5 border-[length:var(--border-width-sm)] border-border bg-secondary/30 rounded-md px-3 py-1 font-mono text-xs font-black text-secondary-foreground uppercase shadow-brutal-xs">
-							<span>+{coinsAwarded} Coins Earned!</span>
-						</div>
-					)}
+					
 					<h3 className="font-title text-2xl font-black tracking-tight text-foreground">
 						Sign up to scratch & claim
 					</h3>
