@@ -16,6 +16,7 @@ export interface PwaState {
   isInstalled: boolean;
   isOnline: boolean;
   isIOS: boolean;
+  isMobile: boolean;
   needRefresh: boolean;
   promptInstall: () => Promise<'accepted' | 'dismissed' | null>;
   updateApp: () => void;
@@ -26,6 +27,7 @@ export function usePwa(): PwaState {
   const [isInstalled, setIsInstalled] = React.useState<boolean>(false);
   const [isOnline, setIsOnline] = React.useState<boolean>(true);
   const [isIOS, setIsIOS] = React.useState<boolean>(false);
+  const [isMobile, setIsMobile] = React.useState<boolean>(false);
   const [needRefresh, setNeedRefresh] = React.useState<boolean>(false);
   const [waitingWorker, setWaitingWorker] = React.useState<ServiceWorker | null>(null);
 
@@ -45,8 +47,16 @@ export function usePwa(): PwaState {
     checkStandalone();
 
     const userAgent = window.navigator.userAgent.toLowerCase();
-    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
+    const isIosDevice =
+      /iphone|ipad|ipod/.test(userAgent) ||
+      (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+    const isMobileDevice =
+      isIosDevice ||
+      /android|webos|blackberry|iemobile|opera mini/i.test(userAgent) ||
+      window.matchMedia('(max-width: 768px)').matches;
+
     setIsIOS(isIosDevice);
+    setIsMobile(isMobileDevice);
 
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
@@ -66,7 +76,7 @@ export function usePwa(): PwaState {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    if ('serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+    if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
@@ -130,6 +140,7 @@ export function usePwa(): PwaState {
     isInstalled,
     isOnline,
     isIOS,
+    isMobile,
     needRefresh,
     promptInstall,
     updateApp,

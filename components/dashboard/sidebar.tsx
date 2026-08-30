@@ -396,7 +396,7 @@ export const DashboardSidebar = ({
 				onAvatarChange={setAvatarOverride}
 			/>
 
-			<IosInstallGuide open={showIosGuide} onOpenChange={setShowIosGuide} />
+			<IosInstallGuide open={showIosGuide} onOpenChange={setShowIosGuide} isIOS={isIOS} />
 		</>
 	);
 };

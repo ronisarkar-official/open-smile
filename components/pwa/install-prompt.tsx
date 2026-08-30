@@ -10,9 +10,9 @@ const DISMISS_STORAGE_KEY = 'open-smile-pwa-dismissed';
 const DISMISS_COOLDOWN_DAYS = 7;
 
 export function PwaInstallBanner() {
-	const { isInstallable, isInstalled, isIOS, promptInstall } = usePwa();
+	const { isInstallable, isInstalled, isIOS, isMobile, promptInstall } = usePwa();
 	const [dismissed, setDismissed] = React.useState<boolean>(true);
-	const [showIosGuide, setShowIosGuide] = React.useState<boolean>(false);
+	const [showGuide, setShowGuide] = React.useState<boolean>(false);
 
 	React.useEffect(() => {
 		if (typeof window === 'undefined') return;
@@ -38,22 +38,23 @@ export function PwaInstallBanner() {
 	};
 
 	const handleInstallClick = async () => {
-		if (isIOS) {
-			setShowIosGuide(true);
+		if (isInstallable) {
+			const outcome = await promptInstall();
+			if (outcome === 'accepted') {
+				setDismissed(true);
+			}
 			return;
 		}
 
-		const outcome = await promptInstall();
-		if (outcome === 'accepted') {
-			setDismissed(true);
-		}
+		setShowGuide(true);
 	};
 
-	if (isInstalled || dismissed || (!isInstallable && !isIOS)) {
+	if (isInstalled || dismissed || (!isInstallable && !isMobile && !isIOS)) {
 		return (
 			<IosInstallGuide
-				open={showIosGuide}
-				onOpenChange={setShowIosGuide}
+				open={showGuide}
+				onOpenChange={setShowGuide}
+				isIOS={isIOS}
 			/>
 		);
 	}
@@ -61,7 +62,7 @@ export function PwaInstallBanner() {
 	return (
 		<>
 			<div
-				className="fixed bottom-4 left-4 right-4 z-200 mx-auto max-w-sm animate-in fade-in-0 slide-in-from-bottom-3 duration-300 md:bottom-5 md:right-5 md:left-auto"
+				className="fixed bottom-20 left-4 right-4 z-200 mx-auto max-w-sm animate-in fade-in-0 slide-in-from-bottom-3 duration-300 md:bottom-5 md:right-5 md:left-auto"
 				role="region"
 				aria-label="Install Open Smile App">
 				<div className="relative rounded-xl border border-border bg-card p-4 shadow-md">
@@ -74,7 +75,7 @@ export function PwaInstallBanner() {
 
 					<div className="flex items-start gap-3 pr-5">
 						<div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-							{isIOS ?
+							{isIOS || isMobile ?
 								<Smartphone className="size-4" />
 							:	<Download className="size-4" />}
 						</div>
@@ -109,8 +110,9 @@ export function PwaInstallBanner() {
 			</div>
 
 			<IosInstallGuide
-				open={showIosGuide}
-				onOpenChange={setShowIosGuide}
+				open={showGuide}
+				onOpenChange={setShowGuide}
+				isIOS={isIOS}
 			/>
 		</>
 	);
