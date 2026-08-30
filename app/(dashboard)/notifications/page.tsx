@@ -232,49 +232,11 @@ export default function NotificationsPage() {
         </div>
       </div>
 
-      {/* Quick Summary Cards */}
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="flex items-center gap-3 border-[length:var(--border-width)] border-black rounded-lg bg-primary/20 p-3 shadow-brutal-sm">
-          <div className="flex size-10 shrink-0 items-center justify-center border-[length:var(--border-width)] border-black rounded-md bg-primary text-primary-foreground shadow-brutal-xs">
-            <CoinIcon className="size-5" strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Total Rewards
-            </span>
-            <p className="font-mono text-sm font-black truncate">
-              <UserCoinBalance suffix=" Coins Earned" />
-            </p>
-          </div>
-        </div>
+      
 
-        <div className="flex items-center gap-3 border-[length:var(--border-width)] border-black rounded-lg bg-secondary/20 p-3 shadow-brutal-sm">
-          <div className="flex size-10 shrink-0 items-center justify-center border-[length:var(--border-width)] border-black rounded-md bg-secondary text-secondary-foreground shadow-brutal-xs">
-            <Flame className="size-5" strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Smile Streak
-            </span>
-            <p className="font-mono text-sm font-black truncate">
-              <UserStreak suffix="-Day Streak 🔥" />
-            </p>
-          </div>
-        </div>
+        
 
-        <div className="flex items-center gap-3 border-[length:var(--border-width)] border-black rounded-lg bg-accent/20 p-3 shadow-brutal-sm">
-          <div className="flex size-10 shrink-0 items-center justify-center border-[length:var(--border-width)] border-black rounded-md bg-accent text-accent-foreground shadow-brutal-xs">
-            <Trophy className="size-5" strokeWidth={2.5} />
-          </div>
-          <div className="min-w-0">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Global Rank
-            </span>
-            <p className="font-mono text-sm font-black truncate">#8 Today</p>
-          </div>
-        </div>
-      </div>
-
+        
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b-[length:var(--border-width)] border-black/15">
         {categories.map((tab) => {

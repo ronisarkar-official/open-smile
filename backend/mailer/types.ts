@@ -3,4 +3,6 @@ export type EmailInput = {
 	subject: string;
 	text: string;
 	html?: string;
+	fromName?: string;
 };
+

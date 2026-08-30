@@ -1,15 +1,17 @@
 import { sendEmail } from "./send-email";
-import { emailCss } from "./styles";
+import { getBetaWaitlistEmailHtml } from "./templates";
+
+export { getBetaWaitlistEmailHtml };
 
 export async function sendBetaWaitlistEmail(to: string): Promise<void> {
 	if (!to) return;
 	await sendEmail({
 		to,
-		subject: "You're on the beta list",
-		text: `Thanks for joining the waitlist!\n\nWe'll email you the moment the beta opens.\n\n— The team`,
-		html: `<div class="wrap"><div class="card">
-			<h1>You're on the list</h1>
-			<p>Thanks for joining the beta waitlist. We'll email you the moment the beta opens.</p>
-		</div><div class="footer">You're receiving this because you joined the waitlist.</div></div><style>${emailCss}</style>`,
+		subject: "[Open Smile] You're on the Beta List! 🚀",
+		text: `You're on the Open Smile Beta List! 🚀\n\nThanks for joining the Open Smile waitlist.\n\nYou have secured early access to our AI-powered smile rewards platform. We will notify you the moment beta invites roll out.\n\n— The Open Smile Team`,
+		html: getBetaWaitlistEmailHtml(),
 	});
 }
+
+
+

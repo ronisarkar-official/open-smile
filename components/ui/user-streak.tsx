@@ -115,12 +115,7 @@ export function UserStreak({
 	}
 
 	return (
-		<span
-			className={cn(
-				'font-mono text-xs font-black tabular-nums leading-none',
-				className
-			)}
-		>
+		<span className={cn('tabular-nums', className)}>
 			{prefix}
 			{count}
 			{suffix}
