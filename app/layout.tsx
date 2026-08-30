@@ -6,6 +6,7 @@ import { ToastProvider } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { PwaProvider } from "@/components/pwa/pwa-provider";
+import { Analytics } from "@vercel/analytics/react";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -115,6 +116,7 @@ export default function RootLayout({
             </ToastProvider>
           </SessionProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
