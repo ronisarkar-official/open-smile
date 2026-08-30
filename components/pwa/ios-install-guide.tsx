@@ -51,7 +51,7 @@ export function IosInstallGuide({ open, onOpenChange }: IosInstallGuideProps) {
 							2
 						</div>
 						<div className="text-xs text-foreground">
-							<p className="font-medium">Select "Add to Home Screen"</p>
+							<p className="font-medium">Select &quot;Add to Home Screen&quot;</p>
 							<p className="mt-0.5 flex items-center gap-1 text-muted-foreground">
 								Scroll down to find it{' '}
 								<PlusSquare className="inline size-3.5" />
@@ -64,7 +64,7 @@ export function IosInstallGuide({ open, onOpenChange }: IosInstallGuideProps) {
 							3
 						</div>
 						<div className="text-xs text-foreground">
-							<p className="font-medium">Tap "Add" in the top right</p>
+							<p className="font-medium">Tap &quot;Add&quot; in the top right</p>
 							<p className="mt-0.5 text-muted-foreground">
 								Open Smile will appear on your home screen.
 							</p>

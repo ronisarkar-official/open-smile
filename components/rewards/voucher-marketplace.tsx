@@ -33,6 +33,8 @@ interface VoucherMarketplaceProps {
   onNavigateToTab: (tab: 'my-vouchers' | 'marketplace' | 'scratch' | 'badges') => void;
 }
 
+type SortOption = 'featured' | 'coins-asc' | 'coins-desc' | 'value-desc';
+
 export function VoucherMarketplace({
   userCoins,
   onClaimSuccess,
@@ -41,7 +43,7 @@ export function VoucherMarketplace({
   const [selectedCategory, setSelectedCategory] = React.useState<VoucherCategory>('all');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [onlyAffordable, setOnlyAffordable] = React.useState(false);
-  const [sortBy, setSortBy] = React.useState<'featured' | 'coins-asc' | 'coins-desc' | 'value-desc'>('featured');
+  const [sortBy, setSortBy] = React.useState<SortOption>('featured');
   const [selectedVoucher, setSelectedVoucher] = React.useState<VoucherItem | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
@@ -128,7 +130,7 @@ export function VoucherMarketplace({
             <SlidersHorizontal className="size-3.5 text-muted-foreground shrink-0" />
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
               className="bg-transparent font-mono text-xs font-bold uppercase tracking-wider text-foreground outline-none cursor-pointer pr-1"
             >
               <option value="featured">Featured</option>

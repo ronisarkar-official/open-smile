@@ -44,7 +44,7 @@ export default function OfflinePage() {
 					</div>
 					<div className="min-w-0">
 						<h1 className="text-sm font-semibold text-foreground">
-							You're offline
+							You&apos;re offline
 						</h1>
 						<div className="flex items-center gap-1.5">
 							<span
@@ -61,7 +61,7 @@ export default function OfflinePage() {
 
 				<p className="text-xs leading-relaxed text-muted-foreground">
 					Some features are unavailable while offline. On-device tools will keep
-					working, and your data will sync automatically once you're
+					working, and your data will sync automatically once you&apos;re
 					reconnected.
 				</p>
 

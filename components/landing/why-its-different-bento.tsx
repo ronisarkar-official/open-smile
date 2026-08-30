@@ -9,7 +9,7 @@ export function WhyItsDifferentBento() {
 		<section className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-24">
 			<div className="mx-auto mb-10 max-w-2xl text-center sm:mb-14">
 				<h2 className="font-title text-3xl font-black tracking-tight text-foreground sm:text-4xl">
-					Why this isn't just another AI gimmick
+					Why this isn&apos;t just another AI gimmick
 				</h2>
 				<p className="mt-3 font-semibold text-muted-foreground">
 					Real scoring, real fairness, real privacy — not just a webcam trick.
@@ -29,7 +29,7 @@ export function WhyItsDifferentBento() {
 							</h3>
 							<p className="mt-2 max-w-xs text-sm font-semibold text-muted-foreground">
 								We measure how genuine your smile actually looks — mouth curve,
-								eye crinkle, the works. Not just "smiling: yes or no."
+								eye crinkle, the works. Not just &quot;smiling: yes or no.&quot;
 							</p>
 						</div>
 						{/* Mini score visual — ties the tile back to the actual product */}
@@ -70,7 +70,7 @@ export function WhyItsDifferentBento() {
 						</div>
 						<div>
 							<h3 className="font-title text-base font-black text-foreground">
-								We don't keep your photo
+								We don&apos;t keep your photo
 							</h3>
 							<p className="mt-1 text-xs font-semibold text-muted-foreground">
 								Deleted within 24 hours. Always.
