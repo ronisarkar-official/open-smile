@@ -1,10 +1,23 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Space_Grotesk, Space_Mono, Sora } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/session-provider";
 import { ToastProvider } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
+import { PwaProvider } from "@/components/pwa/pwa-provider";
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#faf8f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#121014" },
+  ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -13,6 +26,25 @@ export const metadata: Metadata = {
   },
   description:
     "A playful smile-recognition rewards platform where everyday smiles earn real rewards.",
+  applicationName: "Open Smile",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Open Smile",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 const inter = Inter({
@@ -76,8 +108,10 @@ export default function RootLayout({
         <ThemeProvider defaultTheme="light" storageKey="app-theme">
           <SessionProvider>
             <ToastProvider>
-              {children}
-              <Toaster />
+              <PwaProvider>
+                {children}
+                <Toaster />
+              </PwaProvider>
             </ToastProvider>
           </SessionProvider>
         </ThemeProvider>

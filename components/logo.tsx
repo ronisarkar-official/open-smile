@@ -19,7 +19,7 @@ export const Logo: React.FC<LogoProps> = ({
       {...props}
     >
       <title>Open Smile</title>
-      <rect x="1.5" y="1.5" width="37" height="37" fill="#FF2D78" stroke="currentColor" strokeWidth="3" />
+      <rect x="1.5" y="1.5" width="37" height="37" fill="var(--primary)" stroke="currentColor" strokeWidth="3" />
       <circle cx="13" cy="16" r="2.5" fill="currentColor" />
       <circle cx="27" cy="16" r="2.5" fill="currentColor" />
       <path d="M11 23.5C14.5 30 25.5 30 29 23.5" stroke="currentColor" strokeWidth="3" strokeLinecap="square" />

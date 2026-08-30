@@ -40,7 +40,10 @@ import {
 	Trophy,
 	UserPlus,
 	Compass,
+	Download,
 } from 'lucide-react';
+import { usePwaContext } from '@/components/pwa/pwa-provider';
+import { IosInstallGuide } from '@/components/pwa/ios-install-guide';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { SettingsDialog } from '@/components/settings/dialog';
 import type { SettingsSection } from '@/components/settings/settings-shared';
@@ -116,6 +119,8 @@ export const DashboardSidebar = ({
 }) => {
 	const { data: session } = useSession();
 	const pathname = usePathname();
+	const { isInstalled, isInstallable, promptInstall, isIOS } = usePwaContext();
+	const [showIosGuide, setShowIosGuide] = React.useState(false);
 	const [settingsOpen, setSettingsOpen] = React.useState(false);
 	const [settingsSection, setSettingsSection] =
 		React.useState<SettingsSection>('profile');
@@ -302,6 +307,20 @@ export const DashboardSidebar = ({
 													Notifications
 												</Link>
 											</DropdownMenuItem>
+											{!isInstalled && (isInstallable || isIOS) && (
+												<DropdownMenuItem
+													onClick={() => {
+														if (isIOS) {
+															setShowIosGuide(true);
+														} else {
+															promptInstall();
+														}
+													}}
+													className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-primary/20 focus:bg-primary/20 text-primary">
+													<Download className="size-4" strokeWidth={2.5} />
+													Install App
+												</DropdownMenuItem>
+											)}
 										</DropdownMenuGroup>
 										<DropdownMenuSeparator className="bg-black h-[length:var(--border-width)]" />
 										<DropdownMenuItem
@@ -376,6 +395,8 @@ export const DashboardSidebar = ({
 				userInitials={userInitials}
 				onAvatarChange={setAvatarOverride}
 			/>
+
+			<IosInstallGuide open={showIosGuide} onOpenChange={setShowIosGuide} />
 		</>
 	);
 };
