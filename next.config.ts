@@ -6,10 +6,16 @@ const isDev = process.env.NODE_ENV === 'development';
 // bootstrap scripts + the theme init script. It still blocks data:
 // injection, mixed content and arbitrary vendor scripts.
 const scriptSrc = ["'self'", "'unsafe-inline'"];
-if (isDev) scriptSrc.push("'unsafe-eval'"); // Turbopack dev may eval modules
+if (isDev) {
+	scriptSrc.push("'unsafe-eval'"); // Turbopack dev may eval modules
+	scriptSrc.push('https://va.vercel-scripts.com'); // Vercel Analytics in development
+}
 
 const connectSrc = ["'self'", 'https://*.imagekit.io'];
-if (isDev) connectSrc.push('ws:', 'wss:'); // dev HMR websockets
+if (isDev) {
+	connectSrc.push('ws:', 'wss:'); // dev HMR websockets
+	connectSrc.push('https://va.vercel-scripts.com'); // Vercel Analytics in development
+}
 
 const cspParts = [
 	`default-src 'self'`,
