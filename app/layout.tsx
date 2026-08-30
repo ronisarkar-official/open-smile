@@ -5,6 +5,7 @@ import { SessionProvider } from "@/components/session-provider";
 import { ToastProvider } from "@/hooks/use-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: {
@@ -81,6 +82,7 @@ export default function RootLayout({
             </ToastProvider>
           </SessionProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
