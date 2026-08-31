@@ -11,6 +11,13 @@ import {
 	LeaderboardRankings,
 	type LeaderboardRankingItem,
 } from '@/components/ui/leaderboard-rankings';
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select';
 
 interface LeaderboardRunOption {
 	id: string;
@@ -73,36 +80,44 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 		return (
 			<div
 				ref={ref}
-				className={cn('bg-card rounded-2xl border p-6 shadow-sm', className)}
+				className={cn('brutal-surface bg-card p-4 sm:p-6', className)}
 				{...props}>
-				<div className="mb-6 flex items-start justify-between gap-4">
+				<div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 					<div className="space-y-1">
-						<h3 className="text-xl font-semibold">{title}</h3>
-						<p className="text-muted-foreground text-sm">
+						<h3 className="text-xl font-bold tracking-tight sm:text-2xl">{title}</h3>
+						<p className="font-mono text-xs font-medium text-muted-foreground sm:text-sm">
 							{fromLabel} - {toLabel}
 						</p>
 					</div>
 
 					{runOptions && runOptions.length > 0 ?
-						<select
-							aria-label="Select leaderboard run"
-							value={activeRunId}
-							onChange={(e) => {
-								if (onRunChange) {
-									onRunChange(e.target.value);
-									return;
-								}
-								setLocalRunId(e.target.value);
-							}}
-							className="bg-background text-foreground rounded-md border px-3 py-1.5 text-sm">
-							{runOptions.map((option) => (
-								<option
-									key={option.id}
-									value={option.id}>
-									{option.label}
-								</option>
-							))}
-						</select>
+						<div className="w-full shrink-0 sm:w-[160px]">
+							<Select
+								value={activeRunId}
+								onValueChange={(value) => {
+									if (onRunChange) {
+										onRunChange(value);
+										return;
+									}
+									setLocalRunId(value);
+								}}>
+								<SelectTrigger
+									aria-label="Select leaderboard run"
+									className="h-10 font-mono text-xs font-bold uppercase tracking-wider">
+									<SelectValue placeholder="Select period" />
+								</SelectTrigger>
+								<SelectContent align="end">
+									{runOptions.map((option) => (
+										<SelectItem
+											key={option.id}
+											value={option.id}
+											className="font-mono text-xs font-bold uppercase tracking-wider">
+											{option.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
 					:	null}
 				</div>
 

@@ -510,10 +510,10 @@
     "semantic_hash": "4e9531a31122cee33a44262591146cc2"
   },
   "components/dashboard/sidebar.tsx": {
-    "mtime": 1788153615.794334,
-    "seen": 1788153908.5841222,
-    "ast_hash": "613e7ec3efcf40fe48fbcacd01a51f39",
-    "semantic_hash": "613e7ec3efcf40fe48fbcacd01a51f39"
+    "mtime": 1788169160.977381,
+    "seen": 1788169180.8205926,
+    "ast_hash": "56333709d044a983456cd6246e2cd388",
+    "semantic_hash": ""
   },
   "components/icons.tsx": {
     "mtime": 1787929329.775302,
@@ -678,10 +678,10 @@
     "semantic_hash": "87046fa8b9465ca4cbee08282f54f363"
   },
   "components/rewards/scratch-card.tsx": {
-    "mtime": 1788153615.794334,
-    "seen": 1788153908.584154,
-    "ast_hash": "f46b48614e0b1287c29dd8db3c42db30",
-    "semantic_hash": "f46b48614e0b1287c29dd8db3c42db30"
+    "mtime": 1788168539.913411,
+    "seen": 1788168592.0901587,
+    "ast_hash": "0ea8f8a0ecb917c6c560852351b9cfad",
+    "semantic_hash": ""
   },
   "components/rewards/voucher-claim-modal.tsx": {
     "mtime": 1787977295.8052294,
@@ -840,10 +840,10 @@
     "semantic_hash": "6450f46df1cb8010f6d1b0c80b0d7d94"
   },
   "components/ui/leaderboard-card.tsx": {
-    "mtime": 1788153615.791049,
-    "seen": 1788153908.5841827,
-    "ast_hash": "ec1f1779f60a2dd02c63e206ce25a2a2",
-    "semantic_hash": "ec1f1779f60a2dd02c63e206ce25a2a2"
+    "mtime": 1788170309.87097,
+    "seen": 1788170360.6358762,
+    "ast_hash": "796c863954179d78ffa6df5e375d2934",
+    "semantic_hash": ""
   },
   "components/ui/leaderboard-podium.tsx": {
     "mtime": 1788153615.8784163,

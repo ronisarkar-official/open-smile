@@ -34,13 +34,23 @@ export function ScratchCard({
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const [completed, setCompleted] = React.useState(isScratched);
   const [revealed, setRevealed] = React.useState(isScratched);
+  const completedRef = React.useRef(isScratched);
   const isDrawingRef = React.useRef(false);
   const lastPointRef = React.useRef<{ x: number; y: number } | null>(null);
   const checkThrottleRef = React.useRef<number>(0);
+  const percentScratchedRef = React.useRef<number>(0);
+
+  React.useEffect(() => {
+    if (isScratched) {
+      completedRef.current = true;
+      setCompleted(true);
+      setRevealed(true);
+    }
+  }, [isScratched]);
 
   const initCanvas = React.useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || completed) return;
+    if (!canvas || completedRef.current) return;
 
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
@@ -99,7 +109,7 @@ export function ScratchCard({
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.font = '600 10px "Space Mono", monospace';
     ctx.fillText('★ WIN UP TO 200 COINS ★', width / 2, height / 2 + 90);
-  }, [width, height, coverColor, coverText, completed]);
+  }, [width, height, coverColor, coverText]);
 
   React.useEffect(() => {
     if (!completed) {
@@ -107,14 +117,23 @@ export function ScratchCard({
     }
   }, [initCanvas, completed]);
 
-  const checkScratchPercentage = React.useCallback(() => {
+  const triggerCompletion = React.useCallback(() => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    setCompleted(true);
+    setTimeout(() => {
+      setRevealed(true);
+      onComplete?.();
+    }, 300);
+  }, [onComplete]);
+
+  const calculateScratchPercentage = React.useCallback(() => {
     const canvas = canvasRef.current;
-    if (!canvas || completed) return;
+    if (!canvas || completedRef.current) return 0;
 
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return;
+    if (!ctx) return 0;
 
-    const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
     const sampleWidth = Math.floor(canvas.width / 4);
     const sampleHeight = Math.floor(canvas.height / 4);
 
@@ -122,7 +141,7 @@ export function ScratchCard({
     tempCanvas.width = sampleWidth;
     tempCanvas.height = sampleHeight;
     const tempCtx = tempCanvas.getContext('2d');
-    if (!tempCtx) return;
+    if (!tempCtx) return 0;
 
     tempCtx.drawImage(canvas, 0, 0, sampleWidth, sampleHeight);
     const imageData = tempCtx.getImageData(0, 0, sampleWidth, sampleHeight);
@@ -138,14 +157,9 @@ export function ScratchCard({
     }
 
     const currentPercent = (transparentPixels / totalPixels) * 100;
-    if (currentPercent >= finishPercent && !completed) {
-      setCompleted(true);
-      setTimeout(() => {
-        setRevealed(true);
-        onComplete?.();
-      }, 300);
-    }
-  }, [completed, finishPercent, onComplete]);
+    percentScratchedRef.current = currentPercent;
+    return currentPercent;
+  }, []);
 
   const cleanupListenersRef = React.useRef<(() => void) | null>(null);
 
@@ -170,7 +184,7 @@ export function ScratchCard({
 
   const scratch = React.useCallback((x: number, y: number) => {
     const canvas = canvasRef.current;
-    if (!canvas || completed) return;
+    if (!canvas || completedRef.current) return;
 
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
     if (!ctx) return;
@@ -196,12 +210,15 @@ export function ScratchCard({
     const now = Date.now();
     if (now - checkThrottleRef.current > 120) {
       checkThrottleRef.current = now;
-      checkScratchPercentage();
+      const currentPercent = calculateScratchPercentage();
+      if (currentPercent >= 85) {
+        triggerCompletion();
+      }
     }
-  }, [brushSize, checkScratchPercentage, completed]);
+  }, [brushSize, calculateScratchPercentage, triggerCompletion]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (completed) return;
+    if (completedRef.current) return;
     if (onScratchAttempt && !onScratchAttempt()) return;
     isDrawingRef.current = true;
     const pos = getPositionFromClient(e.clientX, e.clientY);
@@ -216,7 +233,7 @@ export function ScratchCard({
     };
 
     const onPointerMove = (ev: PointerEvent) => {
-      if (!isDrawingRef.current || completed) return;
+      if (!isDrawingRef.current || completedRef.current) return;
       const movePos = getPositionFromClient(ev.clientX, ev.clientY);
       scratch(movePos.x, movePos.y);
     };
@@ -225,8 +242,12 @@ export function ScratchCard({
       if (!isDrawingRef.current) return;
       isDrawingRef.current = false;
       lastPointRef.current = null;
-      checkScratchPercentage();
       removeListeners();
+
+      const currentPercent = calculateScratchPercentage();
+      if (currentPercent >= finishPercent) {
+        triggerCompletion();
+      }
     };
 
     cleanupListenersRef.current = removeListeners;

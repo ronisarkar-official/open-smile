@@ -393,7 +393,7 @@ export const DashboardSidebar = ({
 									href="/capture"
 									title="Active Streak"
 									className="group relative flex flex-col items-center justify-center transition-transform duration-150 hover:scale-105 active:scale-95 shrink-0">
-									<div className="relative flex items-center justify-center">
+									<div className="relative flex size-8 sm:size-9 items-center justify-center">
 										<div className="flex size-7.5 sm:size-8.5 items-center justify-center rounded-full bg-linear-to-tr from-amber-500 via-orange-500 to-rose-500 shadow-xs border border-amber-300">
 											<Flame
 												className="size-4.5 sm:size-5 text-white fill-white drop-shadow-xs"
@@ -401,8 +401,8 @@ export const DashboardSidebar = ({
 											/>
 										</div>
 									</div>
-									<div className="relative -mt-2 z-10 flex items-center justify-center rounded-full bg-white px-2 py-0.5 border-[1.5px] border-[#FF6B6B] shadow-xs">
-										<UserStreak className="font-mono text-[10px] sm:text-[11px] font-black text-black tabular-nums leading-none tracking-tight" />
+									<div className="relative -mt-2 z-10 flex h-4.5 sm:h-5 min-w-8 sm:min-w-8.5 items-center justify-center rounded-full bg-white px-2 border-[1.5px] border-[#FF6B6B] shadow-xs">
+										<UserStreak className="font-title text-[10px] sm:text-[11px] font-black text-black tabular-nums leading-none tracking-tight" />
 									</div>
 								</Link>
 
@@ -410,14 +410,14 @@ export const DashboardSidebar = ({
 									href="/rewards"
 									title="View Coin Rewards"
 									className="group relative flex flex-col items-center justify-center transition-transform duration-150 hover:scale-105 active:scale-95 shrink-0">
-									<div className="relative flex items-center justify-center">
+									<div className="relative flex size-8 sm:size-9 items-center justify-center">
 										<CoinIcon
-											className="size-8 sm:size-9.5 drop-shadow-xs"
+											className="size-9 sm:size-10 drop-shadow-xs"
 											strokeWidth={2.5}
 										/>
 									</div>
-									<div className="relative -mt-2 z-10 flex items-center justify-center rounded-full bg-white px-2.5 py-0.5 border-[1.5px] border-[#F59E0B] shadow-xs">
-										<UserCoinBalance className="font-mono text-[11px] sm:text-xs font-black text-black tabular-nums leading-none tracking-tight" />
+									<div className="relative -mt-2 z-10 flex h-4.5 sm:h-5 min-w-8 sm:min-w-8.5 items-center justify-center rounded-full bg-white px-2 border-[1.5px] border-[#F59E0B] shadow-xs">
+										<UserCoinBalance className="font-title text-[10px] sm:text-[11px] font-black text-black tabular-nums leading-none tracking-tight" />
 									</div>
 								</Link>
 
