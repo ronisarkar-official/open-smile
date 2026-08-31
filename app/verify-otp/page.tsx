@@ -9,7 +9,6 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { Button } from "@/components/ui/button";
-import { signIn, signUp } from "@/lib/auth-client";
 import { Logo } from "@/components/logo";
 
 function VerifyOTPContent() {
@@ -47,97 +46,35 @@ function VerifyOTPContent() {
     setError("");
 
     try {
-      // 1. Verify the OTP via API
+      const pendingRaw = sessionStorage.getItem("pending_auth");
+      if (!pendingRaw) {
+        throw new Error("Session expired. Please start over.");
+      }
+
+      const { ticket } = JSON.parse(pendingRaw);
+      if (!ticket) {
+        throw new Error("Session expired. Please start over.");
+      }
+
       const verifyRes = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp }),
+        body: JSON.stringify({ email, otp, ticket }),
       });
 
+      const data = await verifyRes.json();
+
       if (!verifyRes.ok) {
-        const data = await verifyRes.json();
         throw new Error(data.error || "Invalid or expired OTP");
       }
 
-      // 2. Complete Auth according to flow
-      if (flowParam === "signup") {
-        const pendingRaw = sessionStorage.getItem("pending_signup");
-        if (!pendingRaw) {
-          throw new Error("Signup session expired. Please sign up again.");
-        }
-        const { name, email: pendingEmail, password } = JSON.parse(pendingRaw);
-        const targetEmail = pendingEmail || email;
+      sessionStorage.removeItem("pending_auth");
+      setSuccess(true);
 
-        await signUp.email(
-          { name, email: targetEmail, password },
-          {
-            onSuccess: async () => {
-              sessionStorage.removeItem("pending_signup");
-              // Mark user's email as verified in database post-creation
-              try {
-                await fetch("/api/auth/mark-verified", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ email: targetEmail }),
-                });
-              } catch (err) {
-                console.error("Failed to mark email verified:", err);
-              }
-
-              setSuccess(true);
-              setTimeout(() => {
-                router.push(redirectToParam);
-                router.refresh();
-              }, 1200);
-            },
-            onError: (ctx) => {
-              setError(ctx.error.message || "Failed to create account.");
-            },
-          }
-        );
-      } else {
-        const pendingRaw = sessionStorage.getItem("pending_login");
-        if (!pendingRaw) {
-          throw new Error("Login session expired. Please sign in again.");
-        }
-        const { email: pendingEmail, password } = JSON.parse(pendingRaw);
-        const targetEmail = pendingEmail || email;
-
-        // 1. Send Google-style login security notification email immediately upon OTP verification success
-        try {
-          await fetch("/api/auth/notify-login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: targetEmail }),
-          });
-        } catch (err) {
-          console.error("Failed to send login security notification email:", err);
-        }
-
-        // 2. Clear pending login and redirect to destination
-        const completeLogin = () => {
-          sessionStorage.removeItem("pending_login");
-          setSuccess(true);
-          setTimeout(() => {
-            router.push(redirectToParam);
-            router.refresh();
-          }, 1200);
-        };
-
-        try {
-          await signIn.email(
-            { email: targetEmail, password },
-            {
-              onSuccess: completeLogin,
-              onError: (ctx) => {
-                setError(ctx.error.message || "Failed to sign in. Please try again.");
-              },
-            }
-          );
-        } catch {
-          setError("Failed to sign in. Please try again.");
-        }
-      }
+      setTimeout(() => {
+        router.push(data.redirectTo || redirectToParam);
+        router.refresh();
+      }, 1200);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Verification failed. Please try again.";

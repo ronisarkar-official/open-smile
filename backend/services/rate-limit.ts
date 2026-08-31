@@ -1,4 +1,4 @@
-import { upsertRateLimit, resetRateLimit, ensureIndexes } from "../db";
+import { upsertRateLimit, resetRateLimit, ensureIndexes, cleanupExpiredRateLimits, cleanupExpiredOtpCodes } from "../db";
 
 export interface RateLimitResult {
 	allowed: boolean;
@@ -43,6 +43,13 @@ export async function rateLimit(
 			};
 		} catch (err) {
 			console.error(`[rate-limit] DB limiter failed for "${key}":`, err);
+		}
+
+		if (Math.random() < 0.01) {
+			void Promise.all([
+				cleanupExpiredRateLimits(),
+				cleanupExpiredOtpCodes(),
+			]).catch((err) => console.error("[rate-limit] Opportunistic cleanup failed:", err));
 		}
 	}
 

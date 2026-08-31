@@ -48,7 +48,7 @@ export const auth = betterAuth({
 		accountLinking: {
 			enabled: true,
 			trustedProviders: ["google", "github"],
-			requireLocalEmailVerified: false,
+			requireLocalEmailVerified: true,
 		},
 	},
 
@@ -72,14 +72,29 @@ export const auth = betterAuth({
 		revokeSessionsOnPasswordReset: true,
 	},
 
+	logger: {
+		disabled: false,
+		verbose: process.env.NODE_ENV === "development",
+	},
+
 	socialProviders: {
 		github: {
-			clientId: process.env.AUTH_GITHUB_ID || "",
-			clientSecret: process.env.AUTH_GITHUB_SECRET || "",
+			clientId: process.env.AUTH_GITHUB_ID || process.env.GITHUB_CLIENT_ID || "",
+			clientSecret: process.env.AUTH_GITHUB_SECRET || process.env.GITHUB_CLIENT_SECRET || "",
+			mapProfileToUser: (profile) => ({
+				name: profile.name || profile.login || profile.email?.split("@")[0] || "User",
+				email: profile.email,
+				image: profile.avatar_url,
+			}),
 		},
 		google: {
-			clientId: process.env.AUTH_GOOGLE_ID || "",
-			clientSecret: process.env.AUTH_GOOGLE_SECRET || "",
+			clientId: process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_CLIENT_ID || "",
+			clientSecret: process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_CLIENT_SECRET || "",
+			mapProfileToUser: (profile) => ({
+				name: profile.name || profile.email?.split("@")[0] || "User",
+				email: profile.email,
+				image: profile.picture,
+			}),
 		},
 	},
 
@@ -99,12 +114,18 @@ export const auth = betterAuth({
 	databaseHooks: {
 		user: {
 			create: {
+				before: async (user) => {
+					return {
+						data: {
+							...user,
+							name: user.name || user.email?.split("@")[0] || "User",
+						},
+					};
+				},
 				after: async (user) => {
-					try {
-						await sendWelcomeEmail(user.email, user.name ?? "");
-					} catch (err) {
+					void sendWelcomeEmail(user.email, user.name ?? "").catch((err) => {
 						console.error("[auth] Welcome email failed:", err);
-					}
+					});
 				},
 			},
 		},

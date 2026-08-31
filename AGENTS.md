@@ -75,3 +75,29 @@ The product's stated privacy pitch is "we don't retain your face." Concretely:
 - Match existing patterns in `lib/db/collections.ts`, `lib/mailer/`, and the API route structure under `app/api/` rather than introducing new conventions.
 - No code comments (project preference) — keep code self-explanatory through naming instead.
 - Keep fixes minimal and targeted — preserve existing code structure rather than refactoring unrelated areas while making a change.
+
+
+## Codebase Knowledge Graph (Graphify)
+
+This project has a pre-computed Graphify knowledge graph in `graphify-out/graph.json`.
+
+**Rules for AI Agents:**
+- **DO NOT scan or grep the whole repository blind.** Before reading files or searching across directories to understand architecture, dependencies, or call flows, **you MUST query the graph first**:
+  - `graphify query "<question>"` — broad BFS search for relevant components and files.
+  - `graphify path "<SymbolA>" "<SymbolB>"` — trace the exact shortest call path between two symbols.
+  - `graphify explain "<Symbol>"` — focused explanation of a node and its connections.
+- Check `graphify-out/GRAPH_REPORT.md` for community clusters, god nodes, and architecture insights.
+- After modifying or adding code files, always run `graphify update .` to keep `graphify-out/graph.json` synchronized.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+When the user types `/graphify`, use the installed graphify skill or instructions before doing anything else.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

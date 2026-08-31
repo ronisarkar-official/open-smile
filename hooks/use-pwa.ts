@@ -77,6 +77,26 @@ export function usePwa(): PwaState {
     window.addEventListener('offline', handleOffline);
 
     if ('serviceWorker' in navigator) {
+      const isDevOrDisabled =
+        process.env.NODE_ENV === 'development' ||
+        process.env.NEXT_PUBLIC_ENABLE_PWA === 'false';
+
+      if (isDevOrDisabled) {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const registration of registrations) {
+            registration.unregister();
+          }
+        });
+        if ('caches' in window) {
+          caches.keys().then((keys) => {
+            for (const key of keys) {
+              caches.delete(key);
+            }
+          });
+        }
+        return;
+      }
+
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
@@ -99,8 +119,13 @@ export function usePwa(): PwaState {
         })
         .catch(() => {});
 
+      let hasController = Boolean(navigator.serviceWorker.controller);
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!hasController) {
+          hasController = true;
+          return;
+        }
         if (!refreshing) {
           refreshing = true;
           window.location.reload();

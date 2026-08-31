@@ -24,9 +24,26 @@ function SignupForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<"github" | "google" | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo");
+
+  async function handleSocialSignIn(provider: "github" | "google") {
+    try {
+      setSocialLoading(provider);
+      setError("");
+      await signIn.social({
+        provider,
+        callbackURL: redirectTo || "/dashboard",
+      });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Failed to initiate social login. Please try again.";
+      setError(message);
+      setSocialLoading(null);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,11 +51,10 @@ function SignupForm() {
     setLoading(true);
 
     try {
-      // 1. Send OTP code to the provided email (with pre-check for existing account)
       const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, type: "signup" }),
+        body: JSON.stringify({ email, name, password, type: "signup" }),
       });
 
       const data = await res.json();
@@ -47,13 +63,11 @@ function SignupForm() {
         throw new Error(data.error || "Failed to send verification OTP");
       }
 
-      // 2. Store pending signup details in sessionStorage
       sessionStorage.setItem(
-        "pending_signup",
-        JSON.stringify({ name, email, password })
+        "pending_auth",
+        JSON.stringify({ email, ticket: data.signupTicket })
       );
 
-      // 3. Redirect user to verify-otp page with redirectTo param preserved
       const redirectQuery = redirectTo ? `&redirectTo=${encodeURIComponent(redirectTo)}` : "";
       router.push(`/verify-otp?email=${encodeURIComponent(email)}&flow=signup${redirectQuery}`);
     } catch (err: unknown) {
@@ -79,19 +93,31 @@ function SignupForm() {
 
       <div className="grid grid-cols-2 gap-3">
         <Button
+          type="button"
           variant="outline"
           className="w-full h-9 gap-2.5 text-sm font-medium"
-          onClick={() => signIn.social({ provider: "github", callbackURL: redirectTo || "/dashboard" })}
+          disabled={loading || Boolean(socialLoading)}
+          onClick={() => handleSocialSignIn("github")}
         >
-          <GitHubIcon className="size-4" />
+          {socialLoading === "github" ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <GitHubIcon className="size-4" />
+          )}
           GitHub
         </Button>
         <Button
+          type="button"
           variant="outline"
           className="w-full h-9 gap-2.5 text-sm font-medium"
-          onClick={() => signIn.social({ provider: "google", callbackURL: redirectTo || "/dashboard" })}
+          disabled={loading || Boolean(socialLoading)}
+          onClick={() => handleSocialSignIn("google")}
         >
-          <GoogleIcon className="size-4" />
+          {socialLoading === "google" ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <GoogleIcon className="size-4" />
+          )}
           Google
         </Button>
       </div>

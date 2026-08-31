@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-
-import { generateOTP, saveOTP } from "@/backend/auth";
+import { hashPassword } from "better-auth/crypto";
+import { generateOTP, saveOTP, createAuthTicket } from "@/backend/auth";
 import { sendOTPEmail } from "@/backend/mailer";
 import { rateLimit } from "@/backend/services";
 import { findUserByEmail } from "@/backend/db";
@@ -8,6 +8,7 @@ import { findUserByEmail } from "@/backend/db";
 const WINDOW = 15 * 60 * 1000;
 const MAX_PER_EMAIL = 5;
 const MAX_PER_IP = 5;
+const MIN_PASSWORD_LENGTH = 8;
 
 function getClientIp(req: NextRequest): string {
   const forwarded = req.headers.get("x-forwarded-for");
@@ -17,7 +18,7 @@ function getClientIp(req: NextRequest): string {
 export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req);
-    const { email, type } = await req.json();
+    const { email, type, name, password } = await req.json();
 
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -25,23 +26,29 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Check if account already exists during signup flow before sending OTP
-    if (type === "signup" && Boolean(process.env.DATABASE_URL)) {
-      try {
-        const existingUser = await findUserByEmail(normalizedEmail);
-        if (existingUser) {
-          return NextResponse.json(
-            { error: "An account with this email already exists. Please sign in." },
-            { status: 400 }
-          );
+    if (type === "signup") {
+      if (!password || typeof password !== "string" || password.length < MIN_PASSWORD_LENGTH) {
+        return NextResponse.json(
+          { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters long.` },
+          { status: 400 }
+        );
+      }
+
+      if (Boolean(process.env.DATABASE_URL)) {
+        try {
+          const existingUser = await findUserByEmail(normalizedEmail);
+          if (existingUser) {
+            return NextResponse.json(
+              { error: "An account with this email already exists. Please sign in." },
+              { status: 400 }
+            );
+          }
+        } catch (dbErr) {
+          console.error("[send-otp] User existence check failed:", dbErr);
         }
-      } catch (dbErr) {
-        console.error("[send-otp] User existence check failed:", dbErr);
       }
     }
 
-    // DB-backed rate limiting — per email and per IP. "Too many" is a
-    // deliberate lie to avoid revealing whether the address is registered.
     const [byEmail, byIp] = await Promise.all([
       rateLimit(`otp-send-email:${normalizedEmail}`, MAX_PER_EMAIL, WINDOW),
       rateLimit(`otp-send-ip:${ip}`, MAX_PER_IP, WINDOW),
@@ -56,6 +63,21 @@ export async function POST(req: NextRequest) {
     const otp = generateOTP();
     await saveOTP(normalizedEmail, otp);
     await sendOTPEmail(normalizedEmail, otp);
+
+    if (type === "signup") {
+      const hashedPw = await hashPassword(password);
+      const signupTicket = createAuthTicket({
+        email: normalizedEmail,
+        type: "signup",
+        name: name || normalizedEmail.split("@")[0],
+        passwordHash: hashedPw,
+      });
+
+      return NextResponse.json(
+        { success: true, signupTicket },
+        { status: 200 }
+      );
+    }
 
     return NextResponse.json(
       { success: true, message: "OTP sent successfully" },

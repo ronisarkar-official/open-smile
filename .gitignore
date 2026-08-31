@@ -43,3 +43,9 @@ next-env.d.ts
 
 .agents
 .opencode
+
+# graphify cache, backups & generated wiki (keeps graph.json, reports, and visualizers tracked)
+graphify-out/cache/
+graphify-out/.graphify_*
+graphify-out/202*
+graphify-out/wiki/

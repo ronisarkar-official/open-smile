@@ -19,7 +19,6 @@ self.addEventListener('install', (event) => {
     caches
       .open(CACHE_STATIC)
       .then((cache) => cache.addAll(PRECACHE_ASSETS))
-      .then(() => self.skipWaiting())
   );
 });
 
