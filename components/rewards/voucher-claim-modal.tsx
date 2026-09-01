@@ -92,9 +92,43 @@ export function VoucherClaimModal({
   const remainingCoinsAfter = userCoins - voucher.coinsCost;
   const coinsNeeded = voucher.coinsCost - userCoins;
 
-  const handleClaim = () => {
+  const handleClaim = async () => {
     if (!hasEnoughCoins) return;
     setIsSubmitting(true);
+
+    try {
+      const res = await fetch('/api/v1/rewards/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          voucher_id: voucher.id,
+          brand: voucher.brandName,
+          coins_cost: voucher.coinsCost,
+        }),
+      });
+
+      if (res.ok) {
+        const json = await res.json();
+        const serverClaim: ClaimedVoucher = {
+          id: json.id,
+          voucherId: json.voucherId,
+          brandName: json.brandName,
+          title: json.title,
+          valueFormatted: json.valueFormatted,
+          code: json.code,
+          pin: json.pin || '7492',
+          claimedAt: json.claimedAt,
+          expiresAt: json.expiresAt,
+          coinsSpent: json.coinsSpent,
+          logoBg: json.logoBg,
+          websiteUrl: json.websiteUrl,
+          status: 'active',
+        };
+        setClaimedData(serverClaim);
+        onConfirmClaim(voucher, serverClaim);
+        return;
+      }
+    } catch {}
 
     const { code, pin } = generateVoucherCode(voucher.brandId);
     const today = new Date();
@@ -128,11 +162,9 @@ export function VoucherClaimModal({
       status: 'active',
     };
 
-    setTimeout(() => {
-      setClaimedData(newClaim);
-      setIsSubmitting(false);
-      onConfirmClaim(voucher, newClaim);
-    }, 400);
+    setClaimedData(newClaim);
+    onConfirmClaim(voucher, newClaim);
+    setIsSubmitting(false);
   };
 
   const copyToClipboard = (text: string, isPin = false) => {

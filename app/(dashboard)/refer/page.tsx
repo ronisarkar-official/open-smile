@@ -1,6 +1,9 @@
-import type { Metadata } from "next";
+'use client';
+
+import * as React from "react";
 import {
   Camera,
+  Check,
   Coins,
   Copy,
   Gift,
@@ -13,13 +16,16 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export const metadata: Metadata = {
-  title: "Refer & Earn",
-  description: "Invite friends to Open Smile and earn bonus coins when they capture their first smile.",
-};
-
-const referralCode = "SMILE-R0N1";
-const referralLink = "opensmile.app/join/SMILE-R0N1";
+interface ReferStatsData {
+  referral_code: string;
+  referral_link: string;
+  stats: {
+    friends_referred: number;
+    bonus_coins_earned: number;
+    pending_referrals: number;
+  };
+  remaining_today: number;
+}
 
 const steps = [
   {
@@ -45,13 +51,65 @@ const steps = [
   },
 ];
 
-const stats = [
-  { label: "Friends referred", value: "4", icon: Users, color: "bg-accent" },
-  { label: "Bonus coins earned", value: "800", icon: Coins, color: "bg-primary" },
-  { label: "Pending referrals", value: "2", icon: UserPlus, color: "bg-secondary" },
-];
-
 export default function ReferPage() {
+  const [data, setData] = React.useState<ReferStatsData>({
+    referral_code: "SMILE-JOIN",
+    referral_link: "https://opensmile.app/join/SMILE-JOIN",
+    stats: {
+      friends_referred: 0,
+      bonus_coins_earned: 0,
+      pending_referrals: 0,
+    },
+    remaining_today: 5,
+  });
+  const [copiedCode, setCopiedCode] = React.useState(false);
+  const [copiedLink, setCopiedLink] = React.useState(false);
+
+  React.useEffect(() => {
+    async function loadStats() {
+      try {
+        const res = await fetch("/api/v1/refer/stats");
+        if (res.ok) {
+          const json = await res.json();
+          setData(json);
+        }
+      } catch {}
+    }
+    loadStats();
+  }, []);
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(data.referral_code);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(data.referral_link);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Join me on Open Smile!",
+          text: `Use my code ${data.referral_code} to earn +50 bonus coins on your first smile check!`,
+          url: data.referral_link,
+        });
+      } catch {}
+    } else {
+      handleCopyLink();
+    }
+  };
+
+  const stats = [
+    { label: "Friends referred", value: String(data.stats.friends_referred), icon: Users, color: "bg-accent" },
+    { label: "Bonus coins earned", value: String(data.stats.bonus_coins_earned), icon: Coins, color: "bg-primary" },
+    { label: "Pending referrals", value: String(data.stats.pending_referrals), icon: UserPlus, color: "bg-secondary" },
+  ];
+
   return (
     <main id="main-content" className="mx-auto w-full max-w-[1280px] px-2 pb-8 pt-6 sm:px-4 sm:pt-10">
       <div>
@@ -65,17 +123,23 @@ export default function ReferPage() {
       <section className="mt-8 grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
         <article className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-5 shadow-brutal-xl sm:p-7">
           <div className="flex items-start justify-between gap-4">
-            <div>
+            <div className="w-full">
               <div className="flex items-center gap-2">
                 <Link2 className="size-5" strokeWidth={2.5} />
                 <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">Your referral code</p>
               </div>
               <div className="mt-5 flex items-center gap-3">
                 <div className="flex-1 border-[length:var(--border-width)] border-black rounded-lg bg-muted px-4 py-3.5">
-                  <p className="font-mono text-lg font-black tracking-[0.1em] sm:text-xl">{referralCode}</p>
+                  <p className="font-mono text-lg font-black tracking-[0.1em] sm:text-xl">{data.referral_code}</p>
                 </div>
-                <Button variant="outline" size="icon" className="shrink-0" aria-label="Copy referral code">
-                  <Copy className="size-5" />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0 cursor-pointer"
+                  onClick={handleCopyCode}
+                  aria-label="Copy referral code"
+                >
+                  {copiedCode ? <Check className="size-5 text-success" /> : <Copy className="size-5" />}
                 </Button>
               </div>
             </div>
@@ -85,28 +149,34 @@ export default function ReferPage() {
             <p className="font-mono text-[10px] font-bold tracking-widest uppercase text-muted-foreground">Shareable link</p>
             <div className="mt-2 flex items-center gap-3">
               <div className="flex-1 overflow-hidden border-[length:var(--border-width)] border-dashed border-black rounded-lg bg-muted/50 px-4 py-3">
-                <p className="truncate font-mono text-sm font-semibold">{referralLink}</p>
+                <p className="truncate font-mono text-sm font-semibold">{data.referral_link}</p>
               </div>
-              <Button variant="outline" size="icon" className="shrink-0" aria-label="Copy referral link">
-                <Copy className="size-5" />
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0 cursor-pointer"
+                onClick={handleCopyLink}
+                aria-label="Copy referral link"
+              >
+                {copiedLink ? <Check className="size-5 text-success" /> : <Copy className="size-5" />}
               </Button>
             </div>
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <Button size="lg" className="flex-1 gap-2">
+            <Button size="lg" className="flex-1 gap-2 cursor-pointer shadow-brutal" onClick={handleShare}>
               <Share2 className="size-5" />
               Share link
             </Button>
-            <Button variant="outline" size="lg" className="flex-1 gap-2">
-              <Copy className="size-5" />
-              Copy code
+            <Button variant="outline" size="lg" className="flex-1 gap-2 cursor-pointer shadow-brutal-sm" onClick={handleCopyCode}>
+              {copiedCode ? <Check className="size-5 text-success" /> : <Copy className="size-5" />}
+              {copiedCode ? "Copied!" : "Copy code"}
             </Button>
           </div>
 
           <div className="mt-6 flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-success/20 px-4 py-3">
             <Sparkles className="size-4 shrink-0 text-success" strokeWidth={2.5} />
-            <p className="text-sm font-bold">5 referral rewards remaining today</p>
+            <p className="text-sm font-bold">{data.remaining_today} referral rewards remaining today</p>
           </div>
         </article>
 

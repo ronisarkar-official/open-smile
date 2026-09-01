@@ -1,79 +1,104 @@
-import type { Metadata } from 'next';
+'use client';
+
+import * as React from 'react';
+import Link from 'next/link';
 import {
+	Camera,
 	Heart,
 	RefreshCw,
 	ScanFace,
 	Smile,
+	Sparkles,
 } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-export const metadata: Metadata = {
-	title: 'Explore',
-	description:
-		"See what's making people smile — a public opt-in feed of smiles.",
-};
-
-const filters = ['Latest', 'Top scored', 'Most liked'];
-
-const posts = [
-	{
-		id: 1,
-		user: 'Aria Chen',
-		avatar: 'AC',
-		score: 92,
-		likes: 14,
-		timeAgo: '2m ago',
-		bg: 'bg-primary',
-	},
-	{
-		id: 2,
-		user: 'Marcus Webb',
-		avatar: 'MW',
-		score: 88,
-		likes: 23,
-		timeAgo: '8m ago',
-		bg: 'bg-accent',
-	},
-	{
-		id: 3,
-		user: 'Priya Sharma',
-		avatar: 'PS',
-		score: 95,
-		likes: 31,
-		timeAgo: '15m ago',
-		bg: 'bg-secondary',
-	},
-	{
-		id: 4,
-		user: 'Kai Nakamura',
-		avatar: 'KN',
-		score: 76,
-		likes: 7,
-		timeAgo: '22m ago',
-		bg: 'bg-success',
-	},
-	{
-		id: 5,
-		user: 'Elena Rodriguez',
-		avatar: 'ER',
-		score: 84,
-		likes: 18,
-		timeAgo: '34m ago',
-		bg: 'bg-primary',
-	},
-	{
-		id: 6,
-		user: 'Jasper Liu',
-		avatar: 'JL',
-		score: 91,
-		likes: 12,
-		timeAgo: '1h ago',
-		bg: 'bg-accent',
-	},
+const filters = [
+	{ id: 'latest', label: 'Latest' },
+	{ id: 'top_scored', label: 'Top scored' },
+	{ id: 'most_liked', label: 'Most liked' },
 ];
 
+interface ExplorePost {
+	id: string;
+	user: string;
+	avatar: string;
+	score: number;
+	likes: number;
+	timeAgo: string;
+	bg: string;
+	caption?: string;
+	imageUrl?: string;
+	isLikedByMe?: boolean;
+}
+
 export default function ExplorePage() {
+	const [selectedFilter, setSelectedFilter] = React.useState('latest');
+	const [posts, setPosts] = React.useState<ExplorePost[]>([]);
+	const [loading, setLoading] = React.useState(true);
+
+	const fetchFeed = React.useCallback(async (filterName: string) => {
+		setLoading(true);
+		try {
+			let res = await fetch(`/api/v1/explore/feed?filter=${filterName}`);
+			if (!res.ok) {
+				res = await fetch(`/api/explore/feed?filter=${filterName}`);
+			}
+			if (res.ok) {
+				const json = await res.json();
+				setPosts(Array.isArray(json.posts) ? json.posts : []);
+			} else {
+				setPosts([]);
+			}
+		} catch {
+			setPosts([]);
+		} finally {
+			setLoading(false);
+		}
+	}, []);
+
+	React.useEffect(() => {
+		fetchFeed(selectedFilter);
+	}, [selectedFilter, fetchFeed]);
+
+	const handleLike = async (postId: string) => {
+		setPosts((prev) =>
+			prev.map((p) => {
+				if (p.id === postId) {
+					const wasLiked = p.isLikedByMe;
+					return {
+						...p,
+						isLikedByMe: !wasLiked,
+						likes: wasLiked ? Math.max(0, p.likes - 1) : p.likes + 1,
+					};
+				}
+				return p;
+			})
+		);
+
+		try {
+			let res = await fetch(`/api/v1/explore/${postId}/like`, {
+				method: 'POST',
+			});
+			if (!res.ok) {
+				res = await fetch(`/api/explore/${postId}/like`, {
+					method: 'POST',
+				});
+			}
+			if (res.ok) {
+				const data = await res.json();
+				setPosts((prev) =>
+					prev.map((p) =>
+						p.id === postId
+							? { ...p, likes: data.likes_count, isLikedByMe: data.liked }
+							: p
+					)
+				);
+			}
+		} catch {}
+	};
+
 	return (
 		<main
 			id="main-content"
@@ -87,87 +112,149 @@ export default function ExplorePage() {
 						Explore
 					</h1>
 					<p className="mt-3 max-w-[50ch] text-base leading-7 text-muted-foreground">
-						See what&apos;s making people smile. Every post is opt-in, every
-						image expires in 24h.
+						See what&apos;s making real people smile. Every post is opt-in, every
+						shared photo features real smiles.
 					</p>
 				</div>
+				<Link href="/capture">
+					<Button className="gap-2 font-mono text-xs font-black tracking-wider uppercase shadow-brutal brutal-lift">
+						<Camera className="size-4" />
+						Share Your Smile
+					</Button>
+				</Link>
 			</div>
 
 			<div className="mt-6 flex flex-wrap gap-2">
-				{filters.map((filter, i) => (
+				{filters.map((filter) => (
 					<button
-						key={filter}
+						key={filter.id}
 						type="button"
-						className={`border-[length:var(--border-width)] border-black rounded-md px-4 py-2 font-mono text-xs font-bold tracking-wider uppercase transition-all ${
-							i === 0 ?
-								'bg-primary shadow-brutal-sm'
-							:	'bg-card shadow-brutal-sm hover:bg-muted'
-						} brutal-lift`}>
-						{filter}
+						onClick={() => setSelectedFilter(filter.id)}
+						className={cn(
+							'border-[length:var(--border-width)] border-black rounded-md px-4 py-2 font-mono text-xs font-bold tracking-wider uppercase transition-all brutal-lift cursor-pointer',
+							selectedFilter === filter.id
+								? 'bg-primary shadow-brutal-sm text-primary-foreground'
+								: 'bg-card shadow-brutal-sm hover:bg-muted text-foreground'
+						)}>
+						{filter.label}
 					</button>
 				))}
 			</div>
 
-			<section
-				className="mt-8 columns-1 gap-5 sm:columns-2 lg:columns-3"
-				aria-label="Smile feed">
-				{posts.map((post) => (
-					<article
-						key={post.id}
-						className="brutal-surface brutal-lift mb-5 break-inside-avoid bg-card">
-						<div
-							className={`${post.bg} relative flex aspect-[4/3] items-center justify-center`}>
-							<div className="absolute left-3 top-3 flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-xs bg-card px-2 py-1">
-								<ScanFace
-									className="size-3.5"
-									strokeWidth={2.5}
-								/>
-								<span className="font-mono text-[10px] font-bold tabular-nums">
-									{post.score}
-								</span>
-							</div>
-							<Smile
-								className="size-20 opacity-30"
-								strokeWidth={1.5}
-							/>
-						</div>
-						<div className="border-t-[length:var(--border-width)] border-black p-4">
-							<div className="flex items-center justify-between">
-								<div className="flex items-center gap-2.5">
-									<Avatar className="size-8 border-[length:var(--border-width)] border-black">
-										<AvatarFallback className="text-xs font-bold">
-											{post.avatar}
-										</AvatarFallback>
-									</Avatar>
-									<div>
-										<p className="text-sm font-bold">{post.user}</p>
-										<p className="font-mono text-[10px] text-muted-foreground">
-											{post.timeAgo}
-										</p>
+			{loading && posts.length === 0 ? (
+				<div className="mt-12 flex flex-col items-center justify-center p-12 border-[length:var(--border-width)] border-black rounded-2xl bg-card shadow-brutal">
+					<RefreshCw className="size-8 animate-spin text-primary" />
+					<p className="mt-4 font-mono text-sm font-bold text-muted-foreground">
+						Loading real community smiles...
+					</p>
+				</div>
+			) : posts.length === 0 ? (
+				<div className="mt-12 flex flex-col items-center justify-center p-12 text-center border-[length:var(--border-width)] border-black rounded-2xl bg-card shadow-brutal">
+					<div className="flex size-16 items-center justify-center border-[length:var(--border-width)] border-black rounded-2xl bg-primary shadow-brutal-sm">
+						<Smile className="size-9 text-primary-foreground" />
+					</div>
+					<h2 className="mt-5 font-title text-2xl font-black tracking-tight sm:text-3xl">
+						No community smiles shared yet
+					</h2>
+					<p className="mt-2 max-w-md font-mono text-xs font-bold text-muted-foreground leading-relaxed">
+						Be the first real smiler on the Explore feed! Take a smile check and click &ldquo;Share to Explore&rdquo; to showcase your real photo.
+					</p>
+					<Link href="/capture" className="mt-6">
+						<Button size="lg" className="gap-2 font-mono text-xs font-black uppercase tracking-wider shadow-brutal brutal-lift">
+							<Camera className="size-4" />
+							Capture Your First Smile
+						</Button>
+					</Link>
+				</div>
+			) : (
+				<section
+					className="mt-8 columns-1 gap-5 sm:columns-2 lg:columns-3"
+					aria-label="Smile feed">
+					{posts.map((post) => (
+						<article
+							key={post.id}
+							className="brutal-surface brutal-lift mb-5 break-inside-avoid bg-card border-[length:var(--border-width)] border-black rounded-xl overflow-hidden shadow-brutal">
+							<div
+								className={`${post.bg} relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-muted`}>
+								{post.imageUrl ? (
+									<img
+										src={post.imageUrl}
+										alt={`Real smile by ${post.user}`}
+										className="size-full object-cover"
+										loading="lazy"
+									/>
+								) : (
+									<div className="flex flex-col items-center justify-center p-6 text-center">
+										<Smile
+											className="size-20 opacity-30"
+											strokeWidth={1.5}
+										/>
 									</div>
-								</div>
-								<button
-									type="button"
-									className="flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-card px-2.5 py-1.5 font-mono text-xs font-bold transition-all hover:-translate-y-0.5 hover:bg-secondary hover:shadow-brutal-xs active:translate-y-0.5 active:shadow-none">
-									<Heart
+								)}
+								<div className="absolute left-3 top-3 flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-card px-2.5 py-1 shadow-brutal-xs">
+									<ScanFace
 										className="size-3.5"
 										strokeWidth={2.5}
 									/>
-									<span className="tabular-nums">{post.likes}</span>
-								</button>
+									<span className="font-mono text-xs font-black tabular-nums">
+										{post.score}
+									</span>
+									<span className="font-mono text-[10px] text-muted-foreground">
+										/ 100
+									</span>
+								</div>
 							</div>
-						</div>
-					</article>
-				))}
-			</section>
+							<div className="border-t-[length:var(--border-width)] border-black p-4">
+								<div className="flex items-center justify-between">
+									<div className="flex items-center gap-2.5">
+										<Avatar className="size-8 border-[length:var(--border-width)] border-black shadow-brutal-xs">
+											<AvatarFallback className="text-xs font-black bg-primary text-primary-foreground">
+												{post.avatar}
+											</AvatarFallback>
+										</Avatar>
+										<div>
+											<p className="text-sm font-black">{post.user}</p>
+											<p className="font-mono text-[10px] text-muted-foreground font-semibold">
+												{post.timeAgo}
+											</p>
+										</div>
+									</div>
+									<button
+										type="button"
+										onClick={() => handleLike(post.id)}
+										className={cn(
+											'flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md px-2.5 py-1.5 font-mono text-xs font-bold transition-all hover:-translate-y-0.5 hover:shadow-brutal-xs active:translate-y-0.5 active:shadow-none cursor-pointer',
+											post.isLikedByMe
+												? 'bg-red-400 text-black shadow-brutal-xs'
+												: 'bg-card text-foreground hover:bg-secondary'
+										)}>
+										<Heart
+											className={cn('size-3.5', post.isLikedByMe ? 'fill-current' : '')}
+											strokeWidth={2.5}
+										/>
+										<span className="tabular-nums font-black">{post.likes}</span>
+									</button>
+								</div>
+								{post.caption && (
+									<p className="mt-2 text-xs font-medium text-muted-foreground leading-relaxed">
+										{post.caption}
+									</p>
+								)}
+							</div>
+						</article>
+					))}
+				</section>
+			)}
 
 			<div className="mt-10 mb-6 flex justify-center">
 				<Button
 					variant="outline"
 					size="lg"
-					className="gap-2 shadow-brutal">
-					<RefreshCw className="size-4" />
-					Refresh feed
+					disabled={loading}
+					onClick={() => fetchFeed(selectedFilter)}
+					className="gap-2 shadow-brutal cursor-pointer font-mono text-xs font-bold uppercase">
+					<RefreshCw className={cn('size-4', loading ? 'animate-spin' : '')} />
+					{loading ? 'Refreshing...' : 'Refresh feed'}
 				</Button>
 			</div>
 		</main>

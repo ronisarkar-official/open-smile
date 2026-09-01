@@ -264,3 +264,118 @@ export async function getUserStreak(userId: string): Promise<number> {
 	return rows[0]?.streak ?? 0;
 }
 
+export interface RecentSmileItem {
+	id: string;
+	score: number;
+	coins: number;
+	time: string;
+	quality: string;
+	createdAt: Date;
+}
+
+export function getSmileQualityLabel(score: number): string {
+	if (score >= 95) return "Duchenne Smile";
+	if (score >= 88) return "Radiant Smile";
+	if (score >= 80) return "Great Smile";
+	if (score >= 70) return "Warm Smile";
+	return "Gentle Smile";
+}
+
+function formatActivityTime(date: Date | string | null): string {
+	if (!date) return "Recently";
+	const dt = new Date(date);
+	const now = new Date();
+	const isToday = dt.toDateString() === now.toDateString();
+
+	const yesterday = new Date(now);
+	yesterday.setDate(yesterday.getDate() - 1);
+	const isYesterday = dt.toDateString() === yesterday.toDateString();
+
+	const timeStr = dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+
+	if (isToday) return `Today, ${timeStr}`;
+	if (isYesterday) return `Yesterday, ${timeStr}`;
+	return `${dt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}, ${timeStr}`;
+}
+
+export async function getUserRecentSmiles(userId: string, limit = 5): Promise<RecentSmileItem[]> {
+	const { rows } = await getPool().query(
+		`SELECT id, smile_score, coins_awarded, created_at
+		 FROM smile_captures
+		 WHERE user_id = $1
+		 ORDER BY created_at DESC
+		 LIMIT $2`,
+		[userId, limit]
+	);
+
+	return rows.map((r) => {
+		const score = Number(r.smile_score) || 0;
+		return {
+			id: String(r.id),
+			score,
+			coins: Number(r.coins_awarded) || 0,
+			time: formatActivityTime(r.created_at),
+			quality: getSmileQualityLabel(score),
+			createdAt: r.created_at,
+		};
+	});
+}
+
+export async function getUserDailyRank(userId: string): Promise<{ rank: number | null; totalUsers: number }> {
+	const pool = getPool();
+
+	const { rows } = await pool.query(
+		`WITH daily_totals AS (
+			SELECT 
+				user_id,
+				COALESCE(SUM(coins), 0) AS coins_today
+			FROM coin_ledger
+			WHERE created_at >= (NOW() AT TIME ZONE 'UTC')::date
+			GROUP BY user_id
+		),
+		ranked AS (
+			SELECT 
+				user_id,
+				coins_today,
+				DENSE_RANK() OVER (ORDER BY coins_today DESC) as rk
+			FROM daily_totals
+			WHERE coins_today > 0
+		)
+		SELECT rk FROM ranked WHERE user_id = $1`,
+		[userId]
+	);
+
+	const totalUsersRes = await pool.query(`SELECT COUNT(*) FROM "user"`);
+	const totalUsers = parseInt(totalUsersRes.rows[0]?.count || '1', 10);
+
+	if (rows.length > 0) {
+		return { rank: Number(rows[0].rk), totalUsers };
+	}
+
+	const overallRes = await pool.query(
+		`WITH overall_totals AS (
+			SELECT 
+				user_id,
+				COALESCE(SUM(coins), 0) AS total_coins
+			FROM coin_ledger
+			GROUP BY user_id
+		),
+		ranked AS (
+			SELECT 
+				user_id,
+				DENSE_RANK() OVER (ORDER BY total_coins DESC) as rk
+			FROM overall_totals
+			WHERE total_coins > 0
+		)
+		SELECT rk FROM ranked WHERE user_id = $1`,
+		[userId]
+	);
+
+	if (overallRes.rows.length > 0) {
+		return { rank: Number(overallRes.rows[0].rk), totalUsers };
+	}
+
+	return { rank: null, totalUsers };
+}
+
+

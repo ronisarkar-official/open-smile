@@ -49,3 +49,10 @@ graphify-out/cache/
 graphify-out/.graphify_*
 graphify-out/202*
 graphify-out/wiki/
+
+# python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+env/

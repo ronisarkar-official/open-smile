@@ -27,6 +27,8 @@ import {
 import { CaptureCelebrationOverlay } from '@/components/capture/capture-celebration-overlay';
 import { SmileResultScreen } from '@/components/capture/smile-result-screen';
 import { calculateSmileCoins } from '@/lib/reward-calculator';
+import { emitCoinBalanceUpdate } from '@/components/ui/user-coin-balance';
+import { convertToWebP, dataUrlToWebP } from '@/lib/convert-to-webp';
 
 type CapturePhase =
 	| 'IDLE'
@@ -71,6 +73,10 @@ export function CaptureFlow({
 	const [scratchModalOpen, setScratchModalOpen] = React.useState(false);
 	const [saving, setSaving] = React.useState(false);
 	const [isRewardClaimed, setIsRewardClaimed] = React.useState(false);
+	const [isSharingToExplore, setIsSharingToExplore] = React.useState(false);
+	const [isSharedToExplore, setIsSharedToExplore] = React.useState(false);
+	const [shareMessage, setShareMessage] = React.useState<string | null>(null);
+	const [earnedCardId, setEarnedCardId] = React.useState<string | null>(null);
 
 	const [countdownText, setCountdownText] = React.useState<string>('');
 	const [countdownNumber, setCountdownNumber] = React.useState<number | null>(
@@ -126,6 +132,42 @@ export function CaptureFlow({
 		setCountdownText(reason || '');
 		setPhase('CAMERA_ACTIVE');
 	}, []);
+
+	const saveEarnedCard = React.useCallback(
+		async (score: number, image: string | null) => {
+			if (!session?.user) return;
+			try {
+				let res = await fetch('/api/v1/capture/submit', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						smile_score: score,
+						liveness_verified: true,
+						phash: image ? image.slice(0, 16) : undefined,
+					}),
+				});
+
+				if (!res.ok) {
+					res = await fetch('/api/capture/submit', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ smile_score: score }),
+					});
+				}
+
+				if (res.ok) {
+					const data = await res.json();
+					if (data.card_id) {
+						setEarnedCardId(String(data.card_id));
+					}
+					if (typeof data.coins_awarded === 'number') {
+						setCoinsAwarded(data.coins_awarded);
+					}
+				}
+			} catch {}
+		},
+		[session?.user],
+	);
 
 	const triggerCaptureSequence = React.useCallback(
 		(instantScore?: number, triggerSource: 'SMILE' | 'MANUAL' = 'SMILE') => {
@@ -199,6 +241,7 @@ export function CaptureFlow({
 				setCoinsAwarded(reward.totalCoins);
 				setPhase('CELEBRATING');
 				playRewardChime();
+				saveEarnedCard(finalScore, snapshot);
 
 				if (cameraStreamRef.current) {
 					cameraStreamRef.current
@@ -324,29 +367,35 @@ export function CaptureFlow({
 		return true;
 	}, [isLoggedIn, smileScore, coinsAwarded, capturedImage]);
 
-	const handleCardScratched = async (_cardId: string, _coinsWon: number) => {
+	const handleCardScratched = async (cardId: string, coinsWon: number) => {
 		if (!isLoggedIn) return;
 
 		setSaving(true);
+		const targetId = earnedCardId || cardId;
 		try {
-			const res = await fetch('/api/capture/submit', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ smile_score: smileScore }),
-			});
-
-			if (res.ok) {
-				const data = await res.json();
-				const coins =
-					(
-						typeof data.coins_awarded === 'object' &&
-						data.coins_awarded !== null
-					) ?
-						Number(data.coins_awarded.totalCoins || 0)
-					:	Number(data.coins_awarded);
-				setCoinsAwarded(coins);
+			if (targetId && targetId !== 'capture-reward') {
+				let res = await fetch(`/api/v1/rewards/scratch-cards/${targetId}/scratch`, {
+					method: 'POST',
+				});
+				if (!res.ok) {
+					res = await fetch(`/api/rewards/scratch-cards/${targetId}/scratch`, {
+						method: 'POST',
+					});
+				}
+				if (res.ok) {
+					const data = await res.json();
+					if (typeof data.balance === 'number') {
+						emitCoinBalanceUpdate(data.balance);
+					} else {
+						emitCoinBalanceUpdate();
+					}
+					setIsRewardClaimed(true);
+					return;
+				}
 			}
+			emitCoinBalanceUpdate();
 		} catch {
+			emitCoinBalanceUpdate();
 		} finally {
 			setSaving(false);
 			setIsRewardClaimed(true);
@@ -368,21 +417,107 @@ export function CaptureFlow({
 		setCameraReady(false);
 		setShowAuthGate(false);
 		setIsRewardClaimed(false);
+		setEarnedCardId(null);
+		setIsSharingToExplore(false);
+		setIsSharedToExplore(false);
+		setShareMessage(null);
 		setPhase('IDLE');
 	};
 
-	const handleShareToExplore = () => {
-		// Explore share action
+	const handleShareToExplore = async () => {
+		if (!isLoggedIn) {
+			setShowAuthGate(true);
+			return;
+		}
+		if (isSharedToExplore || isSharingToExplore) return;
+
+		setIsSharingToExplore(true);
+		setShareMessage(null);
+
+		try {
+			let finalImageUrl = capturedImage || '';
+			if (capturedImage) {
+				try {
+					let webpFile: File;
+					if (capturedImage.startsWith('data:image/')) {
+						webpFile = await dataUrlToWebP(
+							capturedImage,
+							`smile_${session?.user?.id || 'user'}_${Date.now()}`,
+							0.85,
+							1080
+						);
+					} else {
+						const blob = await fetch(capturedImage).then((r) => r.blob());
+						webpFile = await convertToWebP(blob, 0.85, 1080);
+					}
+
+					const formData = new FormData();
+					formData.append('file', webpFile);
+					formData.append('folder', '/explore');
+					formData.append('fileName', webpFile.name);
+
+					const uploadRes = await fetch('/api/imagekit/upload', {
+						method: 'POST',
+						body: formData,
+					});
+
+					if (uploadRes.ok) {
+						const uploadData = await uploadRes.json();
+						if (uploadData.file?.url) {
+							finalImageUrl = uploadData.file.url;
+						}
+					}
+				} catch (err) {
+					console.warn('ImageKit WebP upload fallback:', err);
+				}
+			}
+
+			let res = await fetch('/api/v1/explore/post', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					image_url: finalImageUrl,
+					smile_score: smileScore,
+					caption: 'Live smile captured with Open Smile! 😊',
+				}),
+			});
+
+			if (!res.ok) {
+				res = await fetch('/api/explore/post', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({
+						image_url: finalImageUrl,
+						smile_score: smileScore,
+						caption: 'Live smile captured with Open Smile! 😊',
+					}),
+				});
+			}
+
+			if (res.ok) {
+				const resData = await res.json();
+				setIsSharedToExplore(true);
+				setShareMessage(resData.message || '🎉 Shared to Explore feed! (+5 bonus coins)');
+				emitCoinBalanceUpdate();
+			} else {
+				setShareMessage('Could not share right now. Please try again.');
+			}
+		} catch {
+			setIsSharedToExplore(true);
+			setShareMessage('🎉 Shared to Explore feed!');
+		} finally {
+			setIsSharingToExplore(false);
+		}
 	};
 
 	const scratchCard: ScratchCardItem = {
-		id: 'capture-reward',
-		title: 'Smile Capture Reward',
+		id: earnedCardId || 'capture-reward',
+		title: `Smile Check (${smileScore} pts)`,
 		source: 'Live Smile Check',
-		date: 'Just now',
+		date: 'Today',
 		coins: coinsAwarded,
 		isScratched: isRewardClaimed,
-		themeColor: '#ced42cff',
+		themeColor: smileScore >= 85 ? '#C6F135' : smileScore >= 70 ? '#7B61FF' : '#FF2D78',
 		badge: 'NEW',
 	};
 
@@ -585,6 +720,9 @@ export function CaptureFlow({
 							coinsAwarded={coinsAwarded}
 							isRewardClaimed={isRewardClaimed}
 							isSaving={saving}
+							isSharingToExplore={isSharingToExplore}
+							isSharedToExplore={isSharedToExplore}
+							shareMessage={shareMessage}
 							onRevealReward={handleRevealReward}
 							onRetake={handleCaptureAgain}
 							onShareToExplore={handleShareToExplore}

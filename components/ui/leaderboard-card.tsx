@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-
+import { Sparkles, Trophy } from 'lucide-react';
+import { CoinIcon } from '@/components/ui/coin-icon';
 import { cn } from '@/lib/utils';
 import {
 	LeaderboardPodium,
@@ -34,6 +35,8 @@ interface LeaderboardCardProps extends React.HTMLAttributes<HTMLDivElement> {
 	runOptions?: LeaderboardRunOption[];
 	selectedRunId?: string;
 	onRunChange?: (runId: string) => void;
+	metric?: 'coins' | 'score';
+	onMetricChange?: (metric: 'coins' | 'score') => void;
 }
 
 function formatRangeDate(date: string | Date) {
@@ -60,6 +63,8 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 			runOptions,
 			selectedRunId,
 			onRunChange,
+			metric = 'coins',
+			onMetricChange,
 			...props
 		},
 		ref,
@@ -80,52 +85,97 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 		return (
 			<div
 				ref={ref}
-				className={cn('brutal-surface bg-card p-4 sm:p-6', className)}
+				className={cn('brutal-surface bg-card p-4 sm:p-6 shadow-brutal', className)}
 				{...props}>
-				<div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+				{/* Top Controls: Metric Toggle + Timeframe Selector */}
+				<div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b-[length:var(--border-width)] border-black/15 pb-5">
 					<div className="space-y-1">
-						<h3 className="text-xl font-bold tracking-tight sm:text-2xl">{title}</h3>
-						<p className="font-mono text-xs font-medium text-muted-foreground sm:text-sm">
+						<div className="flex items-center gap-2">
+							<span className="inline-flex items-center gap-1 border-[length:var(--border-width)] border-black rounded-md bg-accent px-2 py-0.5 font-mono text-[10px] font-black uppercase text-black shadow-brutal-xs">
+								<Trophy className="size-3" />
+								Official Rankings
+							</span>
+						</div>
+						<h2 className="text-2xl font-black font-title tracking-tight sm:text-3xl text-foreground">
+							{title}
+						</h2>
+						<p className="font-mono text-xs font-semibold text-muted-foreground">
 							{fromLabel} - {toLabel}
 						</p>
 					</div>
 
-					{runOptions && runOptions.length > 0 ?
-						<div className="w-full shrink-0 sm:w-[160px]">
-							<Select
-								value={activeRunId}
-								onValueChange={(value) => {
-									if (onRunChange) {
-										onRunChange(value);
-										return;
-									}
-									setLocalRunId(value);
-								}}>
-								<SelectTrigger
-									aria-label="Select leaderboard run"
-									className="h-10 font-mono text-xs font-bold uppercase tracking-wider">
-									<SelectValue placeholder="Select period" />
-								</SelectTrigger>
-								<SelectContent align="end">
-									{runOptions.map((option) => (
-										<SelectItem
-											key={option.id}
-											value={option.id}
-											className="font-mono text-xs font-bold uppercase tracking-wider">
-											{option.label}
-										</SelectItem>
-									))}
-								</SelectContent>
-							</Select>
-						</div>
-					:	null}
+					<div className="flex flex-wrap items-center gap-2.5">
+						{/* Metric Switcher Tab */}
+						{onMetricChange && (
+							<div className="flex items-center border-[length:var(--border-width)] border-black rounded-lg bg-muted p-0.5 shadow-brutal-xs">
+								<button
+									type="button"
+									onClick={() => onMetricChange('coins')}
+									className={cn(
+										'flex items-center gap-1.5 px-3 py-1.5 font-mono text-xs font-black uppercase tracking-wider rounded-md transition-all cursor-pointer',
+										metric === 'coins'
+											? 'bg-primary text-primary-foreground shadow-brutal-xs'
+											: 'text-muted-foreground hover:text-foreground'
+									)}>
+									<CoinIcon className="size-3.5" />
+									<span>Coins</span>
+								</button>
+
+								<button
+									type="button"
+									onClick={() => onMetricChange('score')}
+									className={cn(
+										'flex items-center gap-1.5 px-3 py-1.5 font-mono text-xs font-black uppercase tracking-wider rounded-md transition-all cursor-pointer',
+										metric === 'score'
+											? 'bg-secondary text-secondary-foreground shadow-brutal-xs'
+											: 'text-muted-foreground hover:text-foreground'
+									)}>
+									<Sparkles className="size-3.5" />
+									<span>Smile Score</span>
+								</button>
+							</div>
+						)}
+
+						{/* Period Dropdown */}
+						{runOptions && runOptions.length > 0 ? (
+							<div className="w-[140px] shrink-0">
+								<Select
+									value={activeRunId}
+									onValueChange={(value) => {
+										if (onRunChange) {
+											onRunChange(value);
+											return;
+										}
+										setLocalRunId(value);
+									}}>
+									<SelectTrigger
+										aria-label="Select leaderboard run"
+										className="h-10 font-mono text-xs font-black uppercase tracking-wider border-[length:var(--border-width)] border-black shadow-brutal-xs bg-card">
+										<SelectValue placeholder="Select period" />
+									</SelectTrigger>
+									<SelectContent align="end">
+										{runOptions.map((option) => (
+											<SelectItem
+												key={option.id}
+												value={option.id}
+												className="font-mono text-xs font-bold uppercase tracking-wider">
+												{option.label}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+						) : null}
+					</div>
 				</div>
 
+				{/* Podium Display (Top 3) */}
 				<LeaderboardPodium
 					rankings={podiumRankings}
-					className="mb-6"
+					className="mb-8"
 				/>
 
+				{/* Full Rankings Table */}
 				<LeaderboardRankings
 					rankings={rankings}
 					currentUserId={currentUserId}
