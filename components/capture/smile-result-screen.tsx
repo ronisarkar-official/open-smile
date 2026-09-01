@@ -13,6 +13,9 @@ interface SmileResultScreenProps {
 	coinsAwarded: number;
 	isRewardClaimed?: boolean;
 	isSaving?: boolean;
+	isSharingToExplore?: boolean;
+	isSharedToExplore?: boolean;
+	shareMessage?: string | null;
 	onRevealReward: () => void;
 	onRetake: () => void;
 	onShareToExplore?: () => void;
@@ -206,6 +209,9 @@ export function SmileResultScreen({
 	coinsAwarded,
 	isRewardClaimed = false,
 	isSaving = false,
+	isSharingToExplore = false,
+	isSharedToExplore = false,
+	shareMessage,
 	onRevealReward,
 	onRetake,
 	onShareToExplore,
@@ -356,14 +362,28 @@ export function SmileResultScreen({
 							</div>
 						}
 
+						{shareMessage && (
+							<div className="rounded-md border-[length:var(--border-width-sm)] border-black bg-accent/30 px-3 py-2 text-center font-mono text-xs font-bold shadow-brutal-xs">
+								{shareMessage}
+							</div>
+						)}
+
 						<div className="flex w-full flex-col gap-2.5 sm:flex-row">
 							<Button
 								variant="outline"
 								size="lg"
-								className="flex-1 gap-2 border-[length:var(--border-width)] border-border font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-sm brutal-lift"
+								disabled={isSharingToExplore || isSharedToExplore}
+								className={cn(
+									"flex-1 gap-2 border-[length:var(--border-width)] border-border font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-sm brutal-lift cursor-pointer",
+									isSharedToExplore && "bg-success text-success-foreground hover:bg-success"
+								)}
 								onClick={onShareToExplore}>
 								<Share2 className="size-4" />
-								Share to Explore
+								{isSharingToExplore
+									? 'Sharing...'
+									: isSharedToExplore
+									? '✓ Shared to Explore'
+									: 'Share to Explore'}
 							</Button>
 							<Button
 								variant="default"

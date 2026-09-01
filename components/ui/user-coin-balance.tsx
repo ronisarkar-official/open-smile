@@ -31,13 +31,22 @@ export function useUserCoins(initialAmount?: number) {
 	const fetchBalance = React.useCallback(async () => {
 		try {
 			setIsLoading(true);
-			const res = await fetch('/api/user/balance', {
+			let res = await fetch('/api/v1/user/balance', {
 				cache: 'no-store',
 				headers: {
 					'Cache-Control': 'no-cache',
 					Pragma: 'no-cache',
 				},
 			});
+			if (!res.ok) {
+				res = await fetch('/api/user/balance', {
+					cache: 'no-store',
+					headers: {
+						'Cache-Control': 'no-cache',
+						Pragma: 'no-cache',
+					},
+				});
+			}
 			if (res.ok) {
 				const data = await res.json();
 				if (typeof data.balance === 'number') {

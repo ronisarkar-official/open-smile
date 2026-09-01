@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { X } from 'lucide-react';
+import { X, Copy, Check, Gift } from 'lucide-react';
 import { ScratchCard } from '@/components/rewards/scratch-card';
 import { Button } from '@/components/ui/button';
 import { CoinIcon } from '../icons';
@@ -29,6 +29,10 @@ export interface ScratchCardItem {
 	themeColor?: string;
 	badge?: string;
 	message?: string;
+	voucherId?: string;
+	voucherTitle?: string;
+	voucherCode?: string;
+	voucherBrand?: string;
 }
 
 interface ScratchCardModalProps {
@@ -61,16 +65,17 @@ export function ScratchCardModal({
 	userName,
 }: ScratchCardModalProps) {
 	const [isCompleted, setIsCompleted] = React.useState(false);
+	const [copied, setCopied] = React.useState(false);
 	const titleId = React.useId();
 	const displayName = userName?.trim().split(/\s+/)[0];
 
 	React.useEffect(() => {
 		if (card) {
 			setIsCompleted(card.isScratched);
+			setCopied(false);
 		}
 	}, [card]);
 
-	// Lock body scroll while the modal is open.
 	React.useEffect(() => {
 		if (!isOpen) return;
 
@@ -82,7 +87,6 @@ export function ScratchCardModal({
 		};
 	}, [isOpen]);
 
-	// Close on Escape.
 	React.useEffect(() => {
 		if (!isOpen) return;
 
@@ -109,11 +113,16 @@ export function ScratchCardModal({
 		onClose();
 	}, [card, isCompleted, handleComplete, onClose]);
 
+	const handleCopyCode = (code: string) => {
+		navigator.clipboard.writeText(code);
+		setCopied(true);
+		setTimeout(() => setCopied(false), 2000);
+	};
+
 	const handleBackdropClick = React.useCallback(() => {
 		onClose();
 	}, [onClose]);
 
-	// Prevent the modal panel from closing the dialog when clicked.
 	const stopPropagation = React.useCallback((event: React.MouseEvent) => {
 		event.stopPropagation();
 	}, []);
@@ -136,7 +145,7 @@ export function ScratchCardModal({
 						aria-hidden="true"
 					/>
 
-					{/* Hurray Header at the top of the screen */}
+					{/* Hurray Header */}
 					<motion.div
 						initial={{ opacity: 0, y: -16 }}
 						animate={{ opacity: 1, y: 0 }}
@@ -144,12 +153,10 @@ export function ScratchCardModal({
 						transition={PANEL_TRANSITION}
 						className="fixed top-8 sm:top-12 left-0 right-0 z-20 flex flex-col items-center text-center px-4 pointer-events-none">
 						<div className="relative inline-flex items-center justify-center">
-							{/* Sparkles */}
 							<SparkleStar className="absolute -left-5 -top-1 size-4 text-[#FDE047] drop-shadow-[0_0_8px_rgba(253,224,71,0.9)] animate-pulse" />
 							<SparkleStar className="absolute -right-5 -top-0.5 size-3.5 text-[#FDE047] drop-shadow-[0_0_8px_rgba(253,224,71,0.9)] animate-pulse delay-200" />
 							<SparkleStar className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 size-2.5 text-[#FDE047] drop-shadow-[0_0_6px_rgba(253,224,71,0.8)] opacity-90" />
 
-							{/* 3D Extruded HURRAY! Text - No background */}
 							<h2
 								className="relative font-black tracking-widest text-4xl sm:text-5xl uppercase select-none text-[#FEE600] px-2 py-0.5"
 								style={{
@@ -165,7 +172,7 @@ export function ScratchCardModal({
 							{displayName ? (
 								<strong className="font-extrabold text-white">{displayName}, </strong>
 							) : null}
-							You&apos;ve won a scratch card!
+							{card.voucherCode ? "Here's your scratch voucher!" : "You've won a scratch card!"}
 						</p>
 					</motion.div>
 
@@ -183,7 +190,6 @@ export function ScratchCardModal({
 							{card.title} scratch card
 						</span>
 
-						{/* Close Button back at previous position on top-right of card */}
 						<button
 							type="button"
 							onClick={onClose}
@@ -201,7 +207,49 @@ export function ScratchCardModal({
 							coverText="SCRATCH HERE"
 							onScratchAttempt={onScratchAttempt}
 							onComplete={handleComplete}>
-							{card.coins === 0 ? (
+							{card.voucherCode ? (
+								<div className="flex size-full flex-col items-center justify-between py-2.5 px-2 text-center">
+									<div>
+										<span className="inline-block border border-black rounded-xs bg-accent px-2 py-0.5 font-mono text-[10px] font-black uppercase text-black">
+											{card.voucherBrand || 'Gift Voucher'}
+										</span>
+										<p className="mt-1.5 font-title text-sm font-black uppercase tracking-tight text-foreground leading-tight">
+											{card.voucherTitle || card.title}
+										</p>
+									</div>
+
+									<div className="my-auto flex flex-col items-center justify-center w-full px-1">
+										<p className="font-mono text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1.5">
+											Redemption Code
+										</p>
+										<div className="flex items-center justify-between gap-1.5 w-full border-[length:var(--border-width)] border-black rounded-lg bg-card px-2.5 py-1.5 shadow-brutal-xs">
+											<span className="font-mono text-xs sm:text-sm font-black tracking-wider text-primary truncate">
+												{card.voucherCode}
+											</span>
+											<button
+												type="button"
+												onClick={() => handleCopyCode(card.voucherCode!)}
+												className="p-1 hover:bg-muted rounded-xs cursor-pointer"
+												title="Copy voucher code">
+												{copied ? (
+													<Check className="size-3.5 text-success" />
+												) : (
+													<Copy className="size-3.5 text-foreground" />
+												)}
+											</button>
+										</div>
+									</div>
+
+									<Button
+										type="button"
+										onClick={handleRedeem}
+										variant="default"
+										size="default"
+										className="w-full font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-sm">
+										Claim Voucher
+									</Button>
+								</div>
+							) : card.coins === 0 ? (
 								<div className="flex size-full flex-col items-center justify-between py-2 px-1 text-center">
 									<p className="font-mono text-xs font-bold tracking-tight text-muted-foreground">
 										Better luck next time!

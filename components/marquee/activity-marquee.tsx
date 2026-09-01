@@ -1,10 +1,6 @@
-// TEMPORARY: static placeholder content. Replace with live data from
-// coin_ledger via GET /api/activity/recent once the backend route
-// exists — see marquee-implementation-plan.md (live version) for the
-// real architecture. Do not extend this with real logic; swap the
-// whole component instead.
+'use client';
 
-import React from "react";
+import * as React from "react";
 
 const PLACEHOLDER_ACTIVITY = [
   { text: "Someone just scored 94! 🔥" },
@@ -18,13 +14,30 @@ const PLACEHOLDER_ACTIVITY = [
 ];
 
 export function ActivityMarquee() {
+  const [items, setItems] = React.useState(PLACEHOLDER_ACTIVITY);
+
+  React.useEffect(() => {
+    async function loadActivity() {
+      try {
+        const res = await fetch("/api/v1/activity/recent");
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json.items) && json.items.length > 0) {
+            setItems(json.items.map((i: { text: string }) => ({ text: i.text })));
+          }
+        }
+      } catch {}
+    }
+    loadActivity();
+  }, []);
+
   return (
     <section
       aria-label="Recent activity ticker"
       className="group relative flex w-full overflow-hidden border-y-[length:var(--border-width)] border-black bg-accent/20 py-2.5 select-none dark:bg-[#221f28]"
     >
       <div className="flex shrink-0 items-center gap-3 pr-3 animate-marquee group-hover:[animation-play-state:paused] group-active:[animation-play-state:paused] motion-reduce:animate-none">
-        {PLACEHOLDER_ACTIVITY.map((item, index) => (
+        {items.map((item, index) => (
           <div
             key={`act-a-${index}`}
             className="inline-flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-full bg-card px-3.5 py-1 text-xs font-bold text-card-foreground shadow-none sm:text-sm whitespace-nowrap"
@@ -38,7 +51,7 @@ export function ActivityMarquee() {
         className="flex shrink-0 items-center gap-3 pr-3 animate-marquee group-hover:[animation-play-state:paused] group-active:[animation-play-state:paused] motion-reduce:hidden"
         aria-hidden="true"
       >
-        {PLACEHOLDER_ACTIVITY.map((item, index) => (
+        {items.map((item, index) => (
           <div
             key={`act-b-${index}`}
             className="inline-flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-full bg-card px-3.5 py-1 text-xs font-bold text-card-foreground shadow-none sm:text-sm whitespace-nowrap"

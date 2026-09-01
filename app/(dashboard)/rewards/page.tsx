@@ -68,6 +68,21 @@ export default function RewardsPage() {
   const { balance: userCoins, setBalance: setUserCoins } = useUserCoins();
   const [claimedVouchers, setClaimedVouchers] = React.useState<ClaimedVoucher[]>(INITIAL_CLAIMED_VOUCHERS);
 
+  React.useEffect(() => {
+    async function loadClaimedVouchers() {
+      try {
+        const res = await fetch('/api/v1/rewards/my-vouchers');
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json) && json.length > 0) {
+            setClaimedVouchers(json);
+          }
+        }
+      } catch {}
+    }
+    loadClaimedVouchers();
+  }, []);
+
   const handleClaimSuccess = (voucher: VoucherItem, claim: ClaimedVoucher) => {
     const updated = Math.max(0, userCoins - voucher.coinsCost);
     setUserCoins(updated);

@@ -3,7 +3,6 @@ import type { NextRequest } from 'next/server';
 import { requireServerUser } from '@/backend/auth';
 import {
 	insertSmileCapture,
-	insertCoinLedgerEntry,
 	getLastCaptureTime,
 	getUserCoinBalance,
 } from '@/backend/db';
@@ -52,10 +51,21 @@ export async function POST(request: NextRequest) {
 		const coinsCalculation = calculateSmileCoins(smileScore, streakMultiplier);
 		const coinsAwarded = coinsCalculation.totalCoins;
 
-		await insertSmileCapture(user.id, smileScore, coinsAwarded);
-		if (coinsAwarded > 0) {
-			await insertCoinLedgerEntry(user.id, coinsAwarded, 'capture');
-		}
+		const captureRow = await insertSmileCapture(user.id, smileScore, coinsAwarded);
+
+		let cardId: string | null = null;
+		try {
+			const { getPool } = await import('@/backend/db/client');
+			const themeColor = smileScore >= 85 ? '#C6F135' : smileScore >= 70 ? '#7B61FF' : '#FF2D78';
+			const insertRes = await getPool().query(
+				`INSERT INTO scratch_cards (user_id, title, source, coins, voucher_id, is_scratched, theme_color, created_at)
+				 VALUES ($1, $2, 'Live Smile Check', $3, $4, false, $5, NOW())
+				 RETURNING id`,
+				[user.id, `Smile Check (${smileScore} pts)`, coinsAwarded, captureRow?.id ? String(captureRow.id) : null, themeColor]
+			);
+			cardId = insertRes.rows[0]?.id ? String(insertRes.rows[0].id) : null;
+		} catch {}
+
 		const balance = await getUserCoinBalance(user.id);
 
 		return NextResponse.json({
@@ -64,6 +74,8 @@ export async function POST(request: NextRequest) {
 			streak_multiplier: streakMultiplier,
 			smile_score: smileScore,
 			balance,
+			card_id: cardId,
+			is_scratched: false,
 		});
 	} catch (err) {
 		console.error('Capture submit error:', err);
