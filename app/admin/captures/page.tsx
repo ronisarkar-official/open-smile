@@ -99,7 +99,7 @@ export default function AdminCapturesPage() {
 						Smile Captures & Anti-Cheat
 					</h1>
 					<p className="font-mono text-xs font-semibold text-muted-foreground">
-						Live recognition audits, score anomalies, cooldown verification, and coin clawbacks
+						Live recognition audits, score anomalies, duplicate verification, and coin clawbacks
 					</p>
 				</div>
 

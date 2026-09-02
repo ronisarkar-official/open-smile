@@ -1,0 +1,55 @@
+import { NextResponse } from 'next/server';
+import { getPool } from '@/backend/db/client';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+export async function GET() {
+	try {
+		const pool = getPool();
+		const { rows } = await pool.query(`
+			SELECT 
+				vc.id, 
+				vc.brand_name as "brandName", 
+				vc.title, 
+				vc.description, 
+				vc.category, 
+				vc.image_url as "imageUrl", 
+				vc.numeric_value as "numericValue", 
+				vc.coins_cost as "coinsCost", 
+				vc.highlight_tag as "highlightTag",
+				COUNT(vi.id) FILTER (WHERE vi.status = 'available')::int as "remainingInventory"
+			FROM vouchers_catalog vc
+			LEFT JOIN voucher_inventory vi ON vc.id = vi.voucher_id
+			WHERE vc.is_active = true
+			GROUP BY vc.id, vc.brand_name, vc.title, vc.description, vc.category, vc.image_url, vc.numeric_value, vc.coins_cost, vc.highlight_tag
+			ORDER BY vc.numeric_value ASC
+		`);
+
+		const catalog = rows.map((r) => {
+			const brandId = r.brandName.toLowerCase().replace(/\s+/g, '');
+			return {
+				id: String(r.id),
+				brandId,
+				brandName: r.brandName,
+				category: r.category || 'ecommerce',
+				title: r.title,
+				valueFormatted: `₹${Number(r.numericValue).toLocaleString('en-IN')}`,
+				numericValue: Number(r.numericValue),
+				coinsCost: Number(r.coinsCost),
+				highlightTag: r.highlightTag || undefined,
+				description: r.description || `Redeem ${r.title} with your smile coins.`,
+				instructions: [`Copy secret code and apply on ${r.brandName} checkout.`],
+				logoBg: '#FF2D78',
+				imageUrl: r.imageUrl || undefined,
+				isPopular: Number(r.numericValue) >= 500,
+				remainingInventory: Number(r.remainingInventory) || 0,
+			};
+		});
+
+		return NextResponse.json(catalog);
+	} catch (err: unknown) {
+		console.error('Catalog fetch error:', err);
+		return NextResponse.json({ error: 'Failed to fetch catalog' }, { status: 500 });
+	}
+}

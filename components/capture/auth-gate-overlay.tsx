@@ -40,7 +40,7 @@ export function AuthGateOverlay({
 					<button
 						type="button"
 						onClick={onClose}
-						className="absolute -top-3 -right-3 flex size-8 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg bg-background font-bold shadow-brutal transition-all hover:bg-muted active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
+						className="absolute -top-3 -right-3 flex size-8 items-center justify-center border-[length:var(--border-width)] border-border rounded-lg bg-background font-bold shadow-brutal transition-all hover:bg-muted active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
 						aria-label="Close">
 						<X className="size-4 stroke-[2.5]" />
 					</button>

@@ -50,6 +50,8 @@ interface WebcamViewProps {
 	onReady?: () => void;
 	onError?: (error: string) => void;
 	className?: string;
+	isLiveVerified?: boolean;
+	livenessPrompt?: string;
 }
 
 export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
@@ -63,6 +65,8 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 			onReady,
 			onError,
 			className,
+			isLiveVerified = false,
+			livenessPrompt,
 		},
 		ref
 	) {
@@ -124,13 +128,18 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 			getScreenshot,
 		}), [getScreenshot]);
 
+		const externalStreamRef = React.useRef(externalStream);
+		externalStreamRef.current = externalStream;
+
 		const startCamera = React.useCallback(async () => {
+			if (!isActive || isFrozen) return;
+
 			try {
 				setIsRetrying(true);
 				setStatus('loading');
 				setErrorMsg('');
 
-				let activeStream = externalStream || localStreamRef.current;
+				let activeStream = externalStreamRef.current || localStreamRef.current;
 
 				if (!activeStream || !activeStream.active) {
 					try {
@@ -187,11 +196,27 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 			} finally {
 				setIsRetrying(false);
 			}
-		}, [externalStream]);
+		}, [isActive, isFrozen]);
 
 		React.useEffect(() => {
-			if (isActive) {
+			if (externalStream && videoRef.current && isActive && !isFrozen) {
+				videoRef.current.srcObject = externalStream;
+				videoRef.current.play().catch(() => {});
+			}
+		}, [externalStream, isActive, isFrozen]);
+
+		React.useEffect(() => {
+			if (isActive && !isFrozen) {
 				startCamera();
+			} else {
+				if (rafRef.current) cancelAnimationFrame(rafRef.current);
+				if (localStreamRef.current) {
+					localStreamRef.current.getTracks().forEach((t) => t.stop());
+					localStreamRef.current = null;
+				}
+				if (videoRef.current) {
+					videoRef.current.srcObject = null;
+				}
 			}
 
 			return () => {
@@ -201,7 +226,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 					localStreamRef.current = null;
 				}
 			};
-		}, [isActive, startCamera]);
+		}, [isActive, isFrozen, startCamera]);
 
 		const lastVideoTimeRef = React.useRef<number>(-1);
 
@@ -275,27 +300,40 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 		const getScoreColor = (score: number) => {
 			if (score >= 80) return 'bg-success';
 			if (score >= 60) return 'bg-accent';
-			if (score >= 40) return 'bg-secondary';
+			if (score >= 40) return 'bg-warning';
 			return 'bg-primary';
 		};
+
+		const cleanLivenessPrompt = React.useMemo(() => {
+			if (!livenessPrompt) return 'Blink to verify';
+			const lower = livenessPrompt.toLowerCase();
+			if (lower.includes('static') || lower.includes('photo')) return 'Real Face Required';
+			if (lower.includes('swap') || lower.includes('changed')) return 'Face Changed';
+			if (lower.includes('expired')) return 'Blink to verify';
+			if (lower.includes('blink')) return 'Blink to verify';
+			if (lower.includes('verif')) return 'Verifying...';
+			if (lower.includes('position')) return 'Align face';
+			if (lower.includes('turn')) return 'Turn head';
+			return livenessPrompt.length > 18 ? `${livenessPrompt.slice(0, 16)}...` : livenessPrompt;
+		}, [livenessPrompt]);
 
 		return (
 			<div
 				className={cn(
-					'relative overflow-hidden border-[length:var(--border-width)] border-border rounded-xl bg-card shadow-brutal-lg',
+					'relative overflow-hidden rounded-xl border-[length:var(--border-width)] border-border bg-card shadow-brutal-lg',
 					className
 				)}>
-				<div className="flex flex-wrap items-center justify-between gap-2 border-b-[length:var(--border-width)] border-border bg-muted px-4 py-3">
+				<div className="flex flex-wrap items-center justify-between gap-2 border-b-[length:var(--border-width)] border-border bg-muted px-4 py-2.5">
 					<div className="flex items-center gap-2 font-mono text-xs font-bold tracking-wider uppercase">
 						<Camera className="size-4" strokeWidth={2.5} />
-						Live Camera Smile Check
+						Camera Feed
 					</div>
 					<div className="flex items-center gap-2">
 						{status === 'ready' && !isFrozen && (
 							<>
 								<span className="relative flex size-2">
-									<span className="absolute inline-flex size-full animate-ping bg-destructive opacity-75" />
-									<span className="relative inline-flex size-2 bg-destructive" />
+									<span className="absolute inline-flex size-full animate-ping rounded-full bg-destructive opacity-75" />
+									<span className="relative inline-flex size-2 rounded-full bg-destructive" />
 								</span>
 								<span className="font-mono text-[10px] font-bold tracking-widest uppercase">
 									LIVE
@@ -323,16 +361,15 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 						style={{ transform: 'scaleX(-1)' }}
 					/>
 
-					<div className="absolute inset-6 border-[length:var(--border-width-sm)] border-dashed border-foreground/20 rounded-lg pointer-events-none" />
-					<div className="absolute left-8 top-8 h-6 w-6 border-l-[length:var(--border-width)] border-t-[length:var(--border-width)] border-accent pointer-events-none" />
-					<div className="absolute right-8 top-8 h-6 w-6 border-r-[length:var(--border-width)] border-t-[length:var(--border-width)] border-accent pointer-events-none" />
-					<div className="absolute bottom-8 left-8 h-6 w-6 border-b-[length:var(--border-width)] border-l-[length:var(--border-width)] border-accent pointer-events-none" />
-					<div className="absolute bottom-8 right-8 h-6 w-6 border-b-[length:var(--border-width)] border-r-[length:var(--border-width)] border-accent pointer-events-none" />
+					<div className="absolute left-5 top-5 size-5 border-l-[length:var(--border-width-lg)] border-t-[length:var(--border-width-lg)] border-border/40 pointer-events-none" />
+					<div className="absolute right-5 top-5 size-5 border-r-[length:var(--border-width-lg)] border-t-[length:var(--border-width-lg)] border-border/40 pointer-events-none" />
+					<div className="absolute bottom-5 left-5 size-5 border-l-[length:var(--border-width-lg)] border-b-[length:var(--border-width-lg)] border-border/40 pointer-events-none" />
+					<div className="absolute bottom-5 right-5 size-5 border-r-[length:var(--border-width-lg)] border-b-[length:var(--border-width-lg)] border-border/40 pointer-events-none" />
 
 					{status === 'loading' && (
 						<div className="flex flex-col items-center gap-4 text-center z-10 p-6">
-							<div className="flex size-24 items-center justify-center border-[length:var(--border-width)] border-border rounded-xl bg-accent text-accent-foreground shadow-brutal animate-pulse">
-								<ScanFace className="size-12" strokeWidth={1.5} />
+							<div className="flex size-16 items-center justify-center rounded-xl border-[length:var(--border-width)] border-border bg-accent text-accent-foreground shadow-brutal animate-pulse">
+								<ScanFace className="size-8" strokeWidth={1.75} />
 							</div>
 							<p className="max-w-[28ch] text-sm font-bold text-muted-foreground">
 								Connecting to webcam & AI detectors...
@@ -342,7 +379,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 
 					{status === 'error' && (
 						<div className="flex flex-col items-center gap-4 text-center z-10 p-6 max-w-lg">
-							<div className="flex size-16 items-center justify-center border-[length:var(--border-width)] border-border rounded-xl bg-destructive/20 shadow-brutal">
+							<div className="flex size-16 items-center justify-center rounded-xl border-[length:var(--border-width)] border-border bg-destructive/20 text-destructive shadow-brutal">
 								{errorType === 'permission' ? (
 									<ShieldAlert className="size-8 text-destructive" strokeWidth={2} />
 								) : (
@@ -360,19 +397,19 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 							</div>
 
 							{errorType === 'permission' && (
-								<div className="w-full text-left border-[length:var(--border-width)] border-border rounded-lg bg-card p-4 shadow-brutal-sm text-xs font-semibold space-y-2">
+								<div className="w-full text-left rounded-lg border-[length:var(--border-width)] border-border bg-card p-4 shadow-brutal-sm text-xs font-semibold space-y-2">
 									<p className="font-bold text-foreground flex items-center gap-1.5 font-mono uppercase">
 										<Settings className="size-3.5" /> How to allow camera on Windows:
 									</p>
 									<ol className="list-decimal list-inside space-y-1.5 text-muted-foreground">
 										<li>
-											Press <kbd className="border border-border/30 rounded px-1 font-mono text-[10px] bg-muted">Win + I</kbd> → go to <strong>Privacy & Security</strong> → <strong>Camera</strong>
+											Press <kbd className="rounded-xs border border-border/40 px-1 font-mono text-[10px] bg-muted">Win + I</kbd> → go to <strong>Privacy & Security</strong> → <strong>Camera</strong>
 										</li>
 										<li>
 											Turn <strong>ON</strong> <em>&quot;Camera access&quot;</em> and <em>&quot;Let desktop apps access your camera&quot;</em>
 										</li>
 										<li>
-											In Chrome/Edge URL bar, click the 🔒 or 🎛 icon on the left of <code className="font-mono bg-muted px-1">localhost:3000</code> and select <strong>Allow</strong>
+											In Chrome/Edge URL bar, click the 🔒 or 🎛 icon on the left of <code className="rounded-xs border border-border/20 font-mono bg-muted px-1 py-0.5">localhost:3000</code> and select <strong>Allow</strong>
 										</li>
 										<li>
 											Check if your laptop has a physical webcam privacy slider or Fn toggle key
@@ -393,26 +430,53 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 					)}
 
 					{status === 'ready' && !isFrozen && (
-						<div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 z-10">
-							<div className="flex items-center gap-2 border-[length:var(--border-width)] border-border rounded-lg bg-card/90 backdrop-blur-sm px-4 py-2 shadow-brutal-sm">
-								<span className="font-mono text-xs font-bold uppercase tracking-wider">
-									{hasFace ? 'Live Smile Score' : 'Position face in frame'}
-								</span>
-								{hasFace && (
-									<span className="font-mono text-lg font-black tabular-nums">
-										{currentScore}
+						<div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 w-auto max-w-[calc(100%-2rem)] pointer-events-none">
+							{hasFace ? (
+								<div className="pointer-events-auto inline-flex items-center gap-2.5 sm:gap-3 rounded-lg border-[length:var(--border-width)] border-border bg-card/95 backdrop-blur-sm px-3 py-1.5 shadow-brutal-sm select-none">
+									{isLiveVerified ? (
+										<div className="inline-flex items-center gap-1.5 rounded-md border-[length:var(--border-width-sm)] border-border bg-success px-2 py-0.5 text-success-foreground font-mono text-[10px] font-black uppercase tracking-wider shadow-brutal-xs">
+											<span className="size-1.5 rounded-full bg-current animate-pulse" />
+											<span>Verified ✓</span>
+										</div>
+									) : (
+										<div
+											className={cn(
+												'inline-flex items-center gap-1.5 rounded-md border-[length:var(--border-width-sm)] border-border px-2 py-0.5 font-mono text-[10px] font-black uppercase tracking-wider shadow-brutal-xs select-none',
+												cleanLivenessPrompt.includes('Real') || cleanLivenessPrompt.includes('Changed')
+													? 'bg-destructive text-destructive-foreground'
+													: 'bg-warning text-warning-foreground'
+											)}>
+											<span className="size-1.5 rounded-full bg-current animate-pulse" />
+											<span>{cleanLivenessPrompt}</span>
+										</div>
+									)}
+
+									<div className="h-3.5 w-px bg-border/40" />
+
+									<div className="flex items-center gap-2 font-mono">
+										<span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+											Smile
+										</span>
+										<div className="w-14 sm:w-20 h-2.5 overflow-hidden rounded-xs border-[length:var(--border-width-sm)] border-border bg-muted">
+											<div
+												className={cn(
+													'h-full transition-all duration-150',
+													getScoreColor(currentScore)
+												)}
+												style={{ width: `${currentScore}%` }}
+											/>
+										</div>
+										<span className="text-xs font-black tabular-nums min-w-[2.2ch] text-foreground">
+											{currentScore}%
+										</span>
+									</div>
+								</div>
+							) : (
+								<div className="pointer-events-auto inline-flex items-center gap-2 rounded-lg border-[length:var(--border-width)] border-border bg-card/95 backdrop-blur-sm px-3 py-1.5 shadow-brutal-xs">
+									<ScanFace className="size-3.5 text-muted-foreground animate-pulse" />
+									<span className="font-mono text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+										Position face in frame
 									</span>
-								)}
-							</div>
-							{hasFace && (
-								<div className="w-44 h-3 border-[length:var(--border-width-sm)] border-border rounded-xs bg-card overflow-hidden">
-									<div
-										className={cn(
-											'h-full transition-all duration-150',
-											getScoreColor(currentScore)
-										)}
-										style={{ width: `${currentScore}%` }}
-									/>
 								</div>
 							)}
 						</div>

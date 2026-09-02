@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 		let startDate: Date;
 		let endDate: Date | undefined;
 		let resetAt: string | undefined;
-		let title = 'Weekly Top Smile Scores';
+		let title = 'Weekly Top Smile Points';
 
 		if (period === 'daily') {
 			startDate = new Date(
@@ -26,16 +26,22 @@ export async function GET(request: NextRequest) {
 				Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0, 0)
 			);
 			resetAt = nextMidnight.toISOString();
-			title = 'Daily Top Smile Scores';
+			title = 'Daily Top Smile Points';
 
 			settleDailyLeaderboard().catch((err) => {
 				console.error('Lazy daily settlement error:', err);
 			});
 		} else if (period === 'weekly') {
-			startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-			title = 'Weekly Top Smile Scores';
+			startDate = new Date(
+				Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 6, 0, 0, 0, 0)
+			);
+			endDate = now;
+			title = 'Weekly Top Smile Points';
 		} else {
-			startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+			startDate = new Date(
+				Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 29, 0, 0, 0, 0)
+			);
+			endDate = now;
 			title = 'Monthly Smile Champions';
 		}
 
@@ -47,10 +53,24 @@ export async function GET(request: NextRequest) {
 			const val = Number(r.primary_value) || 0;
 
 			let byline = 'Warm Smile';
-			if (val >= 95) byline = `Duchenne Smile (${val}%)`;
-			else if (val >= 88) byline = `Radiant Smile (${val}%)`;
-			else if (val >= 80) byline = `Great Smile (${val}%)`;
-			else byline = `Warm Smile (${val}%)`;
+			if (period === 'daily') {
+				if (val >= 95) byline = `Duchenne Smile (${val} pts)`;
+				else if (val >= 88) byline = `Radiant Smile (${val} pts)`;
+				else if (val >= 80) byline = `Great Smile (${val} pts)`;
+				else byline = `Warm Smile (${val} pts)`;
+			} else if (period === 'weekly') {
+				if (val >= 500) byline = `Smile Champion (${val} pts)`;
+				else if (val >= 350) byline = `Super Consistent (${val} pts)`;
+				else if (val >= 200) byline = `Radiant Smiler (${val} pts)`;
+				else if (val >= 80) byline = `Active Smiler (${val} pts)`;
+				else byline = `Rising Smiler (${val} pts)`;
+			} else {
+				if (val >= 2000) byline = `Smile Legend (${val} pts)`;
+				else if (val >= 1200) byline = `Grand Master (${val} pts)`;
+				else if (val >= 600) byline = `Consistent Smiler (${val} pts)`;
+				else if (val >= 200) byline = `Dedicated Smiler (${val} pts)`;
+				else byline = `Active Smiler (${val} pts)`;
+			}
 
 			return {
 				rank: index + 1,

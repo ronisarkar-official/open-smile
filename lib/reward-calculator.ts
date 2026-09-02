@@ -65,12 +65,13 @@ export function calculateSmileCoins(
 	smileScore: number,
 	streakMultiplier = 1.0,
 	seed: number = Date.now() ^ Math.floor(Math.random() * 0xffffffff),
+	minScoreThreshold = 11,
 ): CoinCalculationResult {
 	const clampedScore = Math.max(0, Math.min(100, Math.round(smileScore)));
 	const tier = getTier(clampedScore);
 	const random = mulberry32(seed);
 
-	if (clampedScore <= 10 || tier.maxCoins === 0) {
+	if (clampedScore < minScoreThreshold || clampedScore <= 10 || tier.maxCoins === 0) {
 		return {
 			totalCoins: 0,
 			baseCoins: 0,

@@ -4,6 +4,8 @@ import * as React from 'react';
 import {
   Award,
   Check,
+  Flame,
+  Crown,
   Gift,
   Lock,
   ShoppingBag,
@@ -14,7 +16,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { CoinIcon } from '@/components/ui/coin-icon';
-import { useUserCoins, emitCoinBalanceUpdate, UserCoinBalance } from '@/components/ui/user-coin-balance';
+import { UserCoinBalance, useUserCoins, emitCoinBalanceUpdate } from '@/components/ui/user-coin-balance';
 import { ScratchCardGallery } from '@/components/rewards/scratch-card-gallery';
 import { VoucherMarketplace } from '@/components/rewards/voucher-marketplace';
 import { ClaimedVouchersList } from '@/components/rewards/claimed-vouchers-list';
@@ -26,41 +28,49 @@ import {
 import { useSystemSettings } from '@/hooks/use-system-settings';
 import { cn } from '@/lib/utils';
 
-const milestones = [
-  { coins: 100, label: 'First Smile', icon: Star, unlocked: true },
-  { coins: 300, label: 'Snack Voucher', icon: Zap, unlocked: true },
-  { coins: 500, label: 'Shopping Starter', icon: ShoppingBag, unlocked: true },
-  { coins: 1000, label: 'Pro Gear Pass', icon: Gift, unlocked: false },
-  { coins: 2000, label: 'VIP Legend', icon: Trophy, unlocked: false },
+const STREAK_MILESTONES = [
+  { days: 3, label: '3-Day Spark', reward: '1.2x Coins', icon: Flame },
+  { days: 7, label: '7-Day Warrior', reward: 'Freeze Pass', icon: Zap },
+  { days: 14, label: '14-Day Master', reward: '1.5x Coins', icon: Award },
+  { days: 30, label: '30-Day Titan', reward: 'VIP Vouchers', icon: Trophy },
+  { days: 60, label: '60-Day Legend', reward: '2.0x Max Boost', icon: Crown },
 ];
 
-const badges = [
+const STREAK_BADGES = [
   {
-    name: 'First Smile',
-    description: 'Earned your first 100 coins',
-    threshold: 100,
-    icon: Star,
-    bg: 'bg-primary',
-    unlocked: true,
-    earnedDate: 'Aug 15, 2026',
+    name: '3-Day Spark',
+    description: 'Smiled 3 days in a row — ignited your daily habit streak',
+    threshold: 3,
+    icon: Flame,
+    bg: 'bg-amber-300',
   },
   {
-    name: 'Marketplace Starter',
-    description: "Reached 500 coins — unlocked ₹250 gift cards",
-    threshold: 500,
+    name: '7-Day Week Warrior',
+    description: 'Completed a full 7-day unbroken smile streak',
+    threshold: 7,
     icon: Zap,
-    bg: 'bg-accent',
-    unlocked: true,
-    earnedDate: 'Aug 20, 2026',
+    bg: 'bg-primary',
   },
   {
-    name: 'Smile Legend',
-    description: 'Hit 1,000 coins — unlock high-value boAt & Myntra vouchers',
-    threshold: 1000,
+    name: '14-Day Habit Master',
+    description: 'Sustained 2 weeks of daily smiling without missing a day',
+    threshold: 14,
     icon: Award,
+    bg: 'bg-accent',
+  },
+  {
+    name: '30-Day Monthly Titan',
+    description: 'Conquered a full month of smiles — elite smiler status',
+    threshold: 30,
+    icon: Trophy,
     bg: 'bg-secondary',
-    unlocked: false,
-    earnedDate: null,
+  },
+  {
+    name: '60-Day Smile Grandmaster',
+    description: 'Legendary 60-day unstoppable streak — maximum multiplier active',
+    threshold: 60,
+    icon: Crown,
+    bg: 'bg-emerald-300',
   },
 ];
 
@@ -69,6 +79,22 @@ export default function RewardsPage() {
   const [activeTab, setActiveTab] = React.useState<'marketplace' | 'my-vouchers' | 'scratch' | 'badges'>('marketplace');
   const { balance: userCoins, setBalance: setUserCoins } = useUserCoins();
   const [claimedVouchers, setClaimedVouchers] = React.useState<ClaimedVoucher[]>(INITIAL_CLAIMED_VOUCHERS);
+  const [streakCount, setStreakCount] = React.useState(1);
+
+  React.useEffect(() => {
+    async function loadStreak() {
+      try {
+        const res = await fetch('/api/v1/user/streak');
+        if (res.ok) {
+          const json = await res.json();
+          if (typeof json.streak_count === 'number') {
+            setStreakCount(Math.max(1, json.streak_count));
+          }
+        }
+      } catch {}
+    }
+    loadStreak();
+  }, []);
 
   React.useEffect(() => {
     async function loadClaimedVouchers() {
@@ -172,7 +198,7 @@ export default function RewardsPage() {
           )}
         >
           <Award className="size-4" strokeWidth={2.5} />
-          <span>Milestones & Badges ({badges.filter((b) => b.unlocked).length}/{badges.length})</span>
+          <span>Milestones & Badges ({STREAK_BADGES.filter((b) => streakCount >= b.threshold).length}/{STREAK_BADGES.length})</span>
         </button>
       </div>
 
@@ -215,13 +241,14 @@ export default function RewardsPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase text-muted-foreground">
-                    Rewards Roadmap
+                    Daily Streak Roadmap
                   </p>
-                  <h2 className="mt-1 text-2xl font-black font-title tracking-tight sm:text-3xl">
-                    <UserCoinBalance suffix=" Coins Earned" />
+                  <h2 className="mt-1 text-2xl font-black font-title tracking-tight sm:text-3xl flex items-center gap-2">
+                    <span>{streakCount}-Day Active Streak</span>
+                    <Flame className="size-6 text-amber-500 fill-amber-500 animate-bounce" />
                   </h2>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Hit coin thresholds to unlock higher denomination brand vouchers and exclusive merchant perks.
+                    Capture daily genuine smiles to advance your streak, unlock coin multipliers up to 2.0x, and claim exclusive vouchers.
                   </p>
                 </div>
                 <Trophy className="size-8 text-primary shrink-0" strokeWidth={2.5} />
@@ -231,16 +258,16 @@ export default function RewardsPage() {
                 <div className="relative h-5 w-full border-[length:var(--border-width)] border-black rounded-md bg-muted">
                   <div
                     className="absolute inset-y-0 left-0 bg-primary border-r-[length:var(--border-width)] border-black rounded-l-md transition-all duration-500"
-                    style={{ width: `${Math.min((userCoins / 2000) * 100, 100)}%` }}
+                    style={{ width: `${Math.min((streakCount / 60) * 100, 100)}%` }}
                   />
                 </div>
 
                 <div className="mt-4 flex justify-between">
-                  {milestones.map((m) => {
+                  {STREAK_MILESTONES.map((m) => {
                     const MIcon = m.icon;
-                    const reached = userCoins >= m.coins;
+                    const reached = streakCount >= m.days;
                     return (
-                      <div key={m.coins} className="flex flex-col items-center gap-1.5">
+                      <div key={m.days} className="flex flex-col items-center gap-1.5">
                         <div
                           className={`flex size-10 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg sm:size-12 ${
                             reached ? 'bg-primary shadow-brutal-xs' : 'bg-muted'
@@ -253,7 +280,7 @@ export default function RewardsPage() {
                           )}
                         </div>
                         <span className="font-mono text-[10px] font-bold tabular-nums sm:text-xs">
-                          {m.coins}
+                          {m.days}d
                         </span>
                         <span className="hidden text-center text-[10px] font-semibold text-muted-foreground sm:block">
                           {m.label}
@@ -266,17 +293,18 @@ export default function RewardsPage() {
             </article>
 
             <section className="grid gap-5 sm:grid-cols-3" aria-label="Badge collection">
-              {badges.map((badge) => {
+              {STREAK_BADGES.map((badge) => {
                 const BadgeIcon = badge.icon;
+                const unlocked = streakCount >= badge.threshold;
                 return (
                   <article
                     key={badge.name}
                     className={cn(
                       'relative flex min-h-52 flex-col justify-between border-[length:var(--border-width)] border-black rounded-xl p-5 shadow-brutal',
-                      badge.unlocked ? `${badge.bg} brutal-lift` : 'bg-muted/50'
+                      unlocked ? `${badge.bg} brutal-lift` : 'bg-muted/50'
                     )}
                   >
-                    {!badge.unlocked && (
+                    {!unlocked && (
                       <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/10 rounded-xl">
                         <div className="flex size-12 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg bg-card shadow-brutal-sm">
                           <Lock className="size-6 text-foreground" strokeWidth={2} />
@@ -287,7 +315,7 @@ export default function RewardsPage() {
                     <div className="flex items-start justify-between">
                       <BadgeIcon className="size-8 text-black" strokeWidth={2.5} />
                       <span className="font-mono text-xs font-bold tabular-nums">
-                        {badge.threshold} coins
+                        {badge.threshold}-Day Streak
                       </span>
                     </div>
 
@@ -296,14 +324,14 @@ export default function RewardsPage() {
                       <p
                         className={cn(
                           'mt-1 text-xs font-semibold',
-                          badge.unlocked ? 'text-black/80' : 'text-muted-foreground'
+                          unlocked ? 'text-black/80' : 'text-muted-foreground'
                         )}
                       >
                         {badge.description}
                       </p>
-                      {badge.unlocked && badge.earnedDate && (
+                      {unlocked && (
                         <p className="mt-2 font-mono text-[10px] font-bold uppercase tracking-wider text-black">
-                          Earned {badge.earnedDate}
+                          Unlocked & Active
                         </p>
                       )}
                     </div>

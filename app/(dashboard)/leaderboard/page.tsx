@@ -3,7 +3,7 @@ import { LeaderboardView } from "@/components/dashboard/leaderboard-view";
 
 export const metadata: Metadata = {
   title: "Leaderboard",
-  description: "See who's smiling the brightest — live rankings based exclusively on AI smile score.",
+  description: "See who's smiling the brightest — live rankings based exclusively on AI smile points.",
 };
 
 export default function LeaderboardPage() {
@@ -19,7 +19,7 @@ export default function LeaderboardPage() {
         </div>
         <h1 className="mt-3 text-4xl font-black tracking-[-0.06em] sm:text-5xl">Leaderboard</h1>
         <p className="mt-1 font-mono text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Ranked exclusively by verified smile scores (0–100%)
+          Ranked exclusively by verified smile points
         </p>
       </div>
 

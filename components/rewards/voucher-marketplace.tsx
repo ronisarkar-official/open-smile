@@ -46,12 +46,31 @@ export function VoucherMarketplace({
   const isMarketplaceDisabled = settings.marketplace_enabled === false;
   const isRedemptionBlocked = isMaintenance || isMarketplaceDisabled;
 
+  const [vouchers, setVouchers] = React.useState<VoucherItem[]>(VOUCHERS_CATALOG);
   const [selectedCategory, setSelectedCategory] = React.useState<VoucherCategory>('all');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [onlyAffordable, setOnlyAffordable] = React.useState(false);
   const [sortBy, setSortBy] = React.useState<SortOption>('featured');
   const [selectedVoucher, setSelectedVoucher] = React.useState<VoucherItem | null>(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    async function loadCatalog() {
+      try {
+        let res = await fetch('/api/v1/rewards/catalog');
+        if (!res.ok) {
+          res = await fetch('/api/rewards/catalog');
+        }
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setVouchers(data);
+          }
+        }
+      } catch {}
+    }
+    loadCatalog();
+  }, []);
 
   const getCategoryIcon = (id: VoucherCategory) => {
     switch (id) {
@@ -73,7 +92,7 @@ export function VoucherMarketplace({
   };
 
   const filteredVouchers = React.useMemo(() => {
-    return VOUCHERS_CATALOG.filter((voucher) => {
+    return vouchers.filter((voucher) => {
       const matchesCategory = selectedCategory === 'all' || voucher.category === selectedCategory;
       const matchesSearch =
         voucher.brandName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -91,9 +110,9 @@ export function VoucherMarketplace({
       if (!a.isPopular && b.isPopular) return 1;
       return 0;
     });
-  }, [selectedCategory, searchQuery, onlyAffordable, sortBy, userCoins]);
+  }, [vouchers, selectedCategory, searchQuery, onlyAffordable, sortBy, userCoins]);
 
-  const affordableCount = VOUCHERS_CATALOG.filter((v) => userCoins >= v.coinsCost).length;
+  const affordableCount = vouchers.filter((v) => userCoins >= v.coinsCost).length;
 
   const handleOpenClaim = (voucher: VoucherItem) => {
     if (isRedemptionBlocked) return;
@@ -199,12 +218,20 @@ export function VoucherMarketplace({
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2.5">
-                      <div
-                        className="flex size-11 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg font-display font-black text-xs text-white shadow-brutal-sm"
-                        style={{ backgroundColor: voucher.logoBg }}
-                      >
-                        {voucher.brandName.slice(0, 3).toUpperCase()}
-                      </div>
+                      {voucher.imageUrl ? (
+                        <img
+                          src={voucher.imageUrl}
+                          alt={voucher.brandName}
+                          className="size-11 object-contain border-[length:var(--border-width)] border-black rounded-lg bg-white p-1 shadow-brutal-sm shrink-0"
+                        />
+                      ) : (
+                        <div
+                          className="flex size-11 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg font-display font-black text-xs text-white shadow-brutal-sm shrink-0"
+                          style={{ backgroundColor: voucher.logoBg || '#FF2D78' }}
+                        >
+                          {voucher.brandName.slice(0, 3).toUpperCase()}
+                        </div>
+                      )}
                       <div>
                         <h3 className="font-title text-base font-black leading-tight">
                           {voucher.brandName}
@@ -229,13 +256,21 @@ export function VoucherMarketplace({
                     </p>
                   </div>
 
-                  {voucher.highlightTag && (
-                    <div className="mt-3">
+                  <div className="mt-3 flex items-center gap-1.5 flex-wrap">
+                    {voucher.highlightTag && (
                       <span className="inline-block border border-black rounded-xs bg-muted px-2 py-0.5 font-mono text-[10px] font-black uppercase text-foreground">
                         {voucher.highlightTag}
                       </span>
-                    </div>
-                  )}
+                    )}
+                    {typeof voucher.remainingInventory === 'number' && (
+                      <span className={cn(
+                        "inline-block border border-black rounded-xs px-2 py-0.5 font-mono text-[10px] font-black uppercase",
+                        voucher.remainingInventory > 0 ? "bg-emerald-200 text-emerald-950" : "bg-red-200 text-red-950"
+                      )}>
+                        {voucher.remainingInventory > 0 ? `${voucher.remainingInventory} in stock` : 'Restocking soon'}
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-5 pt-3 border-t-[length:var(--border-width)] border-black/10 space-y-3">

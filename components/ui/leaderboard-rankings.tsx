@@ -23,6 +23,7 @@ export interface LeaderboardRankingsProps extends React.HTMLAttributes<HTMLDivEl
   currentUserId?: string
   showPagination?: boolean
   defaultPageSize?: number
+  unit?: string
 }
 
 const fallbackAvatars = [
@@ -51,6 +52,7 @@ export const LeaderboardRankings = React.forwardRef<HTMLDivElement, LeaderboardR
       currentUserId,
       showPagination = false,
       defaultPageSize = 10,
+      unit = "pts",
       ...props
     },
     ref
@@ -76,7 +78,7 @@ export const LeaderboardRankings = React.forwardRef<HTMLDivElement, LeaderboardR
             <span className="w-7 text-center font-mono">#</span>
             <span>Participant</span>
             <span className="hidden font-mono sm:block">Trend</span>
-            <span className="text-right font-mono">Score</span>
+            <span className="text-right font-mono">Points</span>
           </div>
 
           <div className="divide-y divide-border/60">
@@ -92,7 +94,7 @@ export const LeaderboardRankings = React.forwardRef<HTMLDivElement, LeaderboardR
 
               const formattedValue =
                 typeof item.value === "number"
-                  ? `${item.value}%`
+                  ? `${item.value.toLocaleString()} ${unit}`
                   : item.value
 
               const change = item.change ?? 0

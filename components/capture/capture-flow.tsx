@@ -32,6 +32,25 @@ import { SmileResultScreen } from '@/components/capture/smile-result-screen';
 import { calculateSmileCoins } from '@/lib/reward-calculator';
 import { emitCoinBalanceUpdate } from '@/components/ui/user-coin-balance';
 import { convertToWebP, dataUrlToWebP } from '@/lib/convert-to-webp';
+import { AnimatedNumberCountdown } from '@/components/capture/animated-number-countdown';
+import { LivenessDetector, type LivenessState } from '@/lib/anti-spoofing';
+import { generatePHash } from '@/lib/phash';
+
+const getNextIndianMidnight = () => {
+	const now = new Date();
+	const istOffsetMs = (5 * 60 + 30) * 60 * 1000;
+	const istNow = new Date(now.getTime() + istOffsetMs);
+	const istTomorrowMidnightUtc = Date.UTC(
+		istNow.getUTCFullYear(),
+		istNow.getUTCMonth(),
+		istNow.getUTCDate() + 1,
+		0,
+		0,
+		0,
+		0,
+	);
+	return new Date(istTomorrowMidnightUtc - istOffsetMs);
+};
 
 type CapturePhase =
 	| 'IDLE'
@@ -89,18 +108,13 @@ export function CaptureFlow({
 		captures_remaining: number;
 		limit_reached: boolean;
 		resets_at: string;
-		cooldown_remaining_ms: number;
-		cooldown_minutes: number;
 		maintenance_mode: boolean;
 	} | null>(null);
 
 	const fetchCaptureStatus = React.useCallback(async () => {
 		if (!session?.user) return;
 		try {
-			let res = await fetch('/api/v1/capture/status');
-			if (!res.ok) {
-				res = await fetch('/api/capture/status');
-			}
+			const res = await fetch('/api/capture/status', { cache: 'no-store' });
 			if (res.ok) {
 				const data = await res.json();
 				setCaptureStatus(data);
@@ -108,9 +122,28 @@ export function CaptureFlow({
 		} catch {}
 	}, [session?.user]);
 
+	const [hasCapturedImage, setHasCapturedImage] = React.useState(false);
+
+	const isQuotaFinished = Boolean(
+		captureStatus &&
+		(captureStatus.limit_reached ||
+			captureStatus.captures_remaining === 0 ||
+			captureStatus.daily_captures_used >= captureStatus.max_daily_captures),
+	);
+
 	React.useEffect(() => {
 		fetchCaptureStatus();
 	}, [fetchCaptureStatus]);
+
+	const livenessDetectorRef = React.useRef<LivenessDetector>(new LivenessDetector());
+	const [livenessState, setLivenessState] = React.useState<LivenessState>({
+		isLiveVerified: false,
+		hasBlinked: false,
+		hasDynamicMovement: false,
+		blinkConfidence: 0,
+		instruction: 'Blink naturally to verify live presence',
+		statusMessage: 'Verifying live human...',
+	});
 
 	const [countdownText, setCountdownText] = React.useState<string>('');
 	const [countdownNumber, setCountdownNumber] = React.useState<number | null>(
@@ -156,12 +189,15 @@ export function CaptureFlow({
 		}
 	}, [isLoggedIn]);
 
+	const lastCountdownCancelTimeRef = React.useRef<number>(0);
+
 	const cancelCountdown = React.useCallback((reason?: string) => {
 		countdownTimeoutsRef.current.forEach((t) => clearTimeout(t));
 		countdownTimeoutsRef.current = [];
 		isTriggeringRef.current = false;
 		smileStartTimeRef.current = null;
 		smileLostTimeRef.current = null;
+		lastCountdownCancelTimeRef.current = Date.now();
 		setCountdownNumber(null);
 		setCountdownText(reason || '');
 		setPhase('CAMERA_ACTIVE');
@@ -171,13 +207,14 @@ export function CaptureFlow({
 		async (score: number, image: string | null) => {
 			if (!session?.user) return;
 			try {
+				const phash = image ? await generatePHash(image) : undefined;
 				let res = await fetch('/api/v1/capture/submit', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({
 						smile_score: score,
+						phash,
 						liveness_verified: true,
-						phash: image ? image.slice(0, 16) : undefined,
 					}),
 				});
 
@@ -185,7 +222,11 @@ export function CaptureFlow({
 					res = await fetch('/api/capture/submit', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ smile_score: score }),
+						body: JSON.stringify({
+							smile_score: score,
+							phash,
+							liveness_verified: true,
+						}),
 					});
 				}
 
@@ -194,10 +235,16 @@ export function CaptureFlow({
 					if (data.daily_limit_reached || res.status === 429) {
 						toast({
 							title: "Daily Limit Reached",
-							description: data.error || "Daily capture limit reached. Refreshes at midnight (12:00 AM).",
+							description: data.error || data.detail || "Daily capture limit reached. Refreshes at midnight (12:00 AM IST).",
 							variant: "warning",
 						});
 						fetchCaptureStatus();
+					} else {
+						toast({
+							title: "Capture Verification Failed",
+							description: data.error || data.detail || "Please try taking a fresh live photo.",
+							variant: "error",
+						});
 					}
 					return;
 				}
@@ -208,10 +255,31 @@ export function CaptureFlow({
 				if (typeof data.coins_awarded === 'number') {
 					setCoinsAwarded(data.coins_awarded);
 				}
+				if (typeof data.daily_captures_used === 'number') {
+					setCaptureStatus((prev) => ({
+						daily_captures_used: data.daily_captures_used,
+						max_daily_captures: data.max_daily_captures ?? prev?.max_daily_captures ?? 10,
+						captures_remaining: data.captures_remaining ?? Math.max(0, (data.max_daily_captures ?? 10) - data.daily_captures_used),
+						limit_reached: Boolean(data.limit_reached),
+						resets_at: data.resets_at ?? prev?.resets_at ?? getNextIndianMidnight().toISOString(),
+						maintenance_mode: false,
+					}));
+				} else {
+					setCaptureStatus((prev) =>
+						prev
+							? {
+									...prev,
+									daily_captures_used: prev.daily_captures_used + 1,
+									captures_remaining: Math.max(0, prev.captures_remaining - 1),
+									limit_reached: prev.daily_captures_used + 1 >= prev.max_daily_captures,
+							  }
+							: prev,
+					);
+				}
 				fetchCaptureStatus();
 			} catch {}
 		},
-		[session?.user],
+		[session?.user, fetchCaptureStatus, toast],
 	);
 
 	const triggerCaptureSequence = React.useCallback(
@@ -256,7 +324,16 @@ export function CaptureFlow({
 			}, 2100);
 
 			schedule(() => {
-				// Verify face and smile before finalizing snapshot
+				const isLivenessEnforced = settings.liveness_detection_enabled !== false;
+				const isVerified =
+					typeof livenessDetectorRef.current?.isVerified === 'function'
+						? livenessDetectorRef.current.isVerified()
+						: Boolean(livenessState.isLiveVerified);
+				if (isLivenessEnforced && !isVerified) {
+					cancelCountdown('Active liveness verification lost! Real active face required.');
+					return;
+				}
+
 				const currentResult = lastResultRef.current;
 				const isSmileValid =
 					triggerSource === 'MANUAL' ||
@@ -275,17 +352,29 @@ export function CaptureFlow({
 
 				const snapshot = webcamRef.current?.getScreenshot() || null;
 				setCapturedImage(snapshot);
+				setHasCapturedImage(true);
 
 				const finalScore =
 					currentResult?.score ??
 					instantScore ??
 					Math.floor(Math.random() * 25) + 75;
-				const reward = calculateSmileCoins(finalScore);
+				const minScore = Number(settings.min_smile_score_threshold) || 11;
+				const reward = calculateSmileCoins(finalScore, 1.0, undefined, minScore);
 
 				setSmileScore(finalScore);
 				setCoinsAwarded(reward.totalCoins);
 				setPhase('CELEBRATING');
 				playRewardChime();
+				setCaptureStatus((prev) =>
+					prev
+						? {
+								...prev,
+								daily_captures_used: prev.daily_captures_used + 1,
+								captures_remaining: Math.max(0, prev.captures_remaining - 1),
+								limit_reached: prev.daily_captures_used + 1 >= prev.max_daily_captures,
+						  }
+						: prev,
+				);
 				saveEarnedCard(finalScore, snapshot);
 
 				if (cameraStreamRef.current) {
@@ -296,7 +385,7 @@ export function CaptureFlow({
 				}
 			}, 2850);
 		},
-		[cancelCountdown],
+		[cancelCountdown, settings.liveness_detection_enabled],
 	);
 
 	const lastResultUiUpdateRef = React.useRef<number>(0);
@@ -317,7 +406,15 @@ export function CaptureFlow({
 				setLastResult(result);
 			}
 
+			const liveness = livenessDetectorRef.current.processFrame(result);
+			setLivenessState(liveness);
+
 			if (phase === 'COUNTDOWN') {
+				if (liveness.isStaticDetected) {
+					cancelCountdown('Static photo detected! Please use a real face.');
+					return;
+				}
+
 				if (captureSourceRef.current === 'SMILE') {
 					const isSmiling =
 						result &&
@@ -344,6 +441,17 @@ export function CaptureFlow({
 				return;
 			}
 
+			if (now - lastCountdownCancelTimeRef.current < 2000) {
+				smileStartTimeRef.current = null;
+				return;
+			}
+
+			const isLivenessEnforced = settings.liveness_detection_enabled !== false;
+			if (isLivenessEnforced && !liveness.isLiveVerified) {
+				smileStartTimeRef.current = null;
+				return;
+			}
+
 			if (result && result.hasFace && result.score >= SMILE_TRIGGER_THRESHOLD) {
 				if (!smileStartTimeRef.current) {
 					smileStartTimeRef.current = now;
@@ -358,7 +466,7 @@ export function CaptureFlow({
 				smileStartTimeRef.current = null;
 			}
 		},
-		[phase, cancelCountdown, triggerCaptureSequence],
+		[phase, cancelCountdown, triggerCaptureSequence, settings.liveness_detection_enabled],
 	);
 
 	const handleCameraReady = React.useCallback(() => {
@@ -367,6 +475,15 @@ export function CaptureFlow({
 	}, []);
 
 	const handleStartCamera = async () => {
+		livenessDetectorRef.current = new LivenessDetector();
+		setLivenessState({
+			isLiveVerified: false,
+			hasBlinked: false,
+			hasDynamicMovement: false,
+			blinkConfidence: 0,
+			instruction: 'Blink naturally to verify live presence',
+			statusMessage: 'Verifying live human...',
+		});
 		setIsConnecting(true);
 		isTriggeringRef.current = false;
 		try {
@@ -381,6 +498,19 @@ export function CaptureFlow({
 	};
 
 	const handleManualCapture = () => {
+		const isLivenessEnforced = settings.liveness_detection_enabled !== false;
+		const isVerified =
+			typeof livenessDetectorRef.current?.isVerified === 'function'
+				? livenessDetectorRef.current.isVerified()
+				: Boolean(livenessState.isLiveVerified);
+		if (isLivenessEnforced && !isVerified) {
+			toast({
+				title: "Live Face Required",
+				description: livenessState.instruction || "Active liveness required. Please blink naturally before capturing.",
+				variant: "warning",
+			});
+			return;
+		}
 		const score =
 			lastResultRef.current?.score ?? Math.floor(Math.random() * 25) + 75;
 		triggerCaptureSequence(score, 'MANUAL');
@@ -466,6 +596,15 @@ export function CaptureFlow({
 		setIsSharingToExplore(false);
 		setIsSharedToExplore(false);
 		setShareMessage(null);
+		livenessDetectorRef.current.reset();
+		setLivenessState({
+			isLiveVerified: false,
+			hasBlinked: false,
+			hasDynamicMovement: false,
+			blinkConfidence: 0,
+			instruction: 'Blink naturally to verify live presence',
+			statusMessage: 'Verifying live human...',
+		});
 		setPhase('IDLE');
 	};
 
@@ -557,7 +696,7 @@ export function CaptureFlow({
 
 	const scratchCard: ScratchCardItem = {
 		id: earnedCardId || 'capture-reward',
-		title: `Smile Check (${smileScore} pts)`,
+		title: 'Mystery Smile Reward',
 		source: 'Live Smile Check',
 		date: 'Today',
 		coins: coinsAwarded,
@@ -571,8 +710,8 @@ export function CaptureFlow({
 			<main
 				id="main-content"
 				className="mx-auto w-full max-w-[1280px] px-2 pb-12 pt-6 sm:px-4 sm:pt-10">
-				<div className="mx-auto max-w-xl text-center py-16 px-6 border-[length:var(--border-width)] border-black rounded-2xl bg-card shadow-brutal space-y-4 mt-6">
-					<div className="size-16 mx-auto rounded-2xl border-[length:var(--border-width)] border-black bg-destructive/20 text-destructive flex items-center justify-center shadow-brutal-xs">
+				<div className="mx-auto max-w-xl text-center py-16 px-6 border-[length:var(--border-width)] border-border rounded-2xl bg-card shadow-brutal space-y-4 mt-6">
+					<div className="size-16 mx-auto rounded-2xl border-[length:var(--border-width)] border-border bg-destructive/20 text-destructive flex items-center justify-center shadow-brutal-xs">
 						<Lock className="size-8" strokeWidth={2.5} />
 					</div>
 					<h1 className="text-3xl font-black font-title tracking-tight text-foreground">
@@ -583,7 +722,7 @@ export function CaptureFlow({
 					</p>
 					<div className="pt-4">
 						<Link href="/dashboard">
-							<Button className="font-mono text-xs font-black uppercase border-[length:var(--border-width)] border-black shadow-brutal-xs brutal-lift">
+							<Button className="font-mono text-xs font-black uppercase border-[length:var(--border-width)] border-border shadow-brutal-xs brutal-lift">
 								Return to Dashboard
 							</Button>
 						</Link>
@@ -593,28 +732,43 @@ export function CaptureFlow({
 		);
 	}
 
-	if (captureStatus?.limit_reached) {
+	if (
+		captureStatus?.limit_reached &&
+		phase !== 'CELEBRATING' &&
+		phase !== 'SCORED' &&
+		phase !== 'SCRATCH_CARD' &&
+		phase !== 'DONE'
+	) {
 		return (
 			<main
 				id="main-content"
 				className="mx-auto w-full max-w-[1280px] px-2 pb-12 pt-6 sm:px-4 sm:pt-10">
-				<div className="mx-auto max-w-xl text-center py-16 px-6 border-[length:var(--border-width)] border-black rounded-2xl bg-card shadow-brutal space-y-5 mt-6">
-					<div className="size-16 mx-auto rounded-2xl border-[length:var(--border-width)] border-black bg-amber-400 text-black flex items-center justify-center shadow-brutal-xs">
+				<div className="mx-auto max-w-xl text-center py-16 px-6 border-[length:var(--border-width)] border-border rounded-2xl bg-card shadow-brutal space-y-5 mt-6">
+					<div className="size-16 mx-auto rounded-2xl border-[length:var(--border-width)] border-border bg-warning text-warning-foreground flex items-center justify-center shadow-brutal-xs">
 						<Clock className="size-8" strokeWidth={2.5} />
 					</div>
 					<h1 className="text-3xl font-black font-title tracking-tight text-foreground">
 						Daily Capture Limit Reached
 					</h1>
 					<p className="font-mono text-xs text-muted-foreground leading-relaxed max-w-md mx-auto">
-						You have used all <strong className="text-foreground">{captureStatus.max_daily_captures} / {captureStatus.max_daily_captures}</strong> smile captures for today. Your daily quota automatically refreshes tonight at <strong className="text-foreground">12:00 AM (midnight)</strong>, matching the daily leaderboard reset!
+						You have used all <strong className="text-foreground">{captureStatus.max_daily_captures} / {captureStatus.max_daily_captures}</strong> smile captures for today. Your daily quota automatically refreshes tonight at <strong className="text-foreground">12:00 AM IST (midnight)</strong>, matching the daily leaderboard reset!
 					</p>
-					<div className="inline-flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-muted px-4 py-2 font-mono text-xs font-bold text-foreground shadow-brutal-xs">
-						<Clock className="size-4 text-amber-500" />
-						<span>Refreshes tonight at midnight (12:00 AM)</span>
+					<div className="border-[length:var(--border-width)] border-border rounded-xl bg-muted/60 p-6 shadow-brutal-sm space-y-3">
+						<div className="flex items-center justify-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-muted-foreground">
+							<Clock className="size-4 text-warning" />
+							<span>Daily Quota Refreshes In (IST)</span>
+						</div>
+						<AnimatedNumberCountdown
+							endDate={captureStatus.resets_at ? new Date(captureStatus.resets_at) : getNextIndianMidnight()}
+							onComplete={fetchCaptureStatus}
+							className="py-1"
+							numberClassName="text-3xl sm:text-5xl font-black font-mono tracking-tighter"
+							labelClassName="text-xs sm:text-sm font-mono font-bold uppercase text-muted-foreground"
+						/>
 					</div>
 					<div className="pt-3">
 						<Link href="/dashboard">
-							<Button className="font-mono text-xs font-black uppercase border-[length:var(--border-width)] border-black shadow-brutal-xs brutal-lift">
+							<Button className="font-mono text-xs font-black uppercase border-[length:var(--border-width)] border-border shadow-brutal-xs brutal-lift">
 								Return to Dashboard
 							</Button>
 						</Link>
@@ -640,18 +794,18 @@ export function CaptureFlow({
 							cameraReady && (
 								<>
 									<span className="relative flex size-2.5">
-										<span className="absolute inline-flex size-full animate-ping bg-success opacity-75" />
-										<span className="relative inline-flex size-2.5 bg-success" />
+										<span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-75" />
+										<span className="relative inline-flex size-2.5 rounded-full bg-success" />
 									</span>
 									Camera active
 								</>
 							)}
 					</div>
 					{captureStatus && (
-						<div className="flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-card px-3 py-1.5 font-mono text-xs font-bold shadow-brutal-xs">
-							<Clock className="size-3.5 text-amber-500" />
+						<div className="flex items-center gap-2 border-[length:var(--border-width)] border-border rounded-lg bg-card px-3 py-1.5 font-mono text-xs font-bold shadow-brutal-xs">
+							<Clock className="size-3.5 text-warning" />
 							<span>Captures Today: {captureStatus.daily_captures_used} / {captureStatus.max_daily_captures}</span>
-							<span className="text-muted-foreground">• Refreshes 12:00 AM</span>
+							<span className="text-muted-foreground">• Refreshes 12:00 AM IST</span>
 						</div>
 					)}
 				</div>
@@ -703,7 +857,7 @@ export function CaptureFlow({
 										Show your brightest smile — the AI takes it from there.
 									</p>
 									{!isLoggedIn && (
-										<p className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-border/40 bg-success/10 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wide text-success">
+										<p className="mt-3 inline-flex items-center gap-1.5 rounded-md border-[length:var(--border-width-sm)] border-border/40 bg-success/10 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wide text-success">
 											<Sparkles
 												className="size-3.5"
 												strokeWidth={2.5}
@@ -723,6 +877,29 @@ export function CaptureFlow({
 								</Button>
 							</div>
 						</motion.div>
+
+						{isQuotaFinished && (
+							<div className="mt-6 border-[length:var(--border-width)] border-border rounded-xl bg-card p-6 shadow-brutal text-center space-y-3">
+								<div className="flex items-center justify-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-muted-foreground">
+									<Clock className="size-4 text-warning" />
+									<span>Daily Quota Refreshes In (IST)</span>
+								</div>
+								<AnimatedNumberCountdown
+									endDate={
+										captureStatus?.resets_at
+											? new Date(captureStatus.resets_at)
+											: getNextIndianMidnight()
+									}
+									onComplete={fetchCaptureStatus}
+									className="py-1"
+									numberClassName="text-3xl sm:text-5xl font-black font-mono tracking-tighter"
+									labelClassName="text-xs sm:text-sm font-mono font-bold uppercase text-muted-foreground"
+								/>
+								<p className="font-mono text-xs text-muted-foreground">
+									You have used all {captureStatus?.max_daily_captures} smile captures for today. Quota refreshes tonight at 12:00 AM IST (Indian Standard Time).
+								</p>
+							</div>
+						)}
 					</div>
 				)}
 
@@ -731,12 +908,14 @@ export function CaptureFlow({
 						<div className="relative">
 							<WebcamView
 								ref={webcamRef}
-								isActive={true}
+								isActive={phase === 'CAMERA_ACTIVE' || phase === 'COUNTDOWN'}
 								isFrozen={phase !== 'CAMERA_ACTIVE' && phase !== 'COUNTDOWN'}
 								stream={cameraStream}
 								onStreamChange={setCameraStream}
 								onSmileUpdate={handleSmileUpdate}
 								onReady={handleCameraReady}
+								isLiveVerified={livenessState.isLiveVerified || settings.liveness_detection_enabled === false}
+								livenessPrompt={livenessState.instruction}
 							/>
 
 							<AnimatePresence>
@@ -833,6 +1012,7 @@ export function CaptureFlow({
 							isSharingToExplore={isSharingToExplore}
 							isSharedToExplore={isSharedToExplore}
 							shareMessage={shareMessage}
+							isQuotaFinished={isQuotaFinished}
 							onRevealReward={handleRevealReward}
 							onRetake={handleCaptureAgain}
 							onShareToExplore={handleShareToExplore}

@@ -48,7 +48,9 @@ function ScratchCardTile({ card, index, onSelect }: ScratchCardTileProps) {
 						'border border-black/30 rounded-xs px-1.5 py-0.5 font-mono text-[9px] font-bold uppercase truncate max-w-[110px]',
 						isUnscratched ? 'bg-card/90 text-foreground' : 'bg-muted text-muted-foreground'
 					)}>
-					{card.voucherBrand ? card.voucherBrand : card.source}
+					{isUnscratched
+						? (isVoucher ? (card.voucherBrand || 'Voucher') : 'Mystery Card')
+						: (card.voucherBrand ? card.voucherBrand : card.source)}
 				</span>
 
 				{card.badge ? (
@@ -73,10 +75,11 @@ function ScratchCardTile({ card, index, onSelect }: ScratchCardTileProps) {
 							)}
 						</div>
 						<p className="mt-2.5 font-title text-xs font-black uppercase tracking-tight text-black">
-							{card.title}
+							{isVoucher ? (card.voucherTitle || 'Surprise Voucher') : 'Mystery Smile Reward'}
 						</p>
-						<p className="font-mono text-[9px] font-bold text-black/70 mt-0.5">
-							{card.coins > 0 ? `Win up to ${card.coins} coins` : 'Scratch to reveal reward'}
+						<p className="font-mono text-[9px] font-bold text-black/70 mt-0.5 flex items-center justify-center gap-1">
+							<Sparkles className="size-2.5 inline" />
+							<span>Scratch to reveal reward</span>
 						</p>
 					</>
 				) : isVoucher ? (

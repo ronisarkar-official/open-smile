@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import Link from 'next/link';
 import { Sparkles, ArrowRight, Coins, Share2, Camera, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NeubrutalistPhotoCard } from '@/components/capture/neubrutalist-photo-card';
@@ -16,6 +17,7 @@ interface SmileResultScreenProps {
 	isSharingToExplore?: boolean;
 	isSharedToExplore?: boolean;
 	shareMessage?: string | null;
+	isQuotaFinished?: boolean;
 	onRevealReward: () => void;
 	onRetake: () => void;
 	onShareToExplore?: () => void;
@@ -212,6 +214,7 @@ export function SmileResultScreen({
 	isSharingToExplore = false,
 	isSharedToExplore = false,
 	shareMessage,
+	isQuotaFinished = false,
 	onRevealReward,
 	onRetake,
 	onShareToExplore,
@@ -385,14 +388,25 @@ export function SmileResultScreen({
 									? '✓ Shared to Explore'
 									: 'Share to Explore'}
 							</Button>
-							<Button
-								variant="default"
-								size="lg"
-								onClick={onRetake}
-								className="flex-1 gap-2 border-[length:var(--border-width)] border-border bg-warning text-warning-foreground font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-sm brutal-lift hover:bg-warning/90">
-								<Camera className="size-4" />
-								Capture Again
-							</Button>
+							{!isQuotaFinished ? (
+								<Button
+									variant="default"
+									size="lg"
+									onClick={onRetake}
+									className="flex-1 gap-2 border-[length:var(--border-width)] border-border bg-warning text-warning-foreground font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-sm brutal-lift hover:bg-warning/90">
+									<Camera className="size-4" />
+									Capture Again
+								</Button>
+							) : (
+								<Link href="/dashboard" className="flex-1">
+									<Button
+										variant="default"
+										size="lg"
+										className="w-full gap-2 border-[length:var(--border-width)] border-border bg-primary text-primary-foreground font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-sm brutal-lift">
+										Return to Dashboard
+									</Button>
+								</Link>
+							)}
 						</div>
 
 						<p className="text-[10px] font-mono text-muted-foreground text-center">

@@ -101,6 +101,34 @@ export function ensureIndexes(): Promise<void> {
 
 					CREATE INDEX IF NOT EXISTS idx_voucher_inventory_status ON voucher_inventory (voucher_id, status);
 
+					CREATE TABLE IF NOT EXISTS vouchers_catalog (
+						id TEXT PRIMARY KEY,
+						brand_name TEXT NOT NULL,
+						title TEXT NOT NULL,
+						description TEXT,
+						category TEXT NOT NULL DEFAULT 'ecommerce',
+						image_url TEXT,
+						numeric_value INTEGER NOT NULL,
+						coins_cost INTEGER NOT NULL,
+						highlight_tag TEXT,
+						is_active BOOLEAN NOT NULL DEFAULT TRUE,
+						created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+					);
+
+					INSERT INTO vouchers_catalog (id, brand_name, title, description, category, numeric_value, coins_cost, highlight_tag)
+					VALUES
+						('amz-250', 'Amazon', '₹250 Amazon Shopping Voucher', 'Claim ₹250 directly in your Amazon Pay balance.', 'ecommerce', 250, 500, 'Top Pick'),
+						('amz-500', 'Amazon', '₹500 Amazon Gift Card', 'Claim ₹500 directly in your Amazon Pay balance.', 'ecommerce', 500, 1000, 'Best Seller'),
+						('amz-1000', 'Amazon', '₹1,000 Amazon Prime / Pay Voucher', 'High-value Amazon Gift Voucher.', 'ecommerce', 1000, 1900, '5% Saver'),
+						('flp-250', 'Flipkart', '₹250 Flipkart E-Gift Card', '₹250 Flipkart digital gift voucher.', 'ecommerce', 250, 500, 'Popular'),
+						('flp-500', 'Flipkart', '₹500 Flipkart Shopping Voucher', '₹500 discount voucher on Flipkart.', 'ecommerce', 500, 1000, 'Top Deal'),
+						('swg-150', 'Swiggy', '₹150 Swiggy Food Voucher', '₹150 Swiggy Money Voucher for food orders.', 'food', 150, 300, 'Hot Food'),
+						('zmt-200', 'Zomato', '₹200 Zomato Pro Voucher', 'Treat yourself to fresh meals on Zomato.', 'food', 200, 400, 'Instant Code'),
+						('myn-500', 'Myntra', '₹500 Myntra Fashion Card', 'Shop top apparel and sneakers on Myntra.', 'fashion', 500, 1000, 'Style Pick'),
+						('boat-500', 'boAt', '₹500 boAt Audio Gear Voucher', '₹500 off audio gear, earphones and watches.', 'audio', 500, 750, 'Sound Deal'),
+						('sbx-250', 'Starbucks', '₹250 Starbucks Coffee Card', 'Enjoy handcrafted coffees and bakery treats.', 'food', 250, 500, 'Coffee Break')
+					ON CONFLICT (id) DO NOTHING;
+
 					ALTER TABLE "user" ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user';
 					ALTER TABLE "user" ADD COLUMN IF NOT EXISTS banned BOOLEAN DEFAULT FALSE;
 					ALTER TABLE "user" ADD COLUMN IF NOT EXISTS "banReason" TEXT;

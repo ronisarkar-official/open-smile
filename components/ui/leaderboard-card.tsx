@@ -125,7 +125,7 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 							</span>
 							<span className="inline-flex items-center gap-1 border-[length:var(--border-width)] border-black rounded-md bg-secondary px-2 py-0.5 font-mono text-[10px] font-black uppercase text-secondary-foreground shadow-brutal-xs">
 								<Sparkles className="size-3" />
-								Smile Score
+								Smile Points
 							</span>
 							{activeRunId === 'daily' && countdownText ? (
 								<span className="inline-flex items-center gap-1 border-[length:var(--border-width)] border-black rounded-md bg-primary px-2 py-0.5 font-mono text-[10px] font-black text-black shadow-brutal-xs">
@@ -212,7 +212,7 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 				{/* Podium Display (Top 3) */}
 				<LeaderboardPodium
 					rankings={podiumRankings}
-					unit="%"
+					unit="pts"
 					className="mb-8"
 				/>
 

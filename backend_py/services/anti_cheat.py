@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 from fastapi import HTTPException, status
 from typing import Optional
 
-COOLDOWN_SECONDS = 3600
 MAX_DAILY_CAPTURES = 5
 PHASH_HAMMING_THRESHOLD = 5
 
@@ -32,35 +31,6 @@ async def validate_anti_cheat(
                 detail="Liveness check failed. Please verify in real-time camera."
             )
 
-    cooldown_min_raw = settings_dict.get("min_capture_cooldown_minutes", 60)
-    try:
-        cooldown_min = int(cooldown_min_raw)
-    except (ValueError, TypeError):
-        cooldown_min = 60
-    cooldown_seconds = cooldown_min * 60
-
-    if cooldown_seconds > 0:
-        last_capture = await conn.fetchval(
-            """
-            SELECT MAX(created_at)
-            FROM smile_captures
-            WHERE user_id = $1
-            """,
-            user_id,
-        )
-        if last_capture:
-            now = datetime.now(timezone.utc)
-            if last_capture.tzinfo is None:
-                last_capture = last_capture.replace(tzinfo=timezone.utc)
-            elapsed_seconds = (now - last_capture).total_seconds()
-            if elapsed_seconds < cooldown_seconds:
-                remaining_seconds = int(cooldown_seconds - elapsed_seconds)
-                remaining_minutes = max(1, (remaining_seconds + 59) // 60)
-                raise HTTPException(
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail=f"Cooldown active. Try again in {remaining_minutes} minute{'s' if remaining_minutes > 1 else ''}."
-                )
-
     max_daily_raw = settings_dict.get("max_daily_captures_per_user", 10)
     try:
         max_daily = int(max_daily_raw)
@@ -71,7 +41,7 @@ async def validate_anti_cheat(
         """
         SELECT COUNT(*)
         FROM smile_captures
-        WHERE user_id = $1 AND created_at >= (NOW() AT TIME ZONE 'UTC')::date
+        WHERE user_id = $1 AND created_at AT TIME ZONE 'Asia/Kolkata' >= (NOW() AT TIME ZONE 'Asia/Kolkata')::date
         """,
         user_id,
     )
@@ -79,7 +49,7 @@ async def validate_anti_cheat(
     if (daily_count or 0) >= max_daily:
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail=f"Daily capture limit reached ({daily_count}/{max_daily}). Limit refreshes tonight at 12:00 AM (midnight)!"
+            detail=f"Daily capture limit reached ({daily_count}/{max_daily}). Limit refreshes tonight at 12:00 AM IST (midnight)!"
         )
 
     hash_check_enabled = settings_dict.get("image_hash_check_enabled", True)

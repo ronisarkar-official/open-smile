@@ -434,29 +434,49 @@ export async function getLeaderboardSmileRankings(
 ): Promise<LeaderboardSmileUserRow[]> {
 	const pool = getPool();
 	const query = endDate
-		? `SELECT 
+		? `WITH daily_user_points AS (
+			SELECT 
+				sc.user_id,
+				(sc.created_at AT TIME ZONE 'UTC')::date AS capture_date,
+				MAX(sc.smile_score)::int AS daily_points,
+				MIN(sc.created_at) AS first_capture_at
+			FROM smile_captures sc
+			WHERE sc.created_at >= $1 AND sc.created_at <= $2
+			  AND (sc.flagged IS NULL OR sc.flagged = false)
+			GROUP BY sc.user_id, (sc.created_at AT TIME ZONE 'UTC')::date
+		)
+		SELECT 
 			u.id AS user_id,
 			COALESCE(u.name, 'Smiler') AS user_name,
 			u.image AS avatar_url,
 			COALESCE(u.streak_count, 0) AS streak_count,
-			MAX(sc.smile_score)::int AS primary_value
+			SUM(dup.daily_points)::int AS primary_value
 		 FROM "user" u
-		 JOIN smile_captures sc ON sc.user_id = u.id
-		 WHERE sc.created_at >= $1 AND sc.created_at <= $2
+		 JOIN daily_user_points dup ON dup.user_id = u.id
 		 GROUP BY u.id, u.name, u.image, u.streak_count
-		 ORDER BY primary_value DESC, MIN(sc.created_at) ASC
+		 ORDER BY primary_value DESC, MIN(dup.first_capture_at) ASC
 		 LIMIT $3`
-		: `SELECT 
+		: `WITH daily_user_points AS (
+			SELECT 
+				sc.user_id,
+				(sc.created_at AT TIME ZONE 'UTC')::date AS capture_date,
+				MAX(sc.smile_score)::int AS daily_points,
+				MIN(sc.created_at) AS first_capture_at
+			FROM smile_captures sc
+			WHERE sc.created_at >= $1
+			  AND (sc.flagged IS NULL OR sc.flagged = false)
+			GROUP BY sc.user_id, (sc.created_at AT TIME ZONE 'UTC')::date
+		)
+		SELECT 
 			u.id AS user_id,
 			COALESCE(u.name, 'Smiler') AS user_name,
 			u.image AS avatar_url,
 			COALESCE(u.streak_count, 0) AS streak_count,
-			MAX(sc.smile_score)::int AS primary_value
+			SUM(dup.daily_points)::int AS primary_value
 		 FROM "user" u
-		 JOIN smile_captures sc ON sc.user_id = u.id
-		 WHERE sc.created_at >= $1
+		 JOIN daily_user_points dup ON dup.user_id = u.id
 		 GROUP BY u.id, u.name, u.image, u.streak_count
-		 ORDER BY primary_value DESC, MIN(sc.created_at) ASC
+		 ORDER BY primary_value DESC, MIN(dup.first_capture_at) ASC
 		 LIMIT $2`;
 
 	const params = endDate ? [startDate, endDate, limit] : [startDate, limit];
@@ -467,14 +487,23 @@ export async function getLeaderboardSmileRankings(
 	}
 
 	const fallback = await pool.query(
-		`SELECT 
+		`WITH daily_user_points AS (
+			SELECT 
+				sc.user_id,
+				(sc.created_at AT TIME ZONE 'UTC')::date AS capture_date,
+				MAX(sc.smile_score)::int AS daily_points
+			FROM smile_captures sc
+			WHERE (sc.flagged IS NULL OR sc.flagged = false)
+			GROUP BY sc.user_id, (sc.created_at AT TIME ZONE 'UTC')::date
+		)
+		SELECT 
 			u.id AS user_id,
 			COALESCE(u.name, 'Smiler') AS user_name,
 			u.image AS avatar_url,
 			COALESCE(u.streak_count, 0) AS streak_count,
-			COALESCE(MAX(sc.smile_score), 0)::int AS primary_value
+			COALESCE(SUM(dup.daily_points), 0)::int AS primary_value
 		 FROM "user" u
-		 LEFT JOIN smile_captures sc ON sc.user_id = u.id
+		 LEFT JOIN daily_user_points dup ON dup.user_id = u.id
 		 GROUP BY u.id, u.name, u.image, u.streak_count
 		 ORDER BY primary_value DESC, u.id ASC
 		 LIMIT $1`,
@@ -1077,11 +1106,89 @@ export async function getAdminVouchers() {
 		 FROM rewards`
 	);
 
+	let catalogRows = [];
+	try {
+		const catalogRes = await pool.query(
+			`SELECT id, brand_name as "brandName", title, description, category, image_url as "imageUrl", numeric_value as "numericValue", coins_cost as "coinsCost", highlight_tag as "highlightTag", is_active as "isActive", created_at as "createdAt"
+			 FROM vouchers_catalog
+			 ORDER BY created_at DESC`
+		);
+		catalogRows = catalogRes.rows;
+	} catch {}
+
 	return {
 		inventorySummary: inventoryRes.rows,
+		catalog: catalogRows,
 		totalClaims: claimsRes.rows[0]?.total_claims || 0,
 		totalCoinsSpent: Number(claimsRes.rows[0]?.total_spent) || 0,
 	};
+}
+
+export async function createAdminVoucher(params: {
+	adminId: string;
+	adminEmail: string;
+	brandName: string;
+	title: string;
+	description?: string;
+	category?: string;
+	imageUrl?: string;
+	numericValue: number;
+	coinsCost: number;
+	highlightTag?: string;
+	codes?: string[];
+}) {
+	const pool = getPool();
+	const cleanBrand = params.brandName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 4) || 'vouc';
+	const id = `${cleanBrand}-${params.numericValue}-${Date.now().toString(36).slice(-4)}`;
+
+	await pool.query(
+		`INSERT INTO vouchers_catalog (id, brand_name, title, description, category, image_url, numeric_value, coins_cost, highlight_tag, is_active, created_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, NOW())
+		 ON CONFLICT (id) DO UPDATE SET
+		 	brand_name = EXCLUDED.brand_name,
+		 	title = EXCLUDED.title,
+		 	description = EXCLUDED.description,
+		 	category = EXCLUDED.category,
+		 	image_url = EXCLUDED.image_url,
+		 	numeric_value = EXCLUDED.numeric_value,
+		 	coins_cost = EXCLUDED.coins_cost,
+		 	highlight_tag = EXCLUDED.highlight_tag`,
+		[
+			id,
+			params.brandName,
+			params.title,
+			params.description || `Redeem ${params.title} with smile coins.`,
+			params.category || 'ecommerce',
+			params.imageUrl || null,
+			params.numericValue,
+			params.coinsCost,
+			params.highlightTag || null,
+		]
+	);
+
+	let insertedCodes = 0;
+	if (params.codes && params.codes.length > 0) {
+		const cleanCodes = Array.from(new Set(params.codes.map((c) => c.trim()).filter(Boolean)));
+		for (const code of cleanCodes) {
+			const res = await pool.query(
+				`INSERT INTO voucher_inventory (voucher_id, brand_name, title, code, status, created_at)
+				 VALUES ($1, $2, $3, $4, 'available', NOW())
+				 ON CONFLICT (code) DO NOTHING`,
+				[id, params.brandName, params.title, code]
+			);
+			if (res.rowCount && res.rowCount > 0) insertedCodes++;
+		}
+	}
+
+	await logAdminAction(params.adminId, params.adminEmail, 'create_voucher', 'voucher', id, {
+		brandName: params.brandName,
+		title: params.title,
+		numericValue: params.numericValue,
+		coinsCost: params.coinsCost,
+		codesCount: insertedCodes,
+	});
+
+	return { success: true, voucherId: id, insertedCodes };
 }
 
 export async function adminSeedVoucherCodes(
@@ -1230,9 +1337,8 @@ export async function getSystemSettingsMap(): Promise<Record<string, any>> {
 		liveness_detection_enabled: true,
 		image_hash_check_enabled: true,
 		auto_flag_anomalies_enabled: true,
-		min_capture_cooldown_minutes: 60,
 		max_daily_captures_per_user: 10,
-		min_smile_score_threshold: 50,
+		min_smile_score_threshold: 11,
 		coin_multiplier: 1.0,
 		referral_reward_coins: 50,
 		referee_bonus_coins: 25,

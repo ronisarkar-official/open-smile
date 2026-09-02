@@ -99,7 +99,7 @@ const LeaderboardPodium = React.forwardRef<
       showValue = true,
       showAvatar = true,
       medalStyle = "classic",
-      unit = "%",
+      unit = "pts",
       ...props
     },
     ref

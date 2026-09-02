@@ -144,17 +144,6 @@ const ANTI_CHEAT_SWITCHES: SettingToggleConfig[] = [
 
 const ANTI_CHEAT_NUMBERS: SettingNumberConfig[] = [
 	{
-		key: "min_capture_cooldown_minutes",
-		label: "Capture Cooldown",
-		description: "Minimum minutes a user must wait between verified reward captures.",
-		defaultValue: 60,
-		min: 1,
-		max: 1440,
-		step: 1,
-		unit: "min",
-		icon: Shield,
-	},
-	{
 		key: "max_daily_captures_per_user",
 		label: "Daily Capture Cap",
 		description: "Maximum rewarded smile captures allowed per smiler per calendar day.",
@@ -169,7 +158,7 @@ const ANTI_CHEAT_NUMBERS: SettingNumberConfig[] = [
 		key: "min_smile_score_threshold",
 		label: "Min Score Threshold",
 		description: "Minimum genuine smile percentage score required to award coins.",
-		defaultValue: 50,
+		defaultValue: 11,
 		min: 10,
 		max: 95,
 		step: 1,
@@ -550,7 +539,7 @@ export default function AdminSettingsPage() {
 						Anti-Cheat & Verification Controls
 					</h2>
 					<p className="font-mono text-xs text-muted-foreground mt-0.5">
-						Facial biometric liveness verification, perceptual duplicate hashing, cooldown intervals, and caps
+						Facial biometric liveness verification, perceptual duplicate hashing, and daily capture caps
 					</p>
 				</div>
 

@@ -15,7 +15,6 @@ export interface SystemSettingsState {
 	liveness_detection_enabled: boolean;
 	image_hash_check_enabled: boolean;
 	auto_flag_anomalies_enabled: boolean;
-	min_capture_cooldown_minutes: number;
 	max_daily_captures_per_user: number;
 	min_smile_score_threshold: number;
 	coin_multiplier: number;
@@ -40,9 +39,8 @@ const DEFAULT_SETTINGS: SystemSettingsState = {
 	liveness_detection_enabled: true,
 	image_hash_check_enabled: true,
 	auto_flag_anomalies_enabled: true,
-	min_capture_cooldown_minutes: 60,
 	max_daily_captures_per_user: 10,
-	min_smile_score_threshold: 50,
+	min_smile_score_threshold: 11,
 	coin_multiplier: 1.0,
 	referral_reward_coins: 50,
 	referee_bonus_coins: 25,

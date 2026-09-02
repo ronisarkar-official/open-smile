@@ -132,37 +132,19 @@ async def get_capture_status(
         except (ValueError, TypeError):
             max_daily = 10
 
-        cooldown_min_raw = settings_dict.get("min_capture_cooldown_minutes", 60)
-        try:
-            cooldown_min = int(cooldown_min_raw)
-        except (ValueError, TypeError):
-            cooldown_min = 60
-
         daily_count = await conn.fetchval(
             """
             SELECT COUNT(*)
             FROM smile_captures
-            WHERE user_id = $1 AND created_at >= (NOW() AT TIME ZONE 'UTC')::date
+            WHERE user_id = $1 AND created_at AT TIME ZONE 'Asia/Kolkata' >= (NOW() AT TIME ZONE 'Asia/Kolkata')::date
             """,
             user_id,
         ) or 0
 
-        last_capture = await conn.fetchval(
-            "SELECT MAX(created_at) FROM smile_captures WHERE user_id = $1",
-            user_id,
-        )
-
-        now = datetime.now(timezone.utc)
-        cooldown_remaining_ms = 0
-        if last_capture and cooldown_min > 0:
-            if last_capture.tzinfo is None:
-                last_capture = last_capture.replace(tzinfo=timezone.utc)
-            elapsed_seconds = (now - last_capture).total_seconds()
-            cooldown_seconds = cooldown_min * 60
-            if elapsed_seconds < cooldown_seconds:
-                cooldown_remaining_ms = int((cooldown_seconds - elapsed_seconds) * 1000)
-
-        next_midnight = datetime(now.year, now.month, now.day, tzinfo=timezone.utc) + timedelta(days=1)
+        ist = timezone(timedelta(hours=5, minutes=30))
+        now_ist = datetime.now(ist)
+        next_midnight_ist = datetime(now_ist.year, now_ist.month, now_ist.day, tzinfo=ist) + timedelta(days=1)
+        next_midnight = next_midnight_ist.astimezone(timezone.utc)
         limit_reached = daily_count >= max_daily
 
         return {
@@ -171,7 +153,5 @@ async def get_capture_status(
             "captures_remaining": max(0, max_daily - daily_count),
             "limit_reached": limit_reached,
             "resets_at": next_midnight.isoformat(),
-            "cooldown_remaining_ms": cooldown_remaining_ms,
-            "cooldown_minutes": cooldown_min,
             "maintenance_mode": is_maintenance,
         }

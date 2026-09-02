@@ -120,6 +120,12 @@ export interface SmileDetectionResult {
 		eyeBlinkLeft: number;
 		eyeBlinkRight: number;
 	};
+	faceGeometry?: {
+		centerX: number;
+		centerY: number;
+		width: number;
+		height: number;
+	};
 }
 
 function distance(
@@ -252,6 +258,22 @@ export function computeSmileScore(
 	);
 	const score = Math.round(Math.pow(normalized, curve) * 100);
 
+	const noseTip = landmarks[1];
+	const leftCheek = landmarks[234];
+	const rightCheek = landmarks[454];
+	const forehead = landmarks[10];
+	const chin = landmarks[152];
+
+	const faceGeometry =
+		noseTip && leftCheek && rightCheek && forehead && chin ?
+			{
+				centerX: noseTip.x,
+				centerY: noseTip.y,
+				width: Math.abs(rightCheek.x - leftCheek.x),
+				height: Math.abs(chin.y - forehead.y),
+			}
+		:	undefined;
+
 	return {
 		hasFace: true,
 		score,
@@ -271,6 +293,7 @@ export function computeSmileScore(
 			eyeBlinkLeft,
 			eyeBlinkRight,
 		},
+		faceGeometry,
 	};
 }
 

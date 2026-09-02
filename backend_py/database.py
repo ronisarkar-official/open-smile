@@ -43,6 +43,20 @@ async def ensure_db_tables(pool: asyncpg.Pool) -> None:
             );
 
             CREATE INDEX IF NOT EXISTS idx_leaderboard_settlements_date ON leaderboard_settlements (period, period_date);
+
+            CREATE TABLE IF NOT EXISTS vouchers_catalog (
+                id TEXT PRIMARY KEY,
+                brand_name TEXT NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT,
+                category TEXT NOT NULL DEFAULT 'ecommerce',
+                image_url TEXT,
+                numeric_value INTEGER NOT NULL,
+                coins_cost INTEGER NOT NULL,
+                highlight_tag TEXT,
+                is_active BOOLEAN NOT NULL DEFAULT TRUE,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            );
             """
         )
 

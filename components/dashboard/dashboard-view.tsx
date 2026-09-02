@@ -16,7 +16,6 @@ import { CoinIcon } from '@/components/ui/coin-icon';
 import { Button } from '@/components/ui/button';
 import { COIN_BALANCE_EVENT } from '@/components/ui/user-coin-balance';
 import { USER_STREAK_EVENT } from '@/components/ui/user-streak';
-import { cn } from '@/lib/utils';
 
 export interface RecentSmile {
 	id: string;

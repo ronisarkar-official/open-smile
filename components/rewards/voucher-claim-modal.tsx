@@ -115,7 +115,7 @@ export function VoucherClaimModal({
     setIsSubmitting(true);
 
     try {
-      let res = await fetch('/api/rewards/claim', {
+      let res = await fetch('/api/v1/rewards/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -126,7 +126,7 @@ export function VoucherClaimModal({
       });
 
       if (!res.ok) {
-        res = await fetch('/api/v1/rewards/claim', {
+        res = await fetch('/api/rewards/claim', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

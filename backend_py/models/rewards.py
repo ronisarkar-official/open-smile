@@ -17,6 +17,7 @@ class VoucherItem(BaseModel):
     isPopular: Optional[bool] = False
     highlightTag: Optional[str] = None
     remainingInventory: Optional[int] = None
+    imageUrl: Optional[str] = None
 
 class ClaimVoucherRequest(BaseModel):
     voucher_id: str

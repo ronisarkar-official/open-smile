@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getPool } from '@/backend/db/client';
 import { requireServerUser } from '@/backend/auth/session';
-import { insertCoinLedgerEntry, getSystemSettingsMap } from '@/backend/db';
+import { getSystemSettingsMap } from '@/backend/db';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

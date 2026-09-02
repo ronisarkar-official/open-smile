@@ -272,7 +272,54 @@ def get_brand_url(brand_id: str) -> str:
     return urls.get(brand_id.lower(), "https://www.amazon.in")
 
 @router.get("/catalog", response_model=List[VoucherItem])
-async def get_catalog():
+async def get_catalog(pool: asyncpg.Pool = Depends(get_db_pool)):
+    async with pool.acquire() as conn:
+        try:
+            rows = await conn.fetch(
+                """
+                SELECT 
+                    vc.id, 
+                    vc.brand_name, 
+                    vc.title, 
+                    vc.description, 
+                    vc.category, 
+                    vc.image_url, 
+                    vc.numeric_value, 
+                    vc.coins_cost, 
+                    vc.highlight_tag,
+                    COUNT(vi.id) FILTER (WHERE vi.status = 'available')::int as remaining_inventory
+                FROM vouchers_catalog vc
+                LEFT JOIN voucher_inventory vi ON vc.id = vi.voucher_id
+                WHERE vc.is_active = true
+                GROUP BY vc.id, vc.brand_name, vc.title, vc.description, vc.category, vc.image_url, vc.numeric_value, vc.coins_cost, vc.highlight_tag
+                ORDER BY vc.numeric_value ASC
+                """
+            )
+            if rows:
+                items = []
+                for r in rows:
+                    brand_id = r["brand_name"].lower().replace(" ", "")
+                    items.append(VoucherItem(
+                        id=str(r["id"]),
+                        brandId=brand_id,
+                        brandName=r["brand_name"],
+                        category=r["category"] or "ecommerce",
+                        title=r["title"],
+                        valueFormatted=f"₹{r['numeric_value']:,}",
+                        numericValue=r["numeric_value"],
+                        coinsCost=r["coins_cost"],
+                        highlightTag=r["highlight_tag"],
+                        description=r["description"] or f"Redeem {r['title']} with your smile coins.",
+                        instructions=[f"Copy secret code and apply on {r['brand_name']} checkout."],
+                        logoBg="#FF2D78",
+                        imageUrl=r["image_url"],
+                        isPopular=r["numeric_value"] >= 500,
+                        remainingInventory=r["remaining_inventory"] or 0,
+                    ))
+                return items
+        except Exception:
+            pass
+
     return [VoucherItem(**v) for v in STATIC_VOUCHERS_CATALOG]
 
 @router.post("/claim", response_model=ClaimedVoucherResponse)

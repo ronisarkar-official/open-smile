@@ -29,7 +29,9 @@ export interface VoucherItem {
   isPopular?: boolean;
   isTrending?: boolean;
   logoBg: string;
-  accentColor: string;
+  accentColor?: string;
+  imageUrl?: string;
+  remainingInventory?: number;
 }
 
 export interface ClaimedVoucher {

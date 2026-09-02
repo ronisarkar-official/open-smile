@@ -1,13 +1,14 @@
-import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { getServerUser, isUserAdmin } from "@/backend/auth/session";
-import { AdminHeader } from "@/components/admin/admin-header";
-import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { AdminBootstrapClient } from "@/components/admin/admin-bootstrap-client";
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { getServerUser, isUserAdmin } from '@/backend/auth/session';
+import { AdminHeader } from '@/components/admin/admin-header';
+import { AdminSidebar } from '@/components/admin/admin-sidebar';
+import { AdminBootstrapClient } from '@/components/admin/admin-bootstrap-client';
 
 export const metadata: Metadata = {
-	title: "Admin Control Panel | Open Smile",
-	description: "Administrative control station for Open Smile economy, users, anti-cheat, and platform management.",
+	title: 'Admin Control Panel | Open Smile',
+	description:
+		'Administrative control station for Open Smile economy, users, anti-cheat, and platform management.',
 };
 
 export default async function AdminLayout({
@@ -18,7 +19,7 @@ export default async function AdminLayout({
 	const user = await getServerUser();
 
 	if (!user) {
-		redirect("/login?redirectTo=/admin");
+		redirect('/login?redirectTo=/admin');
 	}
 
 	if (!isUserAdmin(user)) {

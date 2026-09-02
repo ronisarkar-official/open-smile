@@ -108,7 +108,7 @@ export function ScratchCard({
 
     ctx.fillStyle = 'rgba(0,0,0,0.6)';
     ctx.font = '600 10px "Space Mono", monospace';
-    ctx.fillText('★ WIN UP TO 200 COINS ★', width / 2, height / 2 + 90);
+    ctx.fillText('★ SURPRISE REWARD INSIDE ★', width / 2, height / 2 + 90);
   }, [width, height, coverColor, coverText]);
 
   React.useEffect(() => {

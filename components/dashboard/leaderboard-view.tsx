@@ -9,6 +9,7 @@ import { useSession } from '@/lib/auth-client';
 import { useSystemSettings } from '@/hooks/use-system-settings';
 import { Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabaseClient } from '@/lib/supabase-client';
 
 interface PeriodData {
 	title: string;
@@ -98,6 +99,7 @@ export function LeaderboardView() {
 	const [selectedRunId, setSelectedRunId] = React.useState('weekly');
 	const [liveData, setLiveData] = React.useState<Record<string, PeriodData>>({});
 	const [loading, setLoading] = React.useState(true);
+	const cacheRef = React.useRef<Record<string, PeriodData>>({});
 
 	React.useEffect(() => {
 		if (settings.maintenance_mode || settings.leaderboard_enabled === false) {
@@ -106,30 +108,32 @@ export function LeaderboardView() {
 		}
 		let cancelled = false;
 
-		async function fetchLeaderboard(period: string) {
-			if (liveData[period]) {
+		async function fetchLeaderboard(period: string, force = false) {
+			if (!force && cacheRef.current[period]) {
 				setLoading(false);
 				return;
 			}
 
 			setLoading(true);
 			try {
-				let res = await fetch(`/api/leaderboard?period=${period}&metric=score`);
+				let res = await fetch(`/api/v1/leaderboard?period=${period}&metric=score`);
 				if (!res.ok) {
-					res = await fetch(`/api/v1/leaderboard?period=${period}&metric=score`);
+					res = await fetch(`/api/leaderboard?period=${period}&metric=score`);
 				}
 				if (res.ok && !cancelled) {
 					const json = await res.json();
+					const periodData: PeriodData = {
+						title: json.title,
+						fromDate: json.fromDate,
+						toDate: json.toDate,
+						resetAt: json.resetAt,
+						podium: json.podium || [],
+						rankings: json.rankings || [],
+					};
+					cacheRef.current[period] = periodData;
 					setLiveData((prev) => ({
 						...prev,
-						[period]: {
-							title: json.title,
-							fromDate: json.fromDate,
-							toDate: json.toDate,
-							resetAt: json.resetAt,
-							podium: json.podium || [],
-							rankings: json.rankings || [],
-						},
+						[period]: periodData,
 					}));
 				}
 			} catch {
@@ -139,8 +143,37 @@ export function LeaderboardView() {
 		}
 
 		fetchLeaderboard(selectedRunId);
-		return () => { cancelled = true; };
-	}, [selectedRunId, liveData]);
+
+		// Realtime live subscription to new smile captures
+		let channel: any = null;
+		if (supabaseClient) {
+			try {
+				channel = supabaseClient
+					.channel(`leaderboard-realtime-${selectedRunId}`)
+					.on(
+						'postgres_changes',
+						{
+							event: 'INSERT',
+							schema: 'public',
+							table: 'smile_captures',
+						},
+						() => {
+							if (!cancelled) {
+								fetchLeaderboard(selectedRunId, true);
+							}
+						}
+					)
+					.subscribe();
+			} catch {}
+		}
+
+		return () => {
+			cancelled = true;
+			if (channel && supabaseClient) {
+				supabaseClient.removeChannel(channel);
+			}
+		};
+	}, [selectedRunId, settings.maintenance_mode, settings.leaderboard_enabled]);
 
 	const currentData = liveData[selectedRunId];
 
