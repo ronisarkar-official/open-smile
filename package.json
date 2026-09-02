@@ -4,6 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:py": "uv run uvicorn api.index:app --port 8000 --reload",
+    "dev:all": "concurrently -k -n \"next,py\" -c \"cyan,magenta\" \"next dev\" \"uv run uvicorn api.index:app --port 8000 --reload\"",
+    "test:py": "python -m pytest backend_py/tests",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -48,6 +51,7 @@
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "concurrently": "^10.0.5",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",

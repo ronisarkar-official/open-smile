@@ -1,9 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { Camera, CircleDot, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { Camera, CircleDot, Sparkles, Lock, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useSession } from '@/lib/auth-client';
+import { useSystemSettings } from '@/hooks/use-system-settings';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
 	WebcamView,
@@ -54,6 +57,7 @@ export function CaptureFlow({
 	redirectTo = '/capture',
 	isGuestMode = false,
 }: CaptureFlowProps = {}) {
+	const { settings } = useSystemSettings();
 	const { data: session } = useSession();
 	const isLoggedIn = !!session?.user;
 
@@ -75,8 +79,38 @@ export function CaptureFlow({
 	const [isRewardClaimed, setIsRewardClaimed] = React.useState(false);
 	const [isSharingToExplore, setIsSharingToExplore] = React.useState(false);
 	const [isSharedToExplore, setIsSharedToExplore] = React.useState(false);
+	const { toast } = useToast();
 	const [shareMessage, setShareMessage] = React.useState<string | null>(null);
 	const [earnedCardId, setEarnedCardId] = React.useState<string | null>(null);
+
+	const [captureStatus, setCaptureStatus] = React.useState<{
+		daily_captures_used: number;
+		max_daily_captures: number;
+		captures_remaining: number;
+		limit_reached: boolean;
+		resets_at: string;
+		cooldown_remaining_ms: number;
+		cooldown_minutes: number;
+		maintenance_mode: boolean;
+	} | null>(null);
+
+	const fetchCaptureStatus = React.useCallback(async () => {
+		if (!session?.user) return;
+		try {
+			let res = await fetch('/api/v1/capture/status');
+			if (!res.ok) {
+				res = await fetch('/api/capture/status');
+			}
+			if (res.ok) {
+				const data = await res.json();
+				setCaptureStatus(data);
+			}
+		} catch {}
+	}, [session?.user]);
+
+	React.useEffect(() => {
+		fetchCaptureStatus();
+	}, [fetchCaptureStatus]);
 
 	const [countdownText, setCountdownText] = React.useState<string>('');
 	const [countdownNumber, setCountdownNumber] = React.useState<number | null>(
@@ -155,15 +189,26 @@ export function CaptureFlow({
 					});
 				}
 
-				if (res.ok) {
-					const data = await res.json();
-					if (data.card_id) {
-						setEarnedCardId(String(data.card_id));
+				const data = await res.json();
+				if (!res.ok) {
+					if (data.daily_limit_reached || res.status === 429) {
+						toast({
+							title: "Daily Limit Reached",
+							description: data.error || "Daily capture limit reached. Refreshes at midnight (12:00 AM).",
+							variant: "warning",
+						});
+						fetchCaptureStatus();
 					}
-					if (typeof data.coins_awarded === 'number') {
-						setCoinsAwarded(data.coins_awarded);
-					}
+					return;
 				}
+
+				if (data.card_id) {
+					setEarnedCardId(String(data.card_id));
+				}
+				if (typeof data.coins_awarded === 'number') {
+					setCoinsAwarded(data.coins_awarded);
+				}
+				fetchCaptureStatus();
 			} catch {}
 		},
 		[session?.user],
@@ -521,6 +566,64 @@ export function CaptureFlow({
 		badge: 'NEW',
 	};
 
+	if (settings.maintenance_mode) {
+		return (
+			<main
+				id="main-content"
+				className="mx-auto w-full max-w-[1280px] px-2 pb-12 pt-6 sm:px-4 sm:pt-10">
+				<div className="mx-auto max-w-xl text-center py-16 px-6 border-[length:var(--border-width)] border-black rounded-2xl bg-card shadow-brutal space-y-4 mt-6">
+					<div className="size-16 mx-auto rounded-2xl border-[length:var(--border-width)] border-black bg-destructive/20 text-destructive flex items-center justify-center shadow-brutal-xs">
+						<Lock className="size-8" strokeWidth={2.5} />
+					</div>
+					<h1 className="text-3xl font-black font-title tracking-tight text-foreground">
+						Capture Temporarily Offline
+					</h1>
+					<p className="font-mono text-xs text-muted-foreground leading-relaxed max-w-md mx-auto">
+						Platform maintenance mode is currently active. Camera captures, smile scoring, and coin reward submissions are temporarily paused for platform upgrades.
+					</p>
+					<div className="pt-4">
+						<Link href="/dashboard">
+							<Button className="font-mono text-xs font-black uppercase border-[length:var(--border-width)] border-black shadow-brutal-xs brutal-lift">
+								Return to Dashboard
+							</Button>
+						</Link>
+					</div>
+				</div>
+			</main>
+		);
+	}
+
+	if (captureStatus?.limit_reached) {
+		return (
+			<main
+				id="main-content"
+				className="mx-auto w-full max-w-[1280px] px-2 pb-12 pt-6 sm:px-4 sm:pt-10">
+				<div className="mx-auto max-w-xl text-center py-16 px-6 border-[length:var(--border-width)] border-black rounded-2xl bg-card shadow-brutal space-y-5 mt-6">
+					<div className="size-16 mx-auto rounded-2xl border-[length:var(--border-width)] border-black bg-amber-400 text-black flex items-center justify-center shadow-brutal-xs">
+						<Clock className="size-8" strokeWidth={2.5} />
+					</div>
+					<h1 className="text-3xl font-black font-title tracking-tight text-foreground">
+						Daily Capture Limit Reached
+					</h1>
+					<p className="font-mono text-xs text-muted-foreground leading-relaxed max-w-md mx-auto">
+						You have used all <strong className="text-foreground">{captureStatus.max_daily_captures} / {captureStatus.max_daily_captures}</strong> smile captures for today. Your daily quota automatically refreshes tonight at <strong className="text-foreground">12:00 AM (midnight)</strong>, matching the daily leaderboard reset!
+					</p>
+					<div className="inline-flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-muted px-4 py-2 font-mono text-xs font-bold text-foreground shadow-brutal-xs">
+						<Clock className="size-4 text-amber-500" />
+						<span>Refreshes tonight at midnight (12:00 AM)</span>
+					</div>
+					<div className="pt-3">
+						<Link href="/dashboard">
+							<Button className="font-mono text-xs font-black uppercase border-[length:var(--border-width)] border-black shadow-brutal-xs brutal-lift">
+								Return to Dashboard
+							</Button>
+						</Link>
+					</div>
+				</div>
+			</main>
+		);
+	}
+
 	return (
 		<main
 			id="main-content"
@@ -544,6 +647,13 @@ export function CaptureFlow({
 								</>
 							)}
 					</div>
+					{captureStatus && (
+						<div className="flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-card px-3 py-1.5 font-mono text-xs font-bold shadow-brutal-xs">
+							<Clock className="size-3.5 text-amber-500" />
+							<span>Captures Today: {captureStatus.daily_captures_used} / {captureStatus.max_daily_captures}</span>
+							<span className="text-muted-foreground">• Refreshes 12:00 AM</span>
+						</div>
+					)}
 				</div>
 			)}
 

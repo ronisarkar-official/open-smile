@@ -23,6 +23,7 @@ import {
   type ClaimedVoucher,
   type VoucherItem,
 } from '@/components/rewards/voucher-data';
+import { useSystemSettings } from '@/hooks/use-system-settings';
 import { cn } from '@/lib/utils';
 
 const milestones = [
@@ -64,6 +65,7 @@ const badges = [
 ];
 
 export default function RewardsPage() {
+  const { settings } = useSystemSettings();
   const [activeTab, setActiveTab] = React.useState<'marketplace' | 'my-vouchers' | 'scratch' | 'badges'>('marketplace');
   const { balance: userCoins, setBalance: setUserCoins } = useUserCoins();
   const [claimedVouchers, setClaimedVouchers] = React.useState<ClaimedVoucher[]>(INITIAL_CLAIMED_VOUCHERS);
@@ -176,11 +178,26 @@ export default function RewardsPage() {
 
       <div className="mt-6">
         {activeTab === 'marketplace' && (
-          <VoucherMarketplace
-            userCoins={userCoins}
-            onClaimSuccess={handleClaimSuccess}
-            onNavigateToTab={setActiveTab}
-          />
+          (settings.marketplace_enabled === false || settings.maintenance_mode) ? (
+            <div className="mx-auto max-w-xl text-center py-16 px-6 border-[length:var(--border-width)] border-black rounded-2xl bg-card shadow-brutal space-y-4">
+              <div className="size-16 mx-auto rounded-2xl border-[length:var(--border-width)] border-black bg-muted flex items-center justify-center shadow-brutal-xs">
+                <ShoppingBag className="size-8 text-muted-foreground" />
+              </div>
+              <h2 className="text-2xl font-black font-title tracking-tight">Voucher Marketplace Paused</h2>
+              <p className="font-mono text-xs text-muted-foreground leading-relaxed">
+                {settings.maintenance_mode
+                  ? "Platform maintenance is currently active. Gift voucher redemptions are temporarily paused."
+                  : "Gift voucher redemption is temporarily closed by platform administrators."}{' '}
+                Your accumulated coins remain safely stored!
+              </p>
+            </div>
+          ) : (
+            <VoucherMarketplace
+              userCoins={userCoins}
+              onClaimSuccess={handleClaimSuccess}
+              onNavigateToTab={setActiveTab}
+            />
+          )
         )}
 
         {activeTab === 'my-vouchers' && (

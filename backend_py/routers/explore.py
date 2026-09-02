@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 import asyncpg
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 from backend_py.database import get_db_pool
 from backend_py.dependencies import get_current_user, get_optional_user
@@ -61,6 +61,21 @@ async def get_explore_feed(
         order_clause = "ep.likes_count DESC, ep.created_at DESC"
 
     async with pool.acquire() as conn:
+        await conn.execute(
+            """
+            WITH expired AS (
+                SELECT id, image_url FROM explore_posts WHERE created_at <= NOW() - INTERVAL '24 hours'
+            ),
+            del_likes AS (
+                DELETE FROM explore_likes WHERE post_id IN (SELECT id FROM expired)
+            ),
+            del_posts AS (
+                DELETE FROM posts WHERE id IN (SELECT id FROM expired)
+            )
+            DELETE FROM explore_posts WHERE id IN (SELECT id FROM expired);
+            """
+        )
+
         total_count = await conn.fetchval(
             """
             SELECT COUNT(*)
@@ -97,7 +112,15 @@ async def get_explore_feed(
 
     bg_classes = ["bg-primary", "bg-accent", "bg-secondary", "bg-success"]
     posts = []
+    now_utc = datetime.now(timezone.utc)
     for idx, r in enumerate(rows):
+        created_at = r["created_at"]
+        if created_at.tzinfo is None:
+            created_at = created_at.replace(tzinfo=timezone.utc)
+        expires_at = created_at + timedelta(hours=24)
+        secs_left = max(0, int((expires_at - now_utc).total_seconds()))
+        hours_left = max(1, (secs_left + 3599) // 3600)
+
         posts.append(
             ExplorePostItem(
                 id=str(r["id"]),
@@ -109,6 +132,7 @@ async def get_explore_feed(
                 imageUrl=r["image_url"],
                 likes=r["likes_count"] or 0,
                 timeAgo=format_time_ago(r["created_at"]),
+                expiresIn=f"{hours_left}h left",
                 isLikedByMe=bool(r["is_liked_by_me"]),
                 bg=bg_classes[idx % len(bg_classes)],
             )

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 import asyncpg
+from datetime import datetime, timezone, timedelta
 from backend_py.database import get_db_pool
 from backend_py.dependencies import get_current_user
 from backend_py.models.capture import CaptureSubmitRequest, CaptureSubmitResponse
@@ -19,6 +20,15 @@ async def submit_capture(
     user_id = current_user["user_id"]
 
     async with pool.acquire() as conn:
+        maintenance_val = await conn.fetchval(
+            "SELECT value FROM system_settings WHERE key = 'maintenance_mode'"
+        )
+        if maintenance_val is True or str(maintenance_val).lower() == 'true':
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Platform maintenance mode is active. Capture submissions are temporarily paused."
+            )
+
         async with conn.transaction():
             await validate_anti_cheat(
                 conn=conn,
@@ -28,7 +38,27 @@ async def submit_capture(
             )
 
             streak_count, streak_multiplier = await update_user_streak(conn, user_id)
-            base_coins, total_coins = calculate_smile_coins(payload.smile_score, streak_multiplier)
+            base_coins, calculated_coins = calculate_smile_coins(payload.smile_score, streak_multiplier)
+
+            settings_rows = await conn.fetch("SELECT key, value FROM system_settings")
+            settings_dict = {r["key"]: r["value"] for r in settings_rows}
+
+            min_score_raw = settings_dict.get("min_smile_score_threshold", 50)
+            try:
+                min_score = int(min_score_raw)
+            except (ValueError, TypeError):
+                min_score = 50
+
+            multiplier_raw = settings_dict.get("coin_multiplier", 1.0)
+            try:
+                multiplier = float(multiplier_raw)
+            except (ValueError, TypeError):
+                multiplier = 1.0
+
+            if payload.smile_score < min_score:
+                total_coins = 0
+            else:
+                total_coins = max(1, round(calculated_coins * multiplier))
 
             capture_id = await conn.fetchval(
                 """
@@ -82,3 +112,66 @@ async def submit_capture(
         card_id=str(card_id) if card_id else None,
         is_scratched=False,
     )
+
+@router.get("/status")
+async def get_capture_status(
+    current_user: dict = Depends(get_current_user),
+    pool: asyncpg.Pool = Depends(get_db_pool),
+):
+    user_id = current_user["user_id"]
+    async with pool.acquire() as conn:
+        settings_rows = await conn.fetch("SELECT key, value FROM system_settings")
+        settings_dict = {r["key"]: r["value"] for r in settings_rows}
+
+        maintenance = settings_dict.get("maintenance_mode", False)
+        is_maintenance = maintenance is True or str(maintenance).lower() == "true"
+
+        max_daily_raw = settings_dict.get("max_daily_captures_per_user", 10)
+        try:
+            max_daily = int(max_daily_raw)
+        except (ValueError, TypeError):
+            max_daily = 10
+
+        cooldown_min_raw = settings_dict.get("min_capture_cooldown_minutes", 60)
+        try:
+            cooldown_min = int(cooldown_min_raw)
+        except (ValueError, TypeError):
+            cooldown_min = 60
+
+        daily_count = await conn.fetchval(
+            """
+            SELECT COUNT(*)
+            FROM smile_captures
+            WHERE user_id = $1 AND created_at >= (NOW() AT TIME ZONE 'UTC')::date
+            """,
+            user_id,
+        ) or 0
+
+        last_capture = await conn.fetchval(
+            "SELECT MAX(created_at) FROM smile_captures WHERE user_id = $1",
+            user_id,
+        )
+
+        now = datetime.now(timezone.utc)
+        cooldown_remaining_ms = 0
+        if last_capture and cooldown_min > 0:
+            if last_capture.tzinfo is None:
+                last_capture = last_capture.replace(tzinfo=timezone.utc)
+            elapsed_seconds = (now - last_capture).total_seconds()
+            cooldown_seconds = cooldown_min * 60
+            if elapsed_seconds < cooldown_seconds:
+                cooldown_remaining_ms = int((cooldown_seconds - elapsed_seconds) * 1000)
+
+        next_midnight = datetime(now.year, now.month, now.day, tzinfo=timezone.utc) + timedelta(days=1)
+        limit_reached = daily_count >= max_daily
+
+        return {
+            "daily_captures_used": daily_count,
+            "max_daily_captures": max_daily,
+            "captures_remaining": max(0, max_daily - daily_count),
+            "limit_reached": limit_reached,
+            "resets_at": next_midnight.isoformat(),
+            "cooldown_remaining_ms": cooldown_remaining_ms,
+            "cooldown_minutes": cooldown_min,
+            "maintenance_mode": is_maintenance,
+        }

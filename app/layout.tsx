@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk, Space_Mono, Sora } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/session-provider";
 import { ToastProvider } from "@/hooks/use-toast";
+import { SystemSettingsProvider } from "@/hooks/use-system-settings";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { PwaProvider } from "@/components/pwa/pwa-provider";
@@ -109,10 +110,12 @@ export default function RootLayout({
         <ThemeProvider defaultTheme="light" storageKey="app-theme">
           <SessionProvider>
             <ToastProvider>
-              <PwaProvider>
-                {children}
-                <Toaster />
-              </PwaProvider>
+              <SystemSettingsProvider>
+                <PwaProvider>
+                  {children}
+                  <Toaster />
+                </PwaProvider>
+              </SystemSettingsProvider>
             </ToastProvider>
           </SessionProvider>
         </ThemeProvider>

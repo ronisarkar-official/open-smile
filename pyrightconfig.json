@@ -1,0 +1,8 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "include": [
+    "api",
+    "backend_py"
+  ]
+}

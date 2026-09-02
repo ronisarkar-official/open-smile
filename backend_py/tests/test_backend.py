@@ -72,6 +72,7 @@ async def test_leaderboard_endpoint():
         r_daily = await client.get("/api/v1/leaderboard?period=daily")
         assert r_daily.status_code == 200
         assert r_daily.json()["period"] == "daily"
+        assert r_daily.json()["resetAt"] is not None
 
         r_monthly = await client.get("/api/v1/leaderboard?period=monthly")
         assert r_monthly.status_code == 200
@@ -116,3 +117,16 @@ async def test_cron_keepalive():
         response = await client.get("/api/v1/cron/keepalive")
         assert response.status_code == 200
         assert response.json()["status"] == "ok"
+
+@pytest.mark.anyio
+async def test_cron_leaderboard_settlement():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        response = await client.post(
+            "/api/v1/cron/leaderboard-settlement",
+            headers={"x-cron-secret": "open-smile-cron-secret-2026"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert "status" in data
+        assert "date" in data
+

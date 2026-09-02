@@ -29,6 +29,7 @@ class LeaderboardResponse(BaseModel):
     title: str
     fromDate: str
     toDate: str
+    resetAt: Optional[str] = None
     podium: List[PodiumEntry]
     rankings: List[RankingEntry]
     currentUserRank: Optional[UserRank] = None

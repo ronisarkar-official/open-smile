@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import { CoinIcon } from '@/components/ui/coin-icon';
 import { Button } from '@/components/ui/button';
+import { useSystemSettings } from '@/hooks/use-system-settings';
+import { useToast } from '@/hooks/use-toast';
 import type { VoucherItem, ClaimedVoucher } from './voucher-data';
 
 interface VoucherClaimModalProps {
@@ -72,6 +74,12 @@ export function VoucherClaimModal({
   onConfirmClaim,
   onNavigateToTab,
 }: VoucherClaimModalProps) {
+  const { settings } = useSystemSettings();
+  const { toast } = useToast();
+  const isMaintenance = Boolean(settings.maintenance_mode);
+  const isMarketplaceDisabled = settings.marketplace_enabled === false;
+  const isRedemptionBlocked = isMaintenance || isMarketplaceDisabled;
+
   const [copiedCode, setCopiedCode] = React.useState(false);
   const [copiedPin, setCopiedPin] = React.useState(false);
   const [claimedData, setClaimedData] = React.useState<ClaimedVoucher | null>(null);
@@ -93,11 +101,21 @@ export function VoucherClaimModal({
   const coinsNeeded = voucher.coinsCost - userCoins;
 
   const handleClaim = async () => {
+    if (isRedemptionBlocked) {
+      toast({
+        title: "Redemptions Paused",
+        description: isMaintenance
+          ? "Voucher claims are temporarily paused during platform maintenance."
+          : "The voucher marketplace is currently closed.",
+        variant: "error",
+      });
+      return;
+    }
     if (!hasEnoughCoins) return;
     setIsSubmitting(true);
 
     try {
-      const res = await fetch('/api/v1/rewards/claim', {
+      let res = await fetch('/api/rewards/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -107,64 +125,54 @@ export function VoucherClaimModal({
         }),
       });
 
-      if (res.ok) {
-        const json = await res.json();
-        const serverClaim: ClaimedVoucher = {
-          id: json.id,
-          voucherId: json.voucherId,
-          brandName: json.brandName,
-          title: json.title,
-          valueFormatted: json.valueFormatted,
-          code: json.code,
-          pin: json.pin || '7492',
-          claimedAt: json.claimedAt,
-          expiresAt: json.expiresAt,
-          coinsSpent: json.coinsSpent,
-          logoBg: json.logoBg,
-          websiteUrl: json.websiteUrl,
-          status: 'active',
-        };
-        setClaimedData(serverClaim);
-        onConfirmClaim(voucher, serverClaim);
-        return;
+      if (!res.ok) {
+        res = await fetch('/api/v1/rewards/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            voucher_id: voucher.id,
+            brand: voucher.brandName,
+            coins_cost: voucher.coinsCost,
+          }),
+        });
       }
-    } catch {}
 
-    const { code, pin } = generateVoucherCode(voucher.brandId);
-    const today = new Date();
-    const expiryDate = new Date();
-    expiryDate.setFullYear(today.getFullYear() + 1);
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || json.detail || "Failed to claim voucher");
+      }
 
-    const formattedToday = today.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-    const formattedExpiry = expiryDate.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
-
-    const newClaim: ClaimedVoucher = {
-      id: `cv-${Date.now()}`,
-      voucherId: voucher.id,
-      brandName: voucher.brandName,
-      title: voucher.title,
-      valueFormatted: voucher.valueFormatted,
-      code,
-      pin,
-      claimedAt: formattedToday,
-      expiresAt: formattedExpiry,
-      coinsSpent: voucher.coinsCost,
-      logoBg: voucher.logoBg,
-      websiteUrl: getBrandUrl(voucher.brandId),
-      status: 'active',
-    };
-
-    setClaimedData(newClaim);
-    onConfirmClaim(voucher, newClaim);
-    setIsSubmitting(false);
+      const serverClaim: ClaimedVoucher = {
+        id: json.id,
+        voucherId: json.voucherId,
+        brandName: json.brandName,
+        title: json.title,
+        valueFormatted: json.valueFormatted,
+        code: json.code,
+        pin: json.pin || '7492',
+        claimedAt: json.claimedAt,
+        expiresAt: json.expiresAt,
+        coinsSpent: json.coinsSpent,
+        logoBg: json.logoBg,
+        websiteUrl: json.websiteUrl,
+        status: 'active',
+      };
+      setClaimedData(serverClaim);
+      onConfirmClaim(voucher, serverClaim);
+      toast({
+        title: "Voucher Claimed!",
+        description: `Successfully claimed ${voucher.title}.`,
+        variant: "success",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Claim Failed",
+        description: err.message || "Could not claim voucher. Please try again later.",
+        variant: "error",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const copyToClipboard = (text: string, isPin = false) => {
@@ -389,6 +397,17 @@ export function VoucherClaimModal({
               </ul>
             </div>
 
+            {isRedemptionBlocked && (
+              <div className="p-3 bg-destructive/15 border border-destructive rounded-lg font-mono text-xs font-bold text-destructive flex items-center gap-2">
+                <Lock className="size-4 shrink-0" />
+                <span>
+                  {isMaintenance
+                    ? "Platform maintenance active: Voucher claims are temporarily suspended."
+                    : "Voucher marketplace is currently closed by administrator."}
+                </span>
+              </div>
+            )}
+
             <div className="flex flex-col-reverse sm:flex-row gap-2.5 pt-2">
               <Button
                 variant="outline"
@@ -401,11 +420,19 @@ export function VoucherClaimModal({
 
               <Button
                 onClick={handleClaim}
-                disabled={isSubmitting}
-                className="flex-1 border-[length:var(--border-width)] border-black rounded-lg bg-primary text-primary-foreground font-title font-black text-xs uppercase tracking-wider h-11 shadow-brutal active:translate-x-[2px] active:translate-y-[2px] active:shadow-none gap-2"
+                disabled={isSubmitting || isRedemptionBlocked}
+                className="flex-1 border-[length:var(--border-width)] border-black rounded-lg bg-primary text-primary-foreground font-title font-black text-xs uppercase tracking-wider h-11 shadow-brutal active:translate-x-[2px] active:translate-y-[2px] active:shadow-none gap-2 disabled:opacity-50"
               >
                 <CoinIcon className="size-4" />
-                <span>{isSubmitting ? 'Issuing Code...' : `Confirm & Redeem (${voucher.coinsCost})`}</span>
+                <span>
+                  {isSubmitting
+                    ? 'Issuing Code...'
+                    : isMaintenance
+                    ? 'Claims Paused (Maintenance)'
+                    : isMarketplaceDisabled
+                    ? 'Marketplace Closed'
+                    : `Confirm & Redeem (${voucher.coinsCost})`}
+                </span>
               </Button>
             </div>
           </div>

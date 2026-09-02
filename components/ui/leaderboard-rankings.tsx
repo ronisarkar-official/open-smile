@@ -92,7 +92,7 @@ export const LeaderboardRankings = React.forwardRef<HTMLDivElement, LeaderboardR
 
               const formattedValue =
                 typeof item.value === "number"
-                  ? item.value.toLocaleString()
+                  ? `${item.value}%`
                   : item.value
 
               const change = item.change ?? 0

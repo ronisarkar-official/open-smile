@@ -17,6 +17,7 @@ import {
 import { CoinIcon } from '@/components/ui/coin-icon';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useSystemSettings } from '@/hooks/use-system-settings';
 import { cn } from '@/lib/utils';
 import {
   VOUCHER_CATEGORIES,
@@ -40,6 +41,11 @@ export function VoucherMarketplace({
   onClaimSuccess,
   onNavigateToTab,
 }: VoucherMarketplaceProps) {
+  const { settings } = useSystemSettings();
+  const isMaintenance = Boolean(settings.maintenance_mode);
+  const isMarketplaceDisabled = settings.marketplace_enabled === false;
+  const isRedemptionBlocked = isMaintenance || isMarketplaceDisabled;
+
   const [selectedCategory, setSelectedCategory] = React.useState<VoucherCategory>('all');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [onlyAffordable, setOnlyAffordable] = React.useState(false);
@@ -90,6 +96,7 @@ export function VoucherMarketplace({
   const affordableCount = VOUCHERS_CATALOG.filter((v) => userCoins >= v.coinsCost).length;
 
   const handleOpenClaim = (voucher: VoucherItem) => {
+    if (isRedemptionBlocked) return;
     setSelectedVoucher(voucher);
     setIsModalOpen(true);
   };
@@ -101,6 +108,19 @@ export function VoucherMarketplace({
 
   return (
     <div className="space-y-6">
+      {isRedemptionBlocked && (
+        <div className="p-4 bg-destructive/15 border-[length:var(--border-width)] border-destructive rounded-xl font-mono text-xs font-bold text-destructive flex items-center gap-3 shadow-brutal-xs">
+          <Lock className="size-5 shrink-0" />
+          <div>
+            <span className="font-black uppercase">Voucher Claims Suspended: </span>
+            <span>
+              {isMaintenance
+                ? "Platform maintenance is in progress. Redemptions are temporarily paused."
+                : "The voucher marketplace is currently closed by administrators."}
+            </span>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
@@ -259,14 +279,22 @@ export function VoucherMarketplace({
 
                   <Button
                     onClick={() => handleOpenClaim(voucher)}
+                    disabled={isRedemptionBlocked}
                     className={cn(
-                      'w-full border-[length:var(--border-width)] border-black font-title font-black text-xs uppercase tracking-wider h-10 gap-2 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer',
-                      isAffordable
+                      'w-full border-[length:var(--border-width)] border-black font-title font-black text-xs uppercase tracking-wider h-10 gap-2 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
+                      isRedemptionBlocked
+                        ? 'bg-muted text-muted-foreground'
+                        : isAffordable
                         ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                         : 'bg-card text-muted-foreground hover:text-foreground hover:bg-muted'
                     )}
                   >
-                    {isAffordable ? (
+                    {isRedemptionBlocked ? (
+                      <>
+                        <Lock className="size-3.5" />
+                        <span>Claims Paused</span>
+                      </>
+                    ) : isAffordable ? (
                       <>
                         <Gift className="size-4" strokeWidth={2.5} />
                         <span>Redeem Voucher</span>

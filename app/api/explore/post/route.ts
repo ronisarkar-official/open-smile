@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getPool } from '@/backend/db/client';
 import { requireServerUser } from '@/backend/auth/session';
-import { insertCoinLedgerEntry } from '@/backend/db';
+import { insertCoinLedgerEntry, getSystemSettingsMap } from '@/backend/db';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -11,6 +11,11 @@ export async function POST(request: NextRequest) {
 	try {
 		const { user, error } = await requireServerUser();
 		if (!user) return error;
+
+		const settings = await getSystemSettingsMap();
+		if (settings.explore_posting_enabled === false || settings.explore_feed_enabled === false) {
+			return NextResponse.json({ error: 'Community post submissions are currently disabled.' }, { status: 403 });
+		}
 
 		const body = await request.json();
 		const { image_url, smile_score, caption } = body;

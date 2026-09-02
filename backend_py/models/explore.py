@@ -11,6 +11,7 @@ class ExplorePostItem(BaseModel):
     imageUrl: str
     likes: int
     timeAgo: str
+    expiresIn: Optional[str] = None
     isLikedByMe: bool = False
     bg: str = "bg-primary"
 

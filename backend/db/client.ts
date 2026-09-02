@@ -25,7 +25,12 @@ export function getPool(): Pool {
 		);
 	}
 
-	_pool = new Pool({ connectionString: DATABASE_URL });
+	_pool = new Pool({
+		connectionString: DATABASE_URL,
+		max: 20,
+		idleTimeoutMillis: 30000,
+		connectionTimeoutMillis: 8000,
+	});
 
 	if (process.env.NODE_ENV === "development") {
 		globalForPg._pgPool = _pool;

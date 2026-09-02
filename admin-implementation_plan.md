@@ -8,11 +8,13 @@ This implementation plan outlines the architecture and execution strategy for bu
 > **Admin Access Authorization:**
 > - Access to `/admin` will be strictly guarded. A user is recognized as an admin if:
 >   1. Their `user.role === 'admin'` in the database.
->   2. OR their email is specified in the `ADMIN_EMAILS` environment variable (e.g., `ADMIN_EMAILS=your-email@example.com`).
+>   2. OR their email is specified in the `ADMIN_EMAILS` environment variable (e.g., `ADMIN_EMAILS=ronisarkar10938@gmail.com`).
+And admin can add another admin.
 > - We will also include an initial bootstrap helper API for development environments so you can promote your own user account to `admin` with a single click.
 
 > [!NOTE]
 > All administrative database operations adhere strictly to the project's **Supabase Postgres + raw `pg` pool** architecture (`backend/db/collections.ts`) with zero ORM and parameterized queries. All coin adjustments flow through `coin_ledger` to maintain an immutable, auditable economy.
+
 
 ---
 
@@ -111,8 +113,6 @@ app/admin/
 - [NEW] `app/admin/settings/page.tsx`: Dynamic Feature Flags (Maintenance mode, Marketplace switch, Explore switch) & Economy Tuners (Coin multiplier, Cooldown minutes, Referral rewards) + Database Vacuum tool.
 - [NEW] `app/admin/logs/page.tsx`: Admin Audit Trail viewer with JSON inspection.
 
-#### [MODIFY] [components/dashboard/sidebar.tsx](file:///d:/open-smile/components/dashboard/sidebar.tsx)
-- Add quick access link to `/admin` for users with `admin` role or authorized admin email.
 
 ---
 

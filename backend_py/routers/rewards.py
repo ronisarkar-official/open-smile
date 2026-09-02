@@ -296,6 +296,24 @@ async def claim_voucher(
     expires_at = now + timedelta(days=365)
 
     async with pool.acquire() as conn:
+        maintenance_val = await conn.fetchval(
+            "SELECT value FROM system_settings WHERE key = 'maintenance_mode'"
+        )
+        if maintenance_val is True or str(maintenance_val).lower() == 'true':
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Platform maintenance mode is active. Voucher claims are temporarily paused."
+            )
+
+        marketplace_val = await conn.fetchval(
+            "SELECT value FROM system_settings WHERE key = 'marketplace_enabled'"
+        )
+        if marketplace_val is False or str(marketplace_val).lower() == 'false':
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Voucher marketplace is currently disabled by administrator."
+            )
+
         async with conn.transaction():
             await deduct_coins(conn, user_id, coins_cost, "voucher_claim")
 

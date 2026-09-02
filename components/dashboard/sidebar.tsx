@@ -41,6 +41,7 @@ import {
 	UserPlus,
 	Compass,
 	Download,
+	Lock,
 } from 'lucide-react';
 import { usePwaContext } from '@/components/pwa/pwa-provider';
 import { IosInstallGuide } from '@/components/pwa/ios-install-guide';
@@ -50,6 +51,7 @@ import type { SettingsSection } from '@/components/settings/settings-shared';
 import { cn } from '@/lib/utils';
 import { CoinIcon } from '@/components/ui/coin-icon';
 import { UserCoinBalance, UserStreak } from '@/components/icons';
+import { useSystemSettings } from '@/hooks/use-system-settings';
 
 function ExploreNaviIcon({ className }: { className?: string }) {
 	return (
@@ -261,6 +263,8 @@ export const DashboardSidebar = ({
 			.join('')
 			.toUpperCase()
 			.slice(0, 2) || 'U';
+
+	const { settings } = useSystemSettings();
 
 	const isActive = (url: string) => pathname === url;
 
@@ -540,6 +544,12 @@ export const DashboardSidebar = ({
 							</div>
 						</div>
 					</header>
+
+					{settings.maintenance_mode ? (
+						<div className="bg-destructive text-destructive-foreground font-mono text-xs font-black uppercase px-4 py-2 text-center border-b-[length:var(--border-width)] border-black flex items-center justify-center gap-2">
+							<span>⚠️ Maintenance Mode Active — Camera captures and voucher claims are temporarily paused</span>
+						</div>
+					) : null}
 
 					<div className="flex flex-1 flex-col gap-4 p-4 pt-4 pb-24 md:pb-8">
 						{children}

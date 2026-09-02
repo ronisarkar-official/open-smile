@@ -80,14 +80,11 @@ interface LeaderboardPodiumProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof podiumVariants> {
-  /** Top 3 rankings (expects at least 1, ideally 3) */
   rankings: LeaderboardRanking[]
-  /** Show value below name */
   showValue?: boolean
-  /** Show avatar */
   showAvatar?: boolean
-  /** Crown badge style variant */
   medalStyle?: "classic" | "modern" | "minimal"
+  unit?: string
 }
 
 const LeaderboardPodium = React.forwardRef<
@@ -102,6 +99,7 @@ const LeaderboardPodium = React.forwardRef<
       showValue = true,
       showAvatar = true,
       medalStyle = "classic",
+      unit = "%",
       ...props
     },
     ref
@@ -265,7 +263,7 @@ const LeaderboardPodium = React.forwardRef<
 
               {/* Value */}
               {showValue && (
-                <div className="flex items-baseline gap-1 mt-0.5 sm:mt-1">
+                <div className="flex items-baseline gap-0.5 mt-0.5 sm:mt-1">
                   <span
                     className={cn(
                       "font-mono font-bold tracking-tight text-foreground tabular-nums",
@@ -274,9 +272,11 @@ const LeaderboardPodium = React.forwardRef<
                   >
                     {ranking.value.toLocaleString()}
                   </span>
-                  <span className="text-muted-foreground font-mono text-[9px] sm:text-[11px] uppercase">
-                    pts
-                  </span>
+                  {unit && (
+                    <span className="text-muted-foreground font-mono text-[9px] sm:text-[11px] font-bold uppercase">
+                      {unit}
+                    </span>
+                  )}
                 </div>
               )}
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cleanupExpiredOtpCodes, cleanupExpiredRateLimits } from "@/backend/db";
+import { cleanupExpiredOtpCodes, cleanupExpiredRateLimits, cleanupExpiredExplorePosts } from "@/backend/db";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -12,13 +12,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await Promise.all([
+    const [, , exploreClean] = await Promise.all([
       cleanupExpiredOtpCodes(),
       cleanupExpiredRateLimits(),
+      cleanupExpiredExplorePosts(),
     ]);
 
     return NextResponse.json(
-      { success: true, message: "Cleanup completed" },
+      { success: true, message: "Cleanup completed", deletedExplorePosts: exploreClean.deletedCount },
       { status: 200 }
     );
   } catch (error) {

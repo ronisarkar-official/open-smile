@@ -394,6 +394,10 @@ export function SmileResultScreen({
 								Capture Again
 							</Button>
 						</div>
+
+						<p className="text-[10px] font-mono text-muted-foreground text-center">
+							🔒 Privacy notice: Shared photos auto-delete from the feed and CDN after 24 hours.
+						</p>
 					</div>
 				</motion.div>
 			</div>

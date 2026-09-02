@@ -14,6 +14,8 @@ from backend_py.routers import (
     users,
 )
 
+from fastapi.responses import RedirectResponse
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_db_pool()
@@ -22,11 +24,17 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Open Smile API",
+    description="Gamified Smile-Recognition Rewards Engine, Anti-Cheat, and Ledger System",
     version="1.0.0",
-    docs_url="/api/py/docs",
+    docs_url="/docs",
+    redoc_url="/redoc",
     openapi_url="/api/py/openapi.json",
     lifespan=lifespan,
 )
+
+@app.get("/api/py/docs", include_in_schema=False)
+async def redirect_docs():
+    return RedirectResponse(url="/docs")
 
 app.add_middleware(
     CORSMiddleware,

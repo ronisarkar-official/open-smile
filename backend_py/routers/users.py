@@ -69,20 +69,20 @@ async def get_my_dashboard_stats(
         # Calculate daily rank
         daily_rank = await conn.fetchval(
             """
-            WITH daily_totals AS (
+            WITH daily_scores AS (
                 SELECT 
                     user_id,
-                    COALESCE(SUM(coins), 0) AS coins_today
-                FROM coin_ledger
+                    MAX(smile_score) AS max_score
+                FROM smile_captures
                 WHERE created_at >= (NOW() AT TIME ZONE 'UTC')::date
                 GROUP BY user_id
             ),
             ranked AS (
                 SELECT 
                     user_id,
-                    DENSE_RANK() OVER (ORDER BY coins_today DESC) as rk
-                FROM daily_totals
-                WHERE coins_today > 0
+                    DENSE_RANK() OVER (ORDER BY max_score DESC) as rk
+                FROM daily_scores
+                WHERE max_score > 0
             )
             SELECT rk FROM ranked WHERE user_id = $1
             """,
@@ -187,13 +187,16 @@ async def get_user_public_profile(
 
         user_rank = await conn.fetchval(
             """
-            SELECT COUNT(DISTINCT user_id) + 1
-            FROM coin_ledger
-            GROUP BY user_id
-            HAVING SUM(coins) > $1
-            LIMIT 1
+            WITH totals AS (
+                SELECT user_id, MAX(smile_score) AS s
+                FROM smile_captures
+                GROUP BY user_id
+            )
+            SELECT COUNT(*) + 1
+            FROM totals
+            WHERE s > $1
             """,
-            coins_balance,
+            best_score,
         ) or 1
 
         created_dt = user_row["created_at"] or user_row["createdAt"]

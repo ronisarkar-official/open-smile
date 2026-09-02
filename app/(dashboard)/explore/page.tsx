@@ -4,14 +4,17 @@ import * as React from 'react';
 import Link from 'next/link';
 import {
 	Camera,
+	Clock,
 	Heart,
 	RefreshCw,
 	ScanFace,
 	Smile,
 	Sparkles,
+	Compass,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { useSystemSettings } from '@/hooks/use-system-settings';
 import { cn } from '@/lib/utils';
 
 const filters = [
@@ -27,6 +30,7 @@ interface ExplorePost {
 	score: number;
 	likes: number;
 	timeAgo: string;
+	expiresIn?: string;
 	bg: string;
 	caption?: string;
 	imageUrl?: string;
@@ -34,11 +38,17 @@ interface ExplorePost {
 }
 
 export default function ExplorePage() {
+	const { settings } = useSystemSettings();
 	const [selectedFilter, setSelectedFilter] = React.useState('latest');
 	const [posts, setPosts] = React.useState<ExplorePost[]>([]);
 	const [loading, setLoading] = React.useState(true);
 
 	const fetchFeed = React.useCallback(async (filterName: string) => {
+		if (settings.maintenance_mode || settings.explore_feed_enabled === false) {
+			setPosts([]);
+			setLoading(false);
+			return;
+		}
 		setLoading(true);
 		try {
 			let res = await fetch(`/api/v1/explore/feed?filter=${filterName}`);
@@ -99,6 +109,33 @@ export default function ExplorePage() {
 		} catch {}
 	};
 
+	if (settings.maintenance_mode || settings.explore_feed_enabled === false) {
+		return (
+			<main
+				id="main-content"
+				className="mx-auto w-full max-w-[1280px] px-2 pb-8 pt-6 sm:px-4 sm:pt-10">
+				<div className="mx-auto max-w-xl text-center py-16 px-6 border-[length:var(--border-width)] border-black rounded-2xl bg-card shadow-brutal space-y-4">
+					<div className="size-16 mx-auto rounded-2xl border-[length:var(--border-width)] border-black bg-muted flex items-center justify-center shadow-brutal-xs">
+						<Compass className="size-8 text-muted-foreground" />
+					</div>
+					<h1 className="text-3xl font-black font-title tracking-tight">Explore Feed Offline</h1>
+					<p className="font-mono text-xs text-muted-foreground leading-relaxed">
+						{settings.maintenance_mode
+							? "Platform maintenance is currently underway. The community explore feed is temporarily offline."
+							: "The public community explore feed is currently paused by platform administrators for updates. Please check back later!"}
+					</p>
+					<div className="pt-2">
+						<Link href="/dashboard">
+							<Button className="font-mono text-xs font-black uppercase border-[length:var(--border-width)] border-black shadow-brutal-xs">
+								Back to Dashboard
+							</Button>
+						</Link>
+					</div>
+				</div>
+			</main>
+		);
+	}
+
 	return (
 		<main
 			id="main-content"
@@ -112,8 +149,7 @@ export default function ExplorePage() {
 						Explore
 					</h1>
 					<p className="mt-3 max-w-[50ch] text-base leading-7 text-muted-foreground">
-						See what&apos;s making real people smile. Every post is opt-in, every
-						shared photo features real smiles.
+						See what&apos;s making real people smile. Every post is opt-in, ephemeral (automatically deleted after 24 hours), and features genuine smiles.
 					</p>
 				</div>
 				<Link href="/capture">
@@ -214,9 +250,17 @@ export default function ExplorePage() {
 										</Avatar>
 										<div>
 											<p className="text-sm font-black">{post.user}</p>
-											<p className="font-mono text-[10px] text-muted-foreground font-semibold">
-												{post.timeAgo}
-											</p>
+											<div className="flex items-center gap-1.5 mt-0.5">
+												<span className="font-mono text-[10px] text-muted-foreground font-semibold">
+													{post.timeAgo}
+												</span>
+												{post.expiresIn && (
+													<span className="inline-flex items-center gap-1 border border-black/20 rounded px-1.5 py-0.5 bg-muted font-mono text-[9px] font-bold text-muted-foreground">
+														<Clock className="size-2.5 text-amber-500" />
+														<span>{post.expiresIn}</span>
+													</span>
+												)}
+											</div>
 										</div>
 									</div>
 									<button
