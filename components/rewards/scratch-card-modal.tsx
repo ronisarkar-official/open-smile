@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { X, Copy, Check, Gift } from 'lucide-react';
 import { ScratchCard } from '@/components/rewards/scratch-card';
@@ -66,8 +67,13 @@ export function ScratchCardModal({
 }: ScratchCardModalProps) {
 	const [isCompleted, setIsCompleted] = React.useState(false);
 	const [copied, setCopied] = React.useState(false);
+	const [mounted, setMounted] = React.useState(false);
 	const titleId = React.useId();
 	const displayName = userName?.trim().split(/\s+/)[0];
+
+	React.useEffect(() => {
+		setMounted(true);
+	}, []);
 
 	React.useEffect(() => {
 		if (card) {
@@ -127,11 +133,13 @@ export function ScratchCardModal({
 		event.stopPropagation();
 	}, []);
 
-	return (
+	if (!mounted) return null;
+
+	return createPortal(
 		<AnimatePresence>
 			{isOpen && card && (
 				<div
-					className="fixed inset-0 z-50 flex items-center justify-center p-4"
+					className="fixed inset-0 z-[100] flex items-center justify-center p-4"
 					role="dialog"
 					aria-modal="true"
 					aria-labelledby={titleId}>
@@ -309,6 +317,7 @@ export function ScratchCardModal({
 					</motion.div>
 				</div>
 			)}
-		</AnimatePresence>
+		</AnimatePresence>,
+		document.body
 	);
 }

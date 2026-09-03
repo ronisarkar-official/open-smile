@@ -90,9 +90,9 @@
     "semantic_hash": ""
   },
   "app/(dashboard)/rewards/page.tsx": {
-    "mtime": 1788433402.2407095,
-    "seen": 1788433506.6769452,
-    "ast_hash": "44d2515ddd3e8c22c7c8cbd13dba7abe",
+    "mtime": 1788434155.3007448,
+    "seen": 1788434246.3719409,
+    "ast_hash": "b746ba2602f59d59188dfcbe3c06e4fa",
     "semantic_hash": ""
   },
   "app/api/auth/[...all]/route.ts": {
@@ -660,21 +660,21 @@
     "semantic_hash": "47061793b06c3e020393cbb31da9795a"
   },
   "components/rewards/claimed-vouchers-list.tsx": {
-    "mtime": 1787977295.8052294,
-    "seen": 1788153908.5841506,
-    "ast_hash": "21e91f9afcb722b79e83de81219b7360",
-    "semantic_hash": "21e91f9afcb722b79e83de81219b7360"
+    "mtime": 1788436246.9090745,
+    "seen": 1788436274.9731867,
+    "ast_hash": "cdf44c82f995bd82838693b7694bdd95",
+    "semantic_hash": ""
   },
   "components/rewards/scratch-card-gallery.tsx": {
-    "mtime": 1788346976.2774627,
-    "seen": 1788347064.273581,
-    "ast_hash": "307883c786f4b9d87ecc07a9fe7d266e",
+    "mtime": 1788437987.43663,
+    "seen": 1788438010.250985,
+    "ast_hash": "d2a4476f33343229ba6aa2656ac4de55",
     "semantic_hash": ""
   },
   "components/rewards/scratch-card-modal.tsx": {
-    "mtime": 1788284599.5570178,
-    "seen": 1788284738.508253,
-    "ast_hash": "af08c60a5d6f3a7db4294e51a9aa9593",
+    "mtime": 1788436045.7980738,
+    "seen": 1788436100.902323,
+    "ast_hash": "ce2741045bb664733cc4440c13ab8492",
     "semantic_hash": ""
   },
   "components/rewards/scratch-card.tsx": {
@@ -684,9 +684,9 @@
     "semantic_hash": ""
   },
   "components/rewards/voucher-claim-modal.tsx": {
-    "mtime": 1788349479.07566,
-    "seen": 1788350017.6455004,
-    "ast_hash": "015373bca3a46b5a2f38d2d908e32d07",
+    "mtime": 1788436024.4821455,
+    "seen": 1788436100.902325,
+    "ast_hash": "c1185046a18c23fd7a8a98c442987c07",
     "semantic_hash": ""
   },
   "components/rewards/voucher-data.ts": {
@@ -696,9 +696,9 @@
     "semantic_hash": ""
   },
   "components/rewards/voucher-marketplace.tsx": {
-    "mtime": 1788433384.3540127,
-    "seen": 1788433506.677127,
-    "ast_hash": "b8572b9adfd4a8aa4cf6d2c5ef25151a",
+    "mtime": 1788437079.361543,
+    "seen": 1788437104.0700305,
+    "ast_hash": "da71391eb0dc31a90920763594a62640",
     "semantic_hash": ""
   },
   "components/session-provider.tsx": {
@@ -1851,6 +1851,12 @@
     "mtime": 1788429317.6071606,
     "seen": 1788429747.6410038,
     "ast_hash": "6fd6cf9dd99a5de7d24f8790a53a0378",
+    "semantic_hash": ""
+  },
+  "components/rewards/rewards-view.tsx": {
+    "mtime": 1788436071.8737438,
+    "seen": 1788436100.9023201,
+    "ast_hash": "bae2ca77f344beac186cb5817eb3e0ba",
     "semantic_hash": ""
   }
 }
