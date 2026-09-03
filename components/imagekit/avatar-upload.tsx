@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from "@/components/ui/avatar"
 import { Camera, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ImageKitUploadedFile } from "./image-upload"
@@ -36,13 +36,13 @@ export function AvatarUpload({
   className,
   size = "lg",
 }: AvatarUploadProps) {
-  const [avatarUrl, setAvatarUrl] = React.useState<string | undefined>(value)
+  const [avatarUrl, setAvatarUrl] = React.useState<string | undefined>(value || DEFAULT_AVATAR_URL)
   const [isUploading, setIsUploading] = React.useState(false)
   const inputRef = React.useRef<HTMLInputElement>(null)
 
   React.useEffect(() => {
     if (value !== undefined) {
-      setAvatarUrl(value)
+      setAvatarUrl(value || DEFAULT_AVATAR_URL)
     }
   }, [value])
 
@@ -59,13 +59,11 @@ export function AvatarUpload({
     const file = files[0]
     setIsUploading(true)
 
-    // 1. Instant local preview
     const localUrl = URL.createObjectURL(file)
     setAvatarUrl(localUrl)
     onAvatarChange?.(localUrl)
 
     try {
-      // 2. Upload to ImageKit server endpoint
       const formData = new FormData()
       formData.append("file", file)
       formData.append("fileName", `avatar_${Date.now()}_${file.name}`)
@@ -84,7 +82,6 @@ export function AvatarUpload({
         onAvatarChange?.(uploaded.url)
         onUploadSuccess?.(uploaded)
       } else {
-        // Handle unconfigured ImageKit credentials or server error gracefully
         console.warn("ImageKit upload response:", data)
         onUploadSuccess?.({
           fileId: `local_${Date.now()}`,
@@ -101,7 +98,6 @@ export function AvatarUpload({
       onUploadError?.(msg)
     } finally {
       setIsUploading(false)
-      // Reset input value so re-selecting same file triggers change event
       if (inputRef.current) inputRef.current.value = ""
     }
   }
@@ -127,13 +123,12 @@ export function AvatarUpload({
         )}
       >
         <Avatar className="h-full w-full rounded-full">
-          <AvatarImage src={avatarUrl} alt={name} className="object-cover" />
+          <AvatarImage src={avatarUrl || DEFAULT_AVATAR_URL} alt={name} className="object-cover" />
           <AvatarFallback className="bg-primary text-primary-foreground font-semibold">
             {initials}
           </AvatarFallback>
         </Avatar>
 
-        {/* Hover / Loading overlay */}
         <div
           className={cn(
             "absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white opacity-0 transition-opacity group-hover:opacity-100",

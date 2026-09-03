@@ -228,7 +228,7 @@ async def get_user_public_profile(
         id=str(user_id),
         name=user_name,
         username=clean_username,
-        image=user_row["image"],
+        image=user_row["image"] or "/icons/default-icon.webp",
         avatar=get_avatar_letters(user_name),
         joinDate=join_date_str,
         totalSmiles=total_smiles,

@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.get("", response_model=LeaderboardResponse)
 async def get_leaderboard(
-    period: str = Query("weekly", pattern="^(daily|weekly|monthly)$"),
+    period: str = Query("daily", pattern="^(daily|weekly|monthly)$"),
     metric: str = Query("score"),
     limit: int = Query(50, ge=1, le=100),
     current_user: Optional[dict] = Depends(get_optional_user),
@@ -58,24 +58,6 @@ async def get_leaderboard(
             start_date,
             limit,
         )
-
-        if not rows:
-            rows = await conn.fetch(
-                """
-                SELECT 
-                    u.id AS user_id,
-                    COALESCE(u.name, 'Smiler') AS user_name,
-                    u.image AS avatar_url,
-                    COALESCE(u.streak_count, 0) AS streak_count,
-                    COALESCE(MAX(sc.smile_score), 0)::int AS primary_value
-                FROM "user" u
-                LEFT JOIN smile_captures sc ON sc.user_id = u.id
-                GROUP BY u.id, u.name, u.image, u.streak_count
-                ORDER BY primary_value DESC, u.id ASC
-                LIMIT $1
-                """,
-                limit,
-            )
 
         all_rankings = []
         user_rank_obj = None

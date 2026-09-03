@@ -12,7 +12,7 @@ import {
 	Sparkles,
 	Compass,
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useSystemSettings } from '@/hooks/use-system-settings';
 import { cn } from '@/lib/utils';
@@ -27,6 +27,7 @@ interface ExplorePost {
 	id: string;
 	user: string;
 	avatar: string;
+	userAvatar?: string;
 	score: number;
 	likes: number;
 	timeAgo: string;
@@ -244,6 +245,11 @@ export default function ExplorePage() {
 								<div className="flex items-center justify-between">
 									<div className="flex items-center gap-2.5">
 										<Avatar className="size-8 border-[length:var(--border-width)] border-black shadow-brutal-xs">
+											<AvatarImage
+												src={post.userAvatar || DEFAULT_AVATAR_URL}
+												alt={post.user}
+												className="object-cover"
+											/>
 											<AvatarFallback className="text-xs font-black bg-primary text-primary-foreground">
 												{post.avatar}
 											</AvatarFallback>

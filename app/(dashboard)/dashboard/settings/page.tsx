@@ -15,6 +15,7 @@ import { ProfileContent } from '@/components/settings/profile-content';
 import { PreferencesContent } from '@/components/settings/preferences-content';
 import { NotificationsContent } from '@/components/settings/notifications-content';
 import { Button } from '@/components/ui/button';
+import { DEFAULT_AVATAR_URL } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import type { SettingsSection } from '@/components/settings/settings-shared';
 
@@ -32,7 +33,7 @@ export default function SettingsPage() {
   const user = session?.user;
   const userName = user?.name ?? 'User';
   const userEmail = user?.email ?? '';
-  const userAvatar = avatarOverride ?? user?.image ?? '';
+  const userAvatar = avatarOverride ?? user?.image ?? DEFAULT_AVATAR_URL;
   const userInitials =
     userName
       .split(' ')

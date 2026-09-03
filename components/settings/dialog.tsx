@@ -9,6 +9,7 @@ import { SettingsSidebar, SettingsMobileNav } from '@/components/settings/settin
 import { ProfileContent } from '@/components/settings/profile-content';
 import { PreferencesContent } from '@/components/settings/preferences-content';
 import { NotificationsContent } from '@/components/settings/notifications-content';
+import { DEFAULT_AVATAR_URL } from '@/components/ui/avatar';
 
 // ---------------------------------------------------------------------------
 // Main Settings Dialog
@@ -37,7 +38,7 @@ export function SettingsDialog({
 }: SettingsDialogProps) {
 	const [activeSection, setActiveSection] =
 		React.useState<SettingsSection>(defaultSection);
-	const [avatar, setAvatar] = React.useState(userAvatar);
+	const [avatar, setAvatar] = React.useState(userAvatar || DEFAULT_AVATAR_URL);
 
 	React.useEffect(() => {
 		if (open) {
@@ -46,7 +47,7 @@ export function SettingsDialog({
 	}, [open, defaultSection]);
 
 	React.useEffect(() => {
-		setAvatar(userAvatar);
+		setAvatar(userAvatar || DEFAULT_AVATAR_URL);
 	}, [userAvatar]);
 
 	const handleAvatarChange = React.useCallback((newUrl: string) => {

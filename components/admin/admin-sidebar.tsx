@@ -31,20 +31,20 @@ export function AdminSidebar({ className }: { className?: string }) {
 	return (
 		<aside
 			className={cn(
-				"w-64 shrink-0 border-r-[length:var(--border-width)] border-black bg-card flex flex-col justify-between p-4",
+				"w-64 shrink-0 border-r-[length:var(--border-width)] border-black bg-card flex flex-col justify-between p-4 h-full overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden",
 				className
 			)}
 		>
 			<div className="space-y-6">
-				<div className="flex items-center gap-2.5 px-2 py-1.5 border-[length:var(--border-width)] border-black rounded-lg bg-primary shadow-brutal-xs">
-					<div className="size-8 rounded-md border border-black bg-black text-white flex items-center justify-center font-mono font-black text-sm">
+				<div className="flex items-center gap-2.5 px-3 py-2 border-[length:var(--border-width)] border-black rounded-lg bg-primary shadow-brutal-xs">
+					<div className="size-8 rounded-md border border-black bg-black text-white flex items-center justify-center font-mono font-black text-sm shrink-0">
 						<Shield className="size-4 text-accent" />
 					</div>
-					<div>
-						<div className="font-mono text-[10px] font-black uppercase tracking-wider text-black/70">
+					<div className="min-w-0">
+						<div className="font-mono text-[10px] font-black uppercase tracking-wider text-black/70 leading-none">
 							Control Panel
 						</div>
-						<div className="font-black font-title text-base leading-none text-black">
+						<div className="font-black font-title text-base leading-tight text-black truncate">
 							Open Smile Admin
 						</div>
 					</div>
@@ -68,8 +68,8 @@ export function AdminSidebar({ className }: { className?: string }) {
 										: "border-transparent text-muted-foreground hover:border-black/30 hover:bg-muted/60 hover:text-foreground"
 								)}
 							>
-								<Icon className={cn("size-4", isActive ? "text-black" : "text-muted-foreground")} />
-								<span>{item.label}</span>
+								<Icon className={cn("size-4 shrink-0", isActive ? "text-black" : "text-muted-foreground")} />
+								<span className="truncate">{item.label}</span>
 							</Link>
 						);
 					})}

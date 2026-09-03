@@ -236,6 +236,207 @@ const ECONOMY_NUMBERS: SettingNumberConfig[] = [
 	},
 ];
 
+const LEADERBOARD_PODIUM_NUMBERS: SettingNumberConfig[] = [
+	{
+		key: "daily_podium_1_min_coins",
+		label: "Daily #1 Min Coins",
+		description: "Min coins in 1st place Daily Champion scratch card.",
+		defaultValue: 70,
+		min: 1,
+		max: 500,
+		step: 1,
+		unit: "coins",
+		icon: Trophy,
+	},
+	{
+		key: "daily_podium_1_max_coins",
+		label: "Daily #1 Max Coins",
+		description: "Max coins in 1st place Daily Champion scratch card.",
+		defaultValue: 99,
+		min: 1,
+		max: 500,
+		step: 1,
+		unit: "coins",
+		icon: Trophy,
+	},
+	{
+		key: "daily_podium_2_min_coins",
+		label: "Daily #2 Min Coins",
+		description: "Min coins in 2nd place Daily Runner-Up scratch card.",
+		defaultValue: 40,
+		min: 1,
+		max: 500,
+		step: 1,
+		unit: "coins",
+		icon: Trophy,
+	},
+	{
+		key: "daily_podium_2_max_coins",
+		label: "Daily #2 Max Coins",
+		description: "Max coins in 2nd place Daily Runner-Up scratch card.",
+		defaultValue: 69,
+		min: 1,
+		max: 500,
+		step: 1,
+		unit: "coins",
+		icon: Trophy,
+	},
+	{
+		key: "daily_podium_3_min_coins",
+		label: "Daily #3 Min Coins",
+		description: "Min coins in 3rd place Daily scratch card.",
+		defaultValue: 15,
+		min: 1,
+		max: 500,
+		step: 1,
+		unit: "coins",
+		icon: Trophy,
+	},
+	{
+		key: "daily_podium_3_max_coins",
+		label: "Daily #3 Max Coins",
+		description: "Max coins in 3rd place Daily scratch card.",
+		defaultValue: 39,
+		min: 1,
+		max: 500,
+		step: 1,
+		unit: "coins",
+		icon: Trophy,
+	},
+	{
+		key: "weekly_podium_1_min_coins",
+		label: "Weekly #1 Min Coins",
+		description: "Min coins for 1st place Weekly Mega scratch card.",
+		defaultValue: 250,
+		min: 20,
+		max: 2000,
+		step: 5,
+		unit: "coins",
+		icon: Sparkles,
+	},
+	{
+		key: "weekly_podium_1_max_coins",
+		label: "Weekly #1 Max Coins",
+		description: "Max coins for 1st place Weekly Mega scratch card.",
+		defaultValue: 400,
+		min: 20,
+		max: 2000,
+		step: 5,
+		unit: "coins",
+		icon: Sparkles,
+	},
+	{
+		key: "weekly_podium_2_min_coins",
+		label: "Weekly #2 Min Coins",
+		description: "Min coins for 2nd place Weekly scratch card.",
+		defaultValue: 120,
+		min: 10,
+		max: 1000,
+		step: 5,
+		unit: "coins",
+		icon: Sparkles,
+	},
+	{
+		key: "weekly_podium_2_max_coins",
+		label: "Weekly #2 Max Coins",
+		description: "Max coins for 2nd place Weekly scratch card.",
+		defaultValue: 200,
+		min: 10,
+		max: 1000,
+		step: 5,
+		unit: "coins",
+		icon: Sparkles,
+	},
+	{
+		key: "weekly_podium_3_min_coins",
+		label: "Weekly #3 Min Coins",
+		description: "Min coins for 3rd place Weekly scratch card.",
+		defaultValue: 60,
+		min: 5,
+		max: 500,
+		step: 5,
+		unit: "coins",
+		icon: Sparkles,
+	},
+	{
+		key: "weekly_podium_3_max_coins",
+		label: "Weekly #3 Max Coins",
+		description: "Max coins for 3rd place Weekly scratch card.",
+		defaultValue: 100,
+		min: 5,
+		max: 500,
+		step: 5,
+		unit: "coins",
+		icon: Sparkles,
+	},
+	{
+		key: "monthly_podium_1_min_coins",
+		label: "Monthly #1 Min Coins",
+		description: "Min coins for 1st place Monthly Legend scratch card.",
+		defaultValue: 800,
+		min: 50,
+		max: 5000,
+		step: 10,
+		unit: "coins",
+		icon: Gift,
+	},
+	{
+		key: "monthly_podium_1_max_coins",
+		label: "Monthly #1 Max Coins",
+		description: "Max coins for 1st place Monthly Legend scratch card.",
+		defaultValue: 1200,
+		min: 50,
+		max: 5000,
+		step: 10,
+		unit: "coins",
+		icon: Gift,
+	},
+	{
+		key: "monthly_podium_2_min_coins",
+		label: "Monthly #2 Min Coins",
+		description: "Min coins for 2nd place Monthly Grand Master scratch card.",
+		defaultValue: 400,
+		min: 25,
+		max: 3000,
+		step: 10,
+		unit: "coins",
+		icon: Gift,
+	},
+	{
+		key: "monthly_podium_2_max_coins",
+		label: "Monthly #2 Max Coins",
+		description: "Max coins for 2nd place Monthly Grand Master scratch card.",
+		defaultValue: 600,
+		min: 25,
+		max: 3000,
+		step: 10,
+		unit: "coins",
+		icon: Gift,
+	},
+	{
+		key: "monthly_podium_3_min_coins",
+		label: "Monthly #3 Min Coins",
+		description: "Min coins for 3rd place Monthly Master scratch card.",
+		defaultValue: 200,
+		min: 10,
+		max: 2000,
+		step: 10,
+		unit: "coins",
+		icon: Gift,
+	},
+	{
+		key: "monthly_podium_3_max_coins",
+		label: "Monthly #3 Max Coins",
+		description: "Max coins for 3rd place Monthly Master scratch card.",
+		defaultValue: 350,
+		min: 10,
+		max: 2000,
+		step: 10,
+		unit: "coins",
+		icon: Gift,
+	},
+];
+
 export default function AdminSettingsPage() {
 	const { toast } = useToast();
 	const [settings, setSettings] = React.useState<Record<string, any>>({});
@@ -256,7 +457,11 @@ export default function AdminSettingsPage() {
 				setSettings(fetched);
 
 				const initialNumbers: Record<string, string> = {};
-				for (const item of [...ANTI_CHEAT_NUMBERS, ...ECONOMY_NUMBERS]) {
+				for (const item of [
+					...ANTI_CHEAT_NUMBERS,
+					...ECONOMY_NUMBERS,
+					...LEADERBOARD_PODIUM_NUMBERS,
+				]) {
 					const val = fetched[item.key]?.value !== undefined
 						? fetched[item.key]?.value
 						: item.defaultValue;
@@ -690,6 +895,80 @@ export default function AdminSettingsPage() {
 
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 					{ECONOMY_NUMBERS.map((item) => {
+						const Icon = item.icon;
+						const isSaving = Boolean(savingKeys[item.key]);
+						const val = formValues[item.key] ?? String(item.defaultValue);
+
+						return (
+							<div key={item.key} className="space-y-2 p-4 border border-black rounded-xl bg-muted/20 flex flex-col justify-between">
+								<div className="space-y-2">
+									<div className="flex items-center justify-between">
+										<label className="font-mono text-xs font-black uppercase text-foreground flex items-center gap-1.5">
+											<Icon className="size-3.5" />
+											{item.label}
+										</label>
+										{item.unit ? (
+											<span className="font-mono text-[10px] font-bold text-muted-foreground uppercase">
+												{item.unit}
+											</span>
+										) : null}
+									</div>
+
+									<p className="font-mono text-[10px] text-muted-foreground leading-snug min-h-[28px]">
+										{item.description}
+									</p>
+								</div>
+
+								<form
+									onSubmit={(e) => {
+										e.preventDefault();
+										handleSaveNumber(item.key, item.label, item.description, item.defaultValue);
+									}}
+									className="flex gap-2 pt-2"
+								>
+									<Input
+										type="number"
+										min={item.min}
+										max={item.max}
+										step={item.step}
+										value={val}
+										onChange={(e) => {
+											const nextVal = e.target.value;
+											setFormValues((prev) => ({ ...prev, [item.key]: nextVal }));
+										}}
+										className="border-[length:var(--border-width)] border-black font-mono text-xs shadow-brutal-xs h-9 bg-card"
+									/>
+									<Button
+										type="submit"
+										disabled={isSaving || loading}
+										className="border-[length:var(--border-width)] border-black bg-card hover:bg-muted text-foreground font-mono text-xs font-bold uppercase shadow-brutal-xs brutal-lift h-9 px-3 shrink-0"
+									>
+										{isSaving ? (
+											<RefreshCw className="size-3.5 animate-spin" />
+										) : (
+											<Check className="size-3.5" />
+										)}
+									</Button>
+								</form>
+							</div>
+						);
+					})}
+				</div>
+			</div>
+
+			<div className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-6 shadow-brutal space-y-6">
+				<div className="border-b-[length:var(--border-width)] border-black/15 pb-3">
+					<h2 className="font-black font-title text-xl text-foreground flex items-center gap-2">
+						<Trophy className="size-5 text-primary" />
+						Leaderboard Podium Rewards (Scratch Card Drops)
+					</h2>
+					<p className="font-mono text-xs text-muted-foreground mt-0.5">
+						Configure the randomized coin ranges for Daily, Weekly, and Monthly 1st, 2nd, and 3rd place Scratch Cards. Winners always receive mystery cards and must scratch them to reveal coins.
+					</p>
+				</div>
+
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+					{LEADERBOARD_PODIUM_NUMBERS.map((item) => {
 						const Icon = item.icon;
 						const isSaving = Boolean(savingKeys[item.key]);
 						const val = formValues[item.key] ?? String(item.defaultValue);

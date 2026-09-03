@@ -127,6 +127,7 @@ async def get_explore_feed(
                 userId=str(r["user_id"]),
                 user=r["user_name"] or "Smiler",
                 avatar=get_avatar_letters(r["user_name"]),
+                userAvatar=r["user_avatar"] or "/icons/default-icon.webp",
                 score=r["smile_score"],
                 caption=r["caption"],
                 imageUrl=r["image_url"],

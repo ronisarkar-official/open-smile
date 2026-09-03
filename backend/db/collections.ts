@@ -33,15 +33,16 @@ export async function createUserWithAccount(params: {
 	name: string;
 	email: string;
 	passwordHash: string;
+	image?: string;
 }): Promise<{ id: string; name: string; email: string }> {
 	const pool = getPool();
 	const userId = generateId();
 	const accountId = generateId();
 
 	await pool.query(
-		`INSERT INTO "user" (id, name, email, "emailVerified", "createdAt", "updatedAt")
-		 VALUES ($1, $2, $3, true, NOW(), NOW())`,
-		[userId, params.name, params.email]
+		`INSERT INTO "user" (id, name, email, image, "emailVerified", "createdAt", "updatedAt")
+		 VALUES ($1, $2, $3, $4, true, NOW(), NOW())`,
+		[userId, params.name, params.email, params.image || '/icons/default-icon.webp']
 	);
 
 	await pool.query(
@@ -361,6 +362,214 @@ export async function getUserRecentSmiles(userId: string, limit = 5): Promise<Re
 	});
 }
 
+export interface StreakDayItem {
+	date: string;
+	dayLabel: string;
+	dayNumber: number;
+	isToday: boolean;
+	isPast: boolean;
+	isFuture: boolean;
+	completed: boolean;
+	score?: number;
+}
+
+export interface MonthlyCaptureItem {
+	date: string;
+	count: number;
+	maxScore: number;
+	totalCoins: number;
+}
+
+export interface UserStreakFullDetails {
+	streak: number;
+	streakCount: number;
+	multiplier: number;
+	multiplierLabel: string;
+	lastCaptureAt: string | null;
+	isTodayCompleted: boolean;
+	weekDays: StreakDayItem[];
+	monthlyCaptures: MonthlyCaptureItem[];
+	stats: {
+		currentStreak: number;
+		longestStreak: number;
+		totalSmiles: number;
+		bestScore: number;
+		activeDaysThisMonth: number;
+		totalDaysInMonth: number;
+	};
+	streakSociety: {
+		isMember: boolean;
+		daysRequired: number;
+		daysLeft: number;
+	};
+	recentSmiles: RecentSmileItem[];
+}
+
+function calculateStreakMultiplier(streakCount: number): { multiplier: number; multiplierLabel: string } {
+	if (streakCount <= 1) return { multiplier: 1.0, multiplierLabel: '1.0x' };
+	if (streakCount === 2) return { multiplier: 1.2, multiplierLabel: '1.2x' };
+	if (streakCount < 7) return { multiplier: 1.5, multiplierLabel: '1.5x' };
+	if (streakCount < 30) return { multiplier: 1.8, multiplierLabel: '1.8x' };
+	return { multiplier: 2.0, multiplierLabel: '2.0x' };
+}
+
+export async function getUserStreakFullDetails(userId: string): Promise<UserStreakFullDetails> {
+	const pool = getPool();
+	const now = new Date();
+
+	const [
+		calculatedStreak,
+		streaksRowRes,
+		todayCheckRes,
+		longestStreakRes,
+		totalsRes,
+		monthCapturesRes,
+		recentSmiles,
+	] = await Promise.all([
+		getUserStreak(userId),
+		pool.query(
+			`SELECT streak_count, last_capture_at FROM streaks WHERE user_id = $1`,
+			[userId]
+		),
+		pool.query(
+			`SELECT EXISTS (
+				SELECT 1 FROM smile_captures 
+				WHERE user_id = $1 
+				  AND (created_at AT TIME ZONE 'UTC')::date = (NOW() AT TIME ZONE 'UTC')::date
+				  AND (flagged IS NULL OR flagged = false)
+			) AS is_today_completed`,
+			[userId]
+		),
+		pool.query(
+			`WITH daily_captures AS (
+				SELECT DISTINCT DATE(created_at AT TIME ZONE 'UTC') AS capture_date
+				FROM smile_captures
+				WHERE user_id = $1 AND (flagged IS NULL OR flagged = false)
+			),
+			ranked AS (
+				SELECT 
+					capture_date,
+					capture_date - (ROW_NUMBER() OVER (ORDER BY capture_date) * INTERVAL '1 day') AS grp
+				FROM daily_captures
+			),
+			streak_groups AS (
+				SELECT COUNT(*)::int AS length
+				FROM ranked
+				GROUP BY grp
+			)
+			SELECT COALESCE(MAX(length), 0)::int AS longest_streak
+			FROM streak_groups`,
+			[userId]
+		),
+		pool.query(
+			`SELECT 
+				COUNT(*)::int AS total_captures,
+				COALESCE(MAX(smile_score), 0)::int AS best_score
+			 FROM smile_captures
+			 WHERE user_id = $1 AND (flagged IS NULL OR flagged = false)`,
+			[userId]
+		),
+		pool.query(
+			`SELECT 
+				(created_at AT TIME ZONE 'UTC')::date::text AS capture_date,
+				COUNT(*)::int AS count,
+				MAX(smile_score)::int AS max_score,
+				SUM(coins_awarded)::int AS total_coins
+			 FROM smile_captures
+			 WHERE user_id = $1 
+			   AND created_at >= date_trunc('month', NOW() AT TIME ZONE 'UTC')
+			   AND (flagged IS NULL OR flagged = false)
+			 GROUP BY (created_at AT TIME ZONE 'UTC')::date
+			 ORDER BY capture_date ASC`,
+			[userId]
+		),
+		getUserRecentSmiles(userId, 8),
+	]);
+
+	const dbStreak = Number(streaksRowRes.rows[0]?.streak_count) || 0;
+	const streakCount = Math.max(calculatedStreak, dbStreak);
+	const lastCaptureAt = streaksRowRes.rows[0]?.last_capture_at 
+		? new Date(streaksRowRes.rows[0].last_capture_at).toISOString() 
+		: null;
+	const isTodayCompleted = Boolean(todayCheckRes.rows[0]?.is_today_completed);
+	const longestStreak = Math.max(streakCount, Number(longestStreakRes.rows[0]?.longest_streak) || 0);
+	const totalSmiles = Number(totalsRes.rows[0]?.total_captures) || 0;
+	const bestScore = Number(totalsRes.rows[0]?.best_score) || 0;
+
+	const monthlyCaptures: MonthlyCaptureItem[] = monthCapturesRes.rows.map((r) => ({
+		date: String(r.capture_date),
+		count: Number(r.count) || 0,
+		maxScore: Number(r.max_score) || 0,
+		totalCoins: Number(r.total_coins) || 0,
+	}));
+
+	const monthCaptureMap = new Map<string, MonthlyCaptureItem>();
+	for (const mc of monthlyCaptures) {
+		monthCaptureMap.set(mc.date, mc);
+	}
+
+	const currentDayOfWeek = now.getUTCDay();
+	const daysSinceMonday = (currentDayOfWeek + 6) % 7;
+	const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - daysSinceMonday));
+
+	const weekDayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+	const todayDateStr = now.toISOString().slice(0, 10);
+
+	const weekDays: StreakDayItem[] = [];
+	for (let i = 0; i < 7; i++) {
+		const targetDate = new Date(Date.UTC(monday.getUTCFullYear(), monday.getUTCMonth(), monday.getUTCDate() + i));
+		const dateStr = targetDate.toISOString().slice(0, 10);
+		const isToday = dateStr === todayDateStr;
+		const isPast = dateStr < todayDateStr;
+		const isFuture = dateStr > todayDateStr;
+		const monthItem = monthCaptureMap.get(dateStr);
+		const completed = Boolean(monthItem && monthItem.count > 0);
+
+		weekDays.push({
+			date: dateStr,
+			dayLabel: weekDayLabels[i],
+			dayNumber: targetDate.getUTCDate(),
+			isToday,
+			isPast,
+			isFuture,
+			completed,
+			score: monthItem?.maxScore,
+		});
+	}
+
+	const year = now.getUTCFullYear();
+	const month = now.getUTCMonth();
+	const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+	const activeDaysThisMonth = monthlyCaptures.length;
+
+	const { multiplier, multiplierLabel } = calculateStreakMultiplier(streakCount);
+
+	return {
+		streak: streakCount,
+		streakCount,
+		multiplier,
+		multiplierLabel,
+		lastCaptureAt,
+		isTodayCompleted,
+		weekDays,
+		monthlyCaptures,
+		stats: {
+			currentStreak: streakCount,
+			longestStreak,
+			totalSmiles,
+			bestScore,
+			activeDaysThisMonth,
+			totalDaysInMonth: daysInMonth,
+		},
+		streakSociety: {
+			isMember: streakCount >= 7,
+			daysRequired: 7,
+			daysLeft: Math.max(0, 7 - streakCount),
+		},
+		recentSmiles,
+	};
+}
+
 export async function getUserDailyRank(userId: string): Promise<{ rank: number | null; totalUsers: number }> {
 	const pool = getPool();
 
@@ -448,7 +657,7 @@ export async function getLeaderboardSmileRankings(
 		SELECT 
 			u.id AS user_id,
 			COALESCE(u.name, 'Smiler') AS user_name,
-			u.image AS avatar_url,
+			COALESCE(u.image, '/icons/default-icon.webp') AS avatar_url,
 			COALESCE(u.streak_count, 0) AS streak_count,
 			SUM(dup.daily_points)::int AS primary_value
 		 FROM "user" u
@@ -470,7 +679,7 @@ export async function getLeaderboardSmileRankings(
 		SELECT 
 			u.id AS user_id,
 			COALESCE(u.name, 'Smiler') AS user_name,
-			u.image AS avatar_url,
+			COALESCE(u.image, '/icons/default-icon.webp') AS avatar_url,
 			COALESCE(u.streak_count, 0) AS streak_count,
 			SUM(dup.daily_points)::int AS primary_value
 		 FROM "user" u
@@ -481,36 +690,77 @@ export async function getLeaderboardSmileRankings(
 
 	const params = endDate ? [startDate, endDate, limit] : [startDate, limit];
 	const res = await pool.query(query, params);
+	return res.rows || [];
+}
 
-	if (res.rows && res.rows.length > 0) {
-		return res.rows;
-	}
+export interface UserLeaderboardRankResult {
+	rank: number;
+	primary_value: number;
+}
 
-	const fallback = await pool.query(
-		`WITH daily_user_points AS (
+export async function getUserLeaderboardRank(
+	userId: string,
+	startDate: Date,
+	endDate?: Date
+): Promise<UserLeaderboardRankResult | null> {
+	const pool = getPool();
+	const query = endDate
+		? `WITH daily_user_points AS (
 			SELECT 
 				sc.user_id,
 				(sc.created_at AT TIME ZONE 'UTC')::date AS capture_date,
-				MAX(sc.smile_score)::int AS daily_points
+				MAX(sc.smile_score)::int AS daily_points,
+				MIN(sc.created_at) AS first_capture_at
 			FROM smile_captures sc
-			WHERE (sc.flagged IS NULL OR sc.flagged = false)
+			WHERE sc.created_at >= $1 AND sc.created_at <= $2
+			  AND (sc.flagged IS NULL OR sc.flagged = false)
 			GROUP BY sc.user_id, (sc.created_at AT TIME ZONE 'UTC')::date
+		),
+		user_totals AS (
+			SELECT 
+				u.id AS user_id,
+				SUM(dup.daily_points)::int AS primary_value,
+				MIN(dup.first_capture_at) AS first_capture_at,
+				ROW_NUMBER() OVER (ORDER BY SUM(dup.daily_points) DESC, MIN(dup.first_capture_at) ASC) as rank
+			 FROM "user" u
+			 JOIN daily_user_points dup ON dup.user_id = u.id
+			 GROUP BY u.id
 		)
-		SELECT 
-			u.id AS user_id,
-			COALESCE(u.name, 'Smiler') AS user_name,
-			u.image AS avatar_url,
-			COALESCE(u.streak_count, 0) AS streak_count,
-			COALESCE(SUM(dup.daily_points), 0)::int AS primary_value
-		 FROM "user" u
-		 LEFT JOIN daily_user_points dup ON dup.user_id = u.id
-		 GROUP BY u.id, u.name, u.image, u.streak_count
-		 ORDER BY primary_value DESC, u.id ASC
-		 LIMIT $1`,
-		[limit]
-	);
+		SELECT rank, primary_value FROM user_totals WHERE user_id = $3`
+		: `WITH daily_user_points AS (
+			SELECT 
+				sc.user_id,
+				(sc.created_at AT TIME ZONE 'UTC')::date AS capture_date,
+				MAX(sc.smile_score)::int AS daily_points,
+				MIN(sc.created_at) AS first_capture_at
+			FROM smile_captures sc
+			WHERE sc.created_at >= $1
+			  AND (sc.flagged IS NULL OR sc.flagged = false)
+			GROUP BY sc.user_id, (sc.created_at AT TIME ZONE 'UTC')::date
+		),
+		user_totals AS (
+			SELECT 
+				u.id AS user_id,
+				SUM(dup.daily_points)::int AS primary_value,
+				MIN(dup.first_capture_at) AS first_capture_at,
+				ROW_NUMBER() OVER (ORDER BY SUM(dup.daily_points) DESC, MIN(dup.first_capture_at) ASC) as rank
+			 FROM "user" u
+			 JOIN daily_user_points dup ON dup.user_id = u.id
+			 GROUP BY u.id
+		)
+		SELECT rank, primary_value FROM user_totals WHERE user_id = $2`;
 
-	return fallback.rows;
+	const params = endDate ? [startDate, endDate, userId] : [startDate, userId];
+	const res = await pool.query(query, params);
+
+	if (res.rows && res.rows.length > 0) {
+		return {
+			rank: Number(res.rows[0].rank),
+			primary_value: Number(res.rows[0].primary_value),
+		};
+	}
+
+	return null;
 }
 
 export interface DailySettlementResult {
@@ -602,30 +852,31 @@ export async function settleDailyLeaderboard(targetDate?: Date): Promise<DailySe
 			};
 		}
 
+		const settings = await getSystemSettingsMap();
 		const podiumAwards = [
 			{
 				rank: 1,
 				title: 'Daily Leaderboard Champion',
 				badge: 'PODIUM_GOLD',
 				themeColor: '#FFD700',
-				minCoins: 70,
-				maxCoins: 99,
+				minCoins: Number(settings.daily_podium_1_min_coins) || 70,
+				maxCoins: Number(settings.daily_podium_1_max_coins) || 99,
 			},
 			{
 				rank: 2,
 				title: 'Daily Leaderboard Runner-Up',
 				badge: 'PODIUM_SILVER',
 				themeColor: '#C0C0C0',
-				minCoins: 40,
-				maxCoins: 69,
+				minCoins: Number(settings.daily_podium_2_min_coins) || 40,
+				maxCoins: Number(settings.daily_podium_2_max_coins) || 69,
 			},
 			{
 				rank: 3,
 				title: 'Daily Leaderboard 3rd Place',
 				badge: 'PODIUM_BRONZE',
 				themeColor: '#CD7F32',
-				minCoins: 15,
-				maxCoins: 39,
+				minCoins: Number(settings.daily_podium_3_min_coins) || 15,
+				maxCoins: Number(settings.daily_podium_3_max_coins) || 39,
 			},
 		];
 
@@ -685,6 +936,384 @@ export async function settleDailyLeaderboard(targetDate?: Date): Promise<DailySe
 	}
 }
 
+export async function settleWeeklyLeaderboard(targetDate?: Date): Promise<DailySettlementResult> {
+	const now = new Date();
+	const dayToSettle =
+		targetDate ??
+		new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 7, 0, 0, 0, 0));
+	const startOfWeek = new Date(
+		Date.UTC(dayToSettle.getUTCFullYear(), dayToSettle.getUTCMonth(), dayToSettle.getUTCDate(), 0, 0, 0, 0)
+	);
+	const endOfWeek = new Date(
+		Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0)
+	);
+	const dateStr = startOfWeek.toISOString().split('T')[0];
+
+	const pool = getPool();
+	const client = await pool.connect();
+
+	try {
+		await client.query('BEGIN');
+
+		const existing = await client.query(
+			`SELECT rank, user_id, score, coins_awarded, card_id
+			 FROM leaderboard_settlements
+			 WHERE period = 'weekly' AND period_date = $1
+			 ORDER BY rank ASC`,
+			[dateStr]
+		);
+
+		if (existing.rows && existing.rows.length > 0) {
+			await client.query('COMMIT');
+			return {
+				date: dateStr,
+				settled: true,
+				alreadySettled: true,
+				podium: existing.rows.map((r) => ({
+					rank: r.rank,
+					userId: r.user_id,
+					userName: 'Smiler',
+					score: r.score,
+					coins: r.coins_awarded,
+					cardId: r.card_id,
+				})),
+			};
+		}
+
+		const topRows = await client.query(
+			`WITH daily_user_points AS (
+				SELECT 
+					sc.user_id,
+					(sc.created_at AT TIME ZONE 'UTC')::date AS capture_date,
+					MAX(sc.smile_score)::int AS daily_points,
+					MIN(sc.created_at) AS first_capture_at
+				FROM smile_captures sc
+				WHERE sc.created_at >= $1 AND sc.created_at < $2
+				  AND (sc.flagged IS NULL OR sc.flagged = false)
+				GROUP BY sc.user_id, (sc.created_at AT TIME ZONE 'UTC')::date
+			)
+			SELECT 
+				u.id AS user_id,
+				COALESCE(u.name, 'Smiler') AS user_name,
+				SUM(dup.daily_points)::int AS primary_value
+			 FROM "user" u
+			 JOIN daily_user_points dup ON dup.user_id = u.id
+			 GROUP BY u.id, u.name
+			 ORDER BY primary_value DESC, MIN(dup.first_capture_at) ASC
+			 LIMIT 3`,
+			[startOfWeek, endOfWeek]
+		);
+
+		if (!topRows.rows || topRows.rows.length === 0) {
+			await client.query('COMMIT');
+			return {
+				date: dateStr,
+				settled: false,
+				podium: [],
+			};
+		}
+
+		const settings = await getSystemSettingsMap();
+		const podiumAwards = [
+			{
+				rank: 1,
+				title: 'Weekly Leaderboard Champion',
+				badge: 'PODIUM_WEEKLY_GOLD',
+				themeColor: '#FFD700',
+				minCoins: Number(settings.weekly_podium_1_min_coins) || 250,
+				maxCoins: Number(settings.weekly_podium_1_max_coins) || 400,
+			},
+			{
+				rank: 2,
+				title: 'Weekly Leaderboard Runner-Up',
+				badge: 'PODIUM_WEEKLY_SILVER',
+				themeColor: '#C0C0C0',
+				minCoins: Number(settings.weekly_podium_2_min_coins) || 120,
+				maxCoins: Number(settings.weekly_podium_2_max_coins) || 200,
+			},
+			{
+				rank: 3,
+				title: 'Weekly Leaderboard 3rd Place',
+				badge: 'PODIUM_WEEKLY_BRONZE',
+				themeColor: '#CD7F32',
+				minCoins: Number(settings.weekly_podium_3_min_coins) || 60,
+				maxCoins: Number(settings.weekly_podium_3_max_coins) || 100,
+			},
+		];
+
+		const awarded: Array<{
+			rank: number;
+			userId: string;
+			userName: string;
+			score: number;
+			coins: number;
+			cardId?: string;
+		}> = [];
+
+		for (let i = 0; i < topRows.rows.length; i++) {
+			const winner = topRows.rows[i];
+			const award = podiumAwards[i];
+			const randomCoins =
+				Math.floor(Math.random() * (award.maxCoins - award.minCoins + 1)) + award.minCoins;
+
+			const cardRes = await client.query(
+				`INSERT INTO scratch_cards (user_id, title, source, coins, is_scratched, theme_color, badge, created_at)
+				 VALUES ($1, $2, 'Weekly Leaderboard', $3, false, $4, $5, NOW())
+				 RETURNING id`,
+				[winner.user_id, award.title, randomCoins, award.themeColor, award.badge]
+			);
+
+			const cardId = cardRes.rows[0]?.id;
+
+			await client.query(
+				`INSERT INTO leaderboard_settlements (period, period_date, rank, user_id, score, coins_awarded, card_id, settled_at)
+				 VALUES ('weekly', $1, $2, $3, $4, $5, $6, NOW())
+				 ON CONFLICT (period, period_date, rank) DO NOTHING`,
+				[dateStr, award.rank, winner.user_id, winner.primary_value, randomCoins, cardId]
+			);
+
+			awarded.push({
+				rank: award.rank,
+				userId: winner.user_id,
+				userName: winner.user_name,
+				score: winner.primary_value,
+				coins: randomCoins,
+				cardId,
+			});
+		}
+
+		await client.query('COMMIT');
+		return {
+			date: dateStr,
+			settled: true,
+			alreadySettled: false,
+			podium: awarded,
+		};
+	} catch (error) {
+		await client.query('ROLLBACK');
+		throw error;
+	} finally {
+		client.release();
+	}
+}
+
+export async function settleMonthlyLeaderboard(targetDate?: Date): Promise<DailySettlementResult> {
+	const now = new Date();
+	const dayToSettle =
+		targetDate ??
+		new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1, 0, 0, 0, 0));
+	const startOfMonth = new Date(
+		Date.UTC(dayToSettle.getUTCFullYear(), dayToSettle.getUTCMonth(), 1, 0, 0, 0, 0)
+	);
+	const endOfMonth = new Date(
+		Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1, 0, 0, 0, 0)
+	);
+	const dateStr = startOfMonth.toISOString().split('T')[0];
+
+	const pool = getPool();
+	const client = await pool.connect();
+
+	try {
+		await client.query('BEGIN');
+
+		const existing = await client.query(
+			`SELECT rank, user_id, score, coins_awarded, card_id
+			 FROM leaderboard_settlements
+			 WHERE period = 'monthly' AND period_date = $1
+			 ORDER BY rank ASC`,
+			[dateStr]
+		);
+
+		if (existing.rows && existing.rows.length > 0) {
+			await client.query('COMMIT');
+			return {
+				date: dateStr,
+				settled: true,
+				alreadySettled: true,
+				podium: existing.rows.map((r) => ({
+					rank: r.rank,
+					userId: r.user_id,
+					userName: 'Smiler',
+					score: r.score,
+					coins: r.coins_awarded,
+					cardId: r.card_id,
+				})),
+			};
+		}
+
+		const topRows = await client.query(
+			`WITH daily_user_points AS (
+				SELECT 
+					sc.user_id,
+					(sc.created_at AT TIME ZONE 'UTC')::date AS capture_date,
+					MAX(sc.smile_score)::int AS daily_points,
+					MIN(sc.created_at) AS first_capture_at
+				FROM smile_captures sc
+				WHERE sc.created_at >= $1 AND sc.created_at < $2
+				  AND (sc.flagged IS NULL OR sc.flagged = false)
+				GROUP BY sc.user_id, (sc.created_at AT TIME ZONE 'UTC')::date
+			)
+			SELECT 
+				u.id AS user_id,
+				COALESCE(u.name, 'Smiler') AS user_name,
+				SUM(dup.daily_points)::int AS primary_value
+			 FROM "user" u
+			 JOIN daily_user_points dup ON dup.user_id = u.id
+			 GROUP BY u.id, u.name
+			 ORDER BY primary_value DESC, MIN(dup.first_capture_at) ASC
+			 LIMIT 3`,
+			[startOfMonth, endOfMonth]
+		);
+
+		if (!topRows.rows || topRows.rows.length === 0) {
+			await client.query('COMMIT');
+			return {
+				date: dateStr,
+				settled: false,
+				podium: [],
+			};
+		}
+
+		const settings = await getSystemSettingsMap();
+		const podiumAwards = [
+			{
+				rank: 1,
+				title: 'Monthly Smile Legend',
+				badge: 'PODIUM_MONTHLY_GOLD',
+				themeColor: '#FFD700',
+				minCoins: Number(settings.monthly_podium_1_min_coins) || 800,
+				maxCoins: Number(settings.monthly_podium_1_max_coins) || 1200,
+			},
+			{
+				rank: 2,
+				title: 'Monthly Grand Master',
+				badge: 'PODIUM_MONTHLY_SILVER',
+				themeColor: '#C0C0C0',
+				minCoins: Number(settings.monthly_podium_2_min_coins) || 400,
+				maxCoins: Number(settings.monthly_podium_2_max_coins) || 600,
+			},
+			{
+				rank: 3,
+				title: 'Monthly Smile Master',
+				badge: 'PODIUM_MONTHLY_BRONZE',
+				themeColor: '#CD7F32',
+				minCoins: Number(settings.monthly_podium_3_min_coins) || 200,
+				maxCoins: Number(settings.monthly_podium_3_max_coins) || 350,
+			},
+		];
+
+		const awarded: Array<{
+			rank: number;
+			userId: string;
+			userName: string;
+			score: number;
+			coins: number;
+			cardId?: string;
+		}> = [];
+
+		for (let i = 0; i < topRows.rows.length; i++) {
+			const winner = topRows.rows[i];
+			const award = podiumAwards[i];
+			const randomCoins =
+				Math.floor(Math.random() * (award.maxCoins - award.minCoins + 1)) + award.minCoins;
+
+			const cardRes = await client.query(
+				`INSERT INTO scratch_cards (user_id, title, source, coins, is_scratched, theme_color, badge, created_at)
+				 VALUES ($1, $2, 'Monthly Leaderboard', $3, false, $4, $5, NOW())
+				 RETURNING id`,
+				[winner.user_id, award.title, randomCoins, award.themeColor, award.badge]
+			);
+
+			const cardId = cardRes.rows[0]?.id;
+
+			await client.query(
+				`INSERT INTO leaderboard_settlements (period, period_date, rank, user_id, score, coins_awarded, card_id, settled_at)
+				 VALUES ('monthly', $1, $2, $3, $4, $5, $6, NOW())
+				 ON CONFLICT (period, period_date, rank) DO NOTHING`,
+				[dateStr, award.rank, winner.user_id, winner.primary_value, randomCoins, cardId]
+			);
+
+			awarded.push({
+				rank: award.rank,
+				userId: winner.user_id,
+				userName: winner.user_name,
+				score: winner.primary_value,
+				coins: randomCoins,
+				cardId,
+			});
+		}
+
+		await client.query('COMMIT');
+		return {
+			date: dateStr,
+			settled: true,
+			alreadySettled: false,
+			podium: awarded,
+		};
+	} catch (error) {
+		await client.query('ROLLBACK');
+		throw error;
+	} finally {
+		client.release();
+	}
+}
+
+export interface LeaderboardSettledItem {
+	rank: number;
+	userId: string;
+	userName: string;
+	avatarUrl: string;
+	score: number;
+	coinsAwarded: number;
+	cardId?: string;
+	periodDate: string;
+	settledAt: string;
+}
+
+export async function getLatestLeaderboardSettlement(
+	period: string = 'daily'
+): Promise<LeaderboardSettledItem[]> {
+	const pool = getPool();
+	const res = await pool.query(
+		`WITH latest_date AS (
+			SELECT MAX(period_date) as max_date
+			FROM leaderboard_settlements
+			WHERE period = $1
+		)
+		SELECT 
+			ls.rank,
+			ls.user_id,
+			COALESCE(u.name, 'Smiler') AS user_name,
+			COALESCE(u.image, '/icons/default-icon.webp') AS avatar_url,
+			ls.score,
+			ls.coins_awarded,
+			ls.card_id,
+			ls.period_date,
+			ls.settled_at
+		FROM leaderboard_settlements ls
+		JOIN latest_date ld ON ls.period_date = ld.max_date
+		LEFT JOIN "user" u ON u.id = ls.user_id
+		WHERE ls.period = $1
+		ORDER BY ls.rank ASC`,
+		[period]
+	);
+
+	return (res.rows || []).map((r) => ({
+		rank: Number(r.rank),
+		userId: r.user_id,
+		userName: r.user_name,
+		avatarUrl: r.avatar_url,
+		score: Number(r.score),
+		coinsAwarded: Number(r.coins_awarded),
+		cardId: r.card_id,
+		periodDate:
+			r.period_date instanceof Date
+				? r.period_date.toISOString().split('T')[0]
+				: String(r.period_date),
+		settledAt: r.settled_at ? new Date(r.settled_at).toISOString() : '',
+	}));
+}
+
 export async function logAdminAction(
 	adminId: string,
 	adminEmail: string,
@@ -721,13 +1350,13 @@ export async function getAdminDashboardStats() {
 				(SELECT COUNT(*)::int FROM rewards) AS total_claims,
 				(SELECT COUNT(*)::int FROM smile_captures WHERE flagged = true) AS total_flags;
 		`),
-		pool.query(`SELECT sc.id, sc.smile_score, sc.coins_awarded, sc.created_at, sc.flagged, u.id as user_id, u.name as user_name, u.email as user_email
+		pool.query(`SELECT sc.id, sc.smile_score, sc.coins_awarded, sc.created_at, sc.flagged, u.id as user_id, u.name as user_name, u.email as user_email, COALESCE(u.image, '/icons/default-icon.webp') as user_image
 			FROM smile_captures sc
 			JOIN "user" u ON sc.user_id = u.id
 			ORDER BY sc.created_at DESC LIMIT 6`),
 		pool.query(`SELECT id, admin_email, action, target_type, target_id, details, created_at
 			FROM admin_audit_logs ORDER BY created_at DESC LIMIT 6`),
-		pool.query(`SELECT id, name, email, COALESCE(role, 'user') as role, created_at
+		pool.query(`SELECT id, name, email, COALESCE(image, '/icons/default-icon.webp') as image, COALESCE(role, 'user') as role, created_at
 			FROM "user" ORDER BY created_at DESC LIMIT 5`),
 	]);
 
@@ -799,6 +1428,7 @@ export async function getAdminUsers(params: {
 				u.id,
 				u.name,
 				u.email,
+				COALESCE(u.image, '/icons/default-icon.webp') AS image,
 				COALESCE(u.role, 'user') AS role,
 				COALESCE(u.banned, false) AS banned,
 				u."banReason",
@@ -843,7 +1473,7 @@ export async function getAdminUserDetail(userId: string) {
 	const pool = getPool();
 	const [userRes, balance, capturesRes, ledgerRes, rewardsRes] = await Promise.all([
 		pool.query(
-			`SELECT u.id, u.name, u.email, u.image, COALESCE(u.role, 'user') AS role,
+			`SELECT u.id, u.name, u.email, COALESCE(u.image, '/icons/default-icon.webp') AS image, COALESCE(u.role, 'user') AS role,
 				COALESCE(u.banned, false) AS banned, u."banReason", u."banExpires",
 				u.created_at, COALESCE(u.streak_count, 0) AS streak_count,
 				u.referral_code, u.referred_by
@@ -1014,6 +1644,7 @@ export async function getAdminCaptures(params: {
 			sc.user_id,
 			u.name AS user_name,
 			u.email AS user_email,
+			COALESCE(u.image, '/icons/default-icon.webp') AS user_image,
 			sc.smile_score,
 			sc.coins_awarded,
 			COALESCE(sc.flagged, false) AS flagged,
@@ -1345,6 +1976,24 @@ export async function getSystemSettingsMap(): Promise<Record<string, any>> {
 		daily_streak_coins: 5,
 		scratch_min_coins: 5,
 		scratch_max_coins: 100,
+		daily_podium_1_min_coins: 70,
+		daily_podium_1_max_coins: 99,
+		daily_podium_2_min_coins: 40,
+		daily_podium_2_max_coins: 69,
+		daily_podium_3_min_coins: 15,
+		daily_podium_3_max_coins: 39,
+		weekly_podium_1_min_coins: 250,
+		weekly_podium_1_max_coins: 400,
+		weekly_podium_2_min_coins: 120,
+		weekly_podium_2_max_coins: 200,
+		weekly_podium_3_min_coins: 60,
+		weekly_podium_3_max_coins: 100,
+		monthly_podium_1_min_coins: 800,
+		monthly_podium_1_max_coins: 1200,
+		monthly_podium_2_min_coins: 400,
+		monthly_podium_2_max_coins: 600,
+		monthly_podium_3_min_coins: 200,
+		monthly_podium_3_max_coins: 350,
 	};
 	for (const row of rows) {
 		defaults[row.key] = row.value;

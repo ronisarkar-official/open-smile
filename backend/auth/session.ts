@@ -9,6 +9,7 @@ export interface ServerUser {
 	name?: string | null;
 	role?: string | null;
 	banned?: boolean | null;
+	image?: string | null;
 }
 
 export async function getServerUser(
@@ -21,7 +22,7 @@ export async function getServerUser(
 		const session = await auth.api.getSession({ headers: reqHeaders });
 		if (session?.user?.id) {
 			const { rows } = await pool.query(
-				`SELECT id, email, name, role, banned FROM "user" WHERE id = $1 LIMIT 1`,
+				`SELECT id, email, name, role, banned, COALESCE(image, '/icons/default-icon.webp') AS image FROM "user" WHERE id = $1 LIMIT 1`,
 				[session.user.id]
 			);
 			if (rows[0]) {
@@ -31,6 +32,7 @@ export async function getServerUser(
 					name: rows[0].name,
 					role: rows[0].role || 'user',
 					banned: Boolean(rows[0].banned),
+					image: rows[0].image,
 				};
 			}
 
@@ -40,6 +42,7 @@ export async function getServerUser(
 				name: session.user.name,
 				role: (session.user as any).role || 'user',
 				banned: (session.user as any).banned || false,
+				image: (session.user as any).image || '/icons/default-icon.webp',
 			};
 		}
 	} catch {}
@@ -63,7 +66,7 @@ export async function getServerUser(
 			}
 
 			const { rows } = await pool.query(
-				`SELECT u.id, u.email, u.name, u.role, u.banned
+				`SELECT u.id, u.email, u.name, u.role, u.banned, COALESCE(u.image, '/icons/default-icon.webp') AS image
 				 FROM "session" s
 				 JOIN "user" u ON s."userId" = u.id
 				 WHERE s.token = ANY($1::text[]) AND s."expiresAt" > NOW()
@@ -77,11 +80,12 @@ export async function getServerUser(
 					name: rows[0].name,
 					role: rows[0].role || 'user',
 					banned: Boolean(rows[0].banned),
+					image: rows[0].image,
 				};
 			}
 
 			const fallback = await pool.query(
-				`SELECT u.id, u.email, u.name, u.role, u.banned
+				`SELECT u.id, u.email, u.name, u.role, u.banned, COALESCE(u.image, '/icons/default-icon.webp') AS image
 				 FROM "sessions" s
 				 JOIN "user" u ON s.user_id = u.id
 				 WHERE s.token = ANY($1::text[]) AND s.expires_at > NOW()
@@ -95,6 +99,7 @@ export async function getServerUser(
 					name: fallback.rows[0].name,
 					role: fallback.rows[0].role || 'user',
 					banned: Boolean(fallback.rows[0].banned),
+					image: fallback.rows[0].image,
 				};
 			}
 		}

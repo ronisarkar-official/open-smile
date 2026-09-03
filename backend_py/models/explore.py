@@ -6,6 +6,7 @@ class ExplorePostItem(BaseModel):
     userId: str
     user: str
     avatar: str
+    userAvatar: Optional[str] = "/icons/default-icon.webp"
     score: int
     caption: Optional[str] = None
     imageUrl: str

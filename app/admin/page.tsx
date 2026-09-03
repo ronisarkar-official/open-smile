@@ -20,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from '@/components/ui/avatar';
 
 export default function AdminDashboardPage() {
 	const { toast } = useToast();
@@ -280,15 +281,18 @@ export default function AdminDashboardPage() {
 								<div
 									key={cap.id}
 									className="flex items-center justify-between p-3 rounded-lg border border-black/15 bg-muted/30 hover:bg-muted/60 transition-colors">
-									<div className="flex items-center gap-3">
-										<span className="size-8 rounded-md border border-black bg-primary text-black font-mono font-black text-xs flex items-center justify-center">
-											{cap.smile_score}%
-										</span>
-										<div>
-											<div className="font-mono text-xs font-black text-foreground">
+									<div className="flex items-center gap-3 min-w-0">
+										<Avatar className="size-8 border border-black shadow-brutal-xs shrink-0">
+											<AvatarImage src={cap.user_image || DEFAULT_AVATAR_URL} alt={cap.user_name} className="object-cover" />
+											<AvatarFallback className="text-[10px] font-black bg-primary text-primary-foreground">
+												{cap.user_name?.slice(0, 2).toUpperCase() || 'U'}
+											</AvatarFallback>
+										</Avatar>
+										<div className="min-w-0">
+											<div className="font-mono text-xs font-black text-foreground truncate">
 												{cap.user_name || 'Anonymous Smiler'}
 											</div>
-											<div className="font-mono text-[10px] text-muted-foreground">
+											<div className="font-mono text-[10px] text-muted-foreground truncate">
 												{cap.user_email}
 											</div>
 										</div>

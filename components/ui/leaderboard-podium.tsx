@@ -5,6 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { Crown, Sparkles, Trophy } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { DEFAULT_AVATAR_URL } from "@/components/ui/avatar"
 
 // Types (inlined)
 interface LeaderboardRanking {
@@ -181,8 +182,7 @@ const LeaderboardPodium = React.forwardRef<
           const displayName =
             ranking.userName || `User ${ranking.userId.slice(0, 6)}`
           const avatarSrc =
-            ranking.avatarUrl ??
-            `https://i.pravatar.cc/128?u=${encodeURIComponent(ranking.userId)}`
+            ranking.avatarUrl || DEFAULT_AVATAR_URL
           const podiumHeight = config.heightClasses[activeSize]
 
           const itemLabel = `Rank ${ranking.rank}: ${displayName}${showValue ? `, ${ranking.value.toLocaleString()}` : ""}`

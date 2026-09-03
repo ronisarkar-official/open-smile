@@ -11,7 +11,7 @@ import {
   Smile,
   Trophy,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from "@/components/ui/avatar";
 import { Navbar } from "@/components/navbar";
 
 interface UserProfileData {
@@ -40,6 +40,7 @@ const defaultProfile: UserProfileData = {
   name: "Smiler",
   username: "smiler",
   avatar: "OS",
+  image: DEFAULT_AVATAR_URL,
   joinDate: "August 2026",
   totalSmiles: 0,
   bestScore: 0,
@@ -68,6 +69,7 @@ export default function PublicProfilePage() {
             ...prev,
             name: username,
             username: username,
+            image: DEFAULT_AVATAR_URL,
             avatar: username.slice(0, 2).toUpperCase(),
           }));
         }
@@ -96,7 +98,7 @@ export default function PublicProfilePage() {
             <div className="flex flex-col items-center lg:items-start">
               <div className="relative">
                 <Avatar className="size-28 border-[length:var(--border-width)] border-black shadow-brutal-lg sm:size-32">
-                  {profile.image && <AvatarImage src={profile.image} alt={profile.name} />}
+                  <AvatarImage src={profile.image || DEFAULT_AVATAR_URL} alt={profile.name} />
                   <AvatarFallback className="bg-primary text-3xl font-black sm:text-4xl">
                     {profile.avatar}
                   </AvatarFallback>

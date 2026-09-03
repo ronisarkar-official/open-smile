@@ -15,6 +15,8 @@ import {
 	ScrollText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from "@/components/ui/avatar";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 const MOBILE_NAV_ITEMS = [
 	{ href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
@@ -56,10 +58,13 @@ export function AdminHeader({ user }: { user: ServerUser }) {
 						View App
 					</Link>
 
-					<div className="flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-primary px-3 py-1.5 shadow-brutal-xs">
-						<div className="size-6 rounded-full border border-black bg-black text-white flex items-center justify-center font-mono font-bold text-[10px]">
-							{user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
-						</div>
+					<div className="flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-lg bg-primary px-2.5 py-1 shadow-brutal-xs">
+						<Avatar className="size-7 border border-black shadow-brutal-xs shrink-0">
+							<AvatarImage src={user.image || DEFAULT_AVATAR_URL} alt={user.name || user.email} className="object-cover" />
+							<AvatarFallback className="text-[10px] font-black bg-black text-white">
+								{user.name?.[0]?.toUpperCase() || user.email[0].toUpperCase()}
+							</AvatarFallback>
+						</Avatar>
 						<div className="flex flex-col text-left">
 							<span className="font-mono text-xs font-black text-black leading-tight truncate max-w-[120px] sm:max-w-[180px]">
 								{user.name || user.email}
@@ -72,27 +77,30 @@ export function AdminHeader({ user }: { user: ServerUser }) {
 				</div>
 			</header>
 
-			<nav className="flex md:hidden items-center gap-1 overflow-x-auto px-3 py-2 border-t border-black/10 bg-muted/40 no-scrollbar">
-				{MOBILE_NAV_ITEMS.map((item) => {
-					const Icon = item.icon;
-					const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-					return (
-						<Link
-							key={item.href}
-							href={item.href}
-							className={cn(
-								"shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border font-mono text-[11px] font-black uppercase tracking-wider select-none",
-								isActive
-									? "border-black bg-accent text-black shadow-brutal-xs"
-									: "border-transparent text-muted-foreground hover:bg-card hover:text-foreground"
-							)}
-						>
-							<Icon className="size-3" />
-							{item.label}
-						</Link>
-					);
-				})}
-			</nav>
+			<ScrollArea className="w-full md:hidden border-t border-black/10 bg-muted/40">
+				<nav className="flex items-center gap-1 px-3 py-2 whitespace-nowrap">
+					{MOBILE_NAV_ITEMS.map((item) => {
+						const Icon = item.icon;
+						const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
+						return (
+							<Link
+								key={item.href}
+								href={item.href}
+								className={cn(
+									"shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border font-mono text-[11px] font-black uppercase tracking-wider select-none",
+									isActive
+										? "border-black bg-accent text-black shadow-brutal-xs"
+										: "border-transparent text-muted-foreground hover:bg-card hover:text-foreground"
+								)}
+							>
+								<Icon className="size-3" />
+								{item.label}
+							</Link>
+						);
+					})}
+				</nav>
+				<ScrollBar orientation="horizontal" />
+			</ScrollArea>
 		</div>
 	);
 }

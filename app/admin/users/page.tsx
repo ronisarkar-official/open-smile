@@ -23,6 +23,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from "@/components/ui/avatar";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export default function AdminUsersPage() {
 	const { toast } = useToast();
@@ -314,7 +316,7 @@ export default function AdminUsersPage() {
 			</div>
 
 			<div className="border-[length:var(--border-width)] border-black rounded-xl bg-card shadow-brutal overflow-hidden">
-				<div className="overflow-x-auto">
+				<ScrollArea className="w-full">
 					<table className="w-full text-left border-collapse">
 						<thead>
 							<tr className="border-b-[length:var(--border-width)] border-black bg-muted/60 font-mono text-[11px] font-black uppercase text-foreground">
@@ -344,8 +346,18 @@ export default function AdminUsersPage() {
 								users.map((u) => (
 									<tr key={u.id} className="hover:bg-muted/30 transition-colors">
 										<td className="p-3.5">
-											<div className="font-bold text-foreground text-sm leading-tight">{u.name}</div>
-											<div className="text-[11px] text-muted-foreground">{u.email}</div>
+											<div className="flex items-center gap-3">
+												<Avatar className="size-9 border-[length:var(--border-width)] border-black shadow-brutal-xs shrink-0">
+													<AvatarImage src={u.image || DEFAULT_AVATAR_URL} alt={u.name} className="object-cover" />
+													<AvatarFallback className="text-xs font-black bg-primary text-primary-foreground">
+														{u.name?.slice(0, 2).toUpperCase() || 'U'}
+													</AvatarFallback>
+												</Avatar>
+												<div className="min-w-0">
+													<div className="font-bold text-foreground text-sm leading-tight truncate">{u.name}</div>
+													<div className="text-[11px] text-muted-foreground truncate">{u.email}</div>
+												</div>
+											</div>
 										</td>
 
 										<td className="p-3.5">
@@ -452,7 +464,8 @@ export default function AdminUsersPage() {
 							)}
 						</tbody>
 					</table>
-				</div>
+					<ScrollBar orientation="horizontal" />
+				</ScrollArea>
 
 				<div className="p-3.5 border-t-[length:var(--border-width)] border-black/15 bg-muted/20 flex items-center justify-between font-mono text-xs font-bold text-muted-foreground">
 					<span>
@@ -480,25 +493,34 @@ export default function AdminUsersPage() {
 			{/* User Detail Drawer */}
 			{selectedUser ? (
 				<div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex justify-end">
-					<div className="w-full max-w-xl bg-card border-l-[length:var(--border-width)] border-black h-full overflow-y-auto p-6 space-y-6 shadow-brutal">
-						<div className="flex items-center justify-between border-b-[length:var(--border-width)] border-black/15 pb-4">
-							<div>
-								<span className="font-mono text-[10px] font-black uppercase text-accent tracking-wider">
-									User Dossier
-								</span>
-								<h2 className="text-2xl font-black font-title text-foreground">
-									{selectedUser.name}
-								</h2>
+					<div className="w-full max-w-xl bg-card border-l-[length:var(--border-width)] border-black h-full flex flex-col shadow-brutal overflow-hidden">
+						<div className="flex items-center justify-between border-b-[length:var(--border-width)] border-black/15 p-6 shrink-0">
+							<div className="flex items-center gap-3 min-w-0">
+								<Avatar className="size-12 border-[length:var(--border-width)] border-black shadow-brutal-xs shrink-0">
+									<AvatarImage src={userDetail?.user?.image || selectedUser.image || DEFAULT_AVATAR_URL} alt={selectedUser.name} className="object-cover" />
+									<AvatarFallback className="text-sm font-black bg-primary text-primary-foreground">
+										{selectedUser.name?.slice(0, 2).toUpperCase() || 'U'}
+									</AvatarFallback>
+								</Avatar>
+								<div className="min-w-0">
+									<span className="font-mono text-[10px] font-black uppercase text-accent tracking-wider">
+										User Dossier
+									</span>
+									<h2 className="text-2xl font-black font-title text-foreground truncate">
+										{selectedUser.name}
+									</h2>
+								</div>
 							</div>
 							<Button
 								onClick={() => setSelectedUser(null)}
-								className="size-8 p-0 border border-black rounded-md bg-card text-foreground"
+								className="size-8 p-0 border border-black rounded-md bg-card text-foreground shrink-0 ml-3"
 							>
 								<X className="size-4" />
 							</Button>
 						</div>
 
-						{detailLoading ? (
+						<ScrollArea className="flex-1 p-6">
+							{detailLoading ? (
 							<div className="py-12 text-center font-mono text-xs font-bold text-muted-foreground">
 								Loading user dossier...
 							</div>
@@ -557,24 +579,26 @@ export default function AdminUsersPage() {
 									<h4 className="font-mono text-xs font-black uppercase text-foreground flex items-center gap-1.5">
 										<History className="size-3.5" /> Recent Coin Movements
 									</h4>
-									<div className="space-y-1.5 max-h-48 overflow-y-auto">
-										{userDetail.ledger?.map((l: any) => (
-											<div
-												key={l.id}
-												className="flex items-center justify-between p-2.5 rounded-md border border-black/10 bg-muted/20 font-mono text-[11px]"
-											>
-												<span className="truncate max-w-[240px]">{l.reason}</span>
-												<span
-													className={cn(
-														"font-black",
-														l.coins >= 0 ? "text-success" : "text-destructive"
-													)}
+									<ScrollArea className="max-h-48 w-full border border-black/10 rounded-md p-1.5 bg-muted/10">
+										<div className="space-y-1.5 pr-3">
+											{userDetail.ledger?.map((l: any) => (
+												<div
+													key={l.id}
+													className="flex items-center justify-between p-2.5 rounded-md border border-black/10 bg-card font-mono text-[11px]"
 												>
-													{l.coins >= 0 ? `+${l.coins}` : l.coins} 🪙
-												</span>
-											</div>
-										))}
-									</div>
+													<span className="truncate max-w-[240px]">{l.reason}</span>
+													<span
+														className={cn(
+															"font-black",
+															l.coins >= 0 ? "text-success" : "text-destructive"
+														)}
+													>
+														{l.coins >= 0 ? `+${l.coins}` : l.coins} 🪙
+													</span>
+												</div>
+											))}
+										</div>
+									</ScrollArea>
 								</div>
 
 								<div className="pt-4 border-t border-black/15">
@@ -591,6 +615,7 @@ export default function AdminUsersPage() {
 								</div>
 							</div>
 						) : null}
+						</ScrollArea>
 					</div>
 				</div>
 			) : null}

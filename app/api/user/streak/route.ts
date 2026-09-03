@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { requireServerUser } from '@/backend/auth';
-import { getUserStreak } from '@/backend/db';
+import { getUserStreakFullDetails } from '@/backend/db';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -10,9 +10,9 @@ export async function GET() {
 		const { user, error } = await requireServerUser();
 		if (!user) return error;
 
-		const streak = await getUserStreak(user.id);
+		const details = await getUserStreakFullDetails(user.id);
 		return NextResponse.json(
-			{ streak },
+			details,
 			{
 				headers: {
 					'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',

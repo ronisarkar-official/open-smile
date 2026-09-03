@@ -45,7 +45,7 @@ import {
 } from 'lucide-react';
 import { usePwaContext } from '@/components/pwa/pwa-provider';
 import { IosInstallGuide } from '@/components/pwa/ios-install-guide';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from '@/components/ui/avatar';
 import { SettingsDialog } from '@/components/settings/dialog';
 import type { SettingsSection } from '@/components/settings/settings-shared';
 import { cn } from '@/lib/utils';
@@ -255,7 +255,7 @@ export const DashboardSidebar = ({
 	const user = session?.user;
 	const userName = user?.name ?? 'User';
 	const userEmail = user?.email ?? '';
-	const userAvatar = avatarOverride ?? user?.image ?? '';
+	const userAvatar = avatarOverride ?? user?.image ?? DEFAULT_AVATAR_URL;
 	const userInitials =
 		userName
 			.split(' ')
@@ -394,7 +394,7 @@ export const DashboardSidebar = ({
 								</Link> */}
 
 								<Link
-									href="/capture"
+									href="/streak"
 									title="Active Streak"
 									className="group relative flex flex-col items-center justify-center transition-transform duration-150 hover:scale-105 active:scale-95 shrink-0">
 									<div className="relative flex size-8 sm:size-9 items-center justify-center">

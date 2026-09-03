@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from '@/components/ui/avatar';
 import {
 	NAV_GROUPS,
 	type SettingsSection,
@@ -48,7 +48,7 @@ export function SettingsSidebar({
 											: 'border-transparent text-foreground hover:border-black hover:bg-muted hover:shadow-brutal-xs',
 									)}>
 									<Avatar className="h-5 w-5 border border-black shrink-0">
-										<AvatarImage src={userAvatar} alt={userName} />
+										<AvatarImage src={userAvatar || DEFAULT_AVATAR_URL} alt={userName} />
 										<AvatarFallback className="text-[9px] font-black bg-card text-black">
 											{userInitials}
 										</AvatarFallback>

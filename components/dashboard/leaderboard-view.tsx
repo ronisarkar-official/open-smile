@@ -18,6 +18,8 @@ interface PeriodData {
 	resetAt?: string;
 	podium: LeaderboardPodiumRanking[];
 	rankings: LeaderboardRankingItem[];
+	currentUserRanking?: LeaderboardRankingItem | null;
+	yesterdayPodium?: any[];
 }
 
 const runOptions = [
@@ -96,7 +98,7 @@ function LeaderboardSkeleton() {
 export function LeaderboardView() {
 	const { settings } = useSystemSettings();
 	const { data: session } = useSession();
-	const [selectedRunId, setSelectedRunId] = React.useState('weekly');
+	const [selectedRunId, setSelectedRunId] = React.useState('daily');
 	const [liveData, setLiveData] = React.useState<Record<string, PeriodData>>({});
 	const [loading, setLoading] = React.useState(true);
 	const cacheRef = React.useRef<Record<string, PeriodData>>({});
@@ -128,7 +130,9 @@ export function LeaderboardView() {
 						toDate: json.toDate,
 						resetAt: json.resetAt,
 						podium: json.podium || [],
+						yesterdayPodium: json.yesterdayPodium || [],
 						rankings: json.rankings || [],
+						currentUserRanking: json.currentUserRanking || null,
 					};
 					cacheRef.current[period] = periodData;
 					setLiveData((prev) => ({
@@ -220,7 +224,9 @@ export function LeaderboardView() {
 						resetAt={currentData.resetAt}
 						currentUserId={session?.user?.id}
 						podiumRankings={currentData.podium}
+						yesterdayPodium={currentData.yesterdayPodium}
 						rankings={currentData.rankings}
+						currentUserRanking={currentData.currentUserRanking}
 						runOptions={runOptions}
 						selectedRunId={selectedRunId}
 						onRunChange={setSelectedRunId}

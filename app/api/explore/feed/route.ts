@@ -91,6 +91,7 @@ export async function GET(request: NextRequest) {
 				userId: String(r.user_id),
 				user: r.user_name || 'Smiler',
 				avatar: getAvatarLetters(r.user_name),
+				userAvatar: r.user_avatar || '/icons/default-icon.webp',
 				score: Number(r.smile_score) || 0,
 				caption: r.caption || undefined,
 				imageUrl: r.image_url || undefined,

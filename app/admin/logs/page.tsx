@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export default function AdminLogsPage() {
 	const { toast } = useToast();
@@ -95,7 +96,7 @@ export default function AdminLogsPage() {
 			</div>
 
 			<div className="border-[length:var(--border-width)] border-black rounded-xl bg-card shadow-brutal overflow-hidden">
-				<div className="overflow-x-auto">
+				<ScrollArea className="w-full">
 					<table className="w-full text-left border-collapse">
 						<thead>
 							<tr className="border-b-[length:var(--border-width)] border-black bg-muted/60 font-mono text-[11px] font-black uppercase text-foreground">
@@ -186,7 +187,8 @@ export default function AdminLogsPage() {
 							)}
 						</tbody>
 					</table>
-				</div>
+					<ScrollBar orientation="horizontal" />
+				</ScrollArea>
 
 				<div className="p-3.5 border-t-[length:var(--border-width)] border-black/15 bg-muted/20 flex items-center justify-between font-mono text-xs font-bold text-muted-foreground">
 					<span>

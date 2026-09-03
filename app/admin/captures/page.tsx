@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from "@/components/ui/avatar";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export default function AdminCapturesPage() {
 	const { toast } = useToast();
@@ -155,7 +157,7 @@ export default function AdminCapturesPage() {
 			</div>
 
 			<div className="border-[length:var(--border-width)] border-black rounded-xl bg-card shadow-brutal overflow-hidden">
-				<div className="overflow-x-auto">
+				<ScrollArea className="w-full">
 					<table className="w-full text-left border-collapse">
 						<thead>
 							<tr className="border-b-[length:var(--border-width)] border-black bg-muted/60 font-mono text-[11px] font-black uppercase text-foreground">
@@ -189,8 +191,18 @@ export default function AdminCapturesPage() {
 										</td>
 
 										<td className="p-3.5">
-											<div className="font-bold text-foreground text-sm leading-tight">{c.user_name}</div>
-											<div className="text-[11px] text-muted-foreground">{c.user_email}</div>
+											<div className="flex items-center gap-3">
+												<Avatar className="size-8 border-[length:var(--border-width)] border-black shadow-brutal-xs shrink-0">
+													<AvatarImage src={c.user_image || DEFAULT_AVATAR_URL} alt={c.user_name} className="object-cover" />
+													<AvatarFallback className="text-[10px] font-black bg-primary text-primary-foreground">
+														{c.user_name?.slice(0, 2).toUpperCase() || 'U'}
+													</AvatarFallback>
+												</Avatar>
+												<div className="min-w-0">
+													<div className="font-bold text-foreground text-sm leading-tight truncate">{c.user_name}</div>
+													<div className="text-[11px] text-muted-foreground truncate">{c.user_email}</div>
+												</div>
+											</div>
 										</td>
 
 										<td className="p-3.5 font-black">
@@ -248,7 +260,8 @@ export default function AdminCapturesPage() {
 							)}
 						</tbody>
 					</table>
-				</div>
+					<ScrollBar orientation="horizontal" />
+				</ScrollArea>
 
 				<div className="p-3.5 border-t-[length:var(--border-width)] border-black/15 bg-muted/20 flex items-center justify-between font-mono text-xs font-bold text-muted-foreground">
 					<span>

@@ -119,6 +119,7 @@ export const auth = betterAuth({
 						data: {
 							...user,
 							name: user.name || user.email?.split("@")[0] || "User",
+							image: user.image || "/icons/default-icon.webp",
 						},
 					};
 				},

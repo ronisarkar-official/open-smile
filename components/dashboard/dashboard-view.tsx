@@ -233,7 +233,7 @@ export function DashboardView({ firstName, initialStats }: DashboardViewProps) {
 						</div>
 					) : (
 						<div className="divide-y-[length:var(--border-width)] divide-black/20">
-							{recentSmiles.map((item) => (
+							{recentSmiles.slice(0, 3).map((item) => (
 								<div key={item.id} className="py-3 flex items-center justify-between">
 									<div>
 										<div className="flex items-center gap-2">

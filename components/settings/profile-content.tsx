@@ -15,7 +15,7 @@ import {
 	XCircle,
 	LogOut,
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from '@/components/ui/avatar';
 import { authClient, signOut } from '@/lib/auth-client';
 import { convertToWebP } from '@/lib/convert-to-webp';
 import { GoogleIcon, GitHubIcon } from '@/components/icons';
@@ -60,7 +60,7 @@ export function ProfileContent({
 	onAvatarChange,
 }: ProfileContentProps) {
 	// Avatar state
-	const [avatar, setAvatar] = React.useState(userAvatar);
+	const [avatar, setAvatar] = React.useState(userAvatar || DEFAULT_AVATAR_URL);
 	const fileInputRef = React.useRef<HTMLInputElement>(null);
 
 	// User Auth Accounts & Sessions State
@@ -95,7 +95,7 @@ export function ProfileContent({
 	const [deleteError, setDeleteError] = React.useState<string | null>(null);
 
 	React.useEffect(() => {
-		setAvatar(userAvatar);
+		setAvatar(userAvatar || DEFAULT_AVATAR_URL);
 	}, [userAvatar]);
 
 	// Fetch linked social accounts and active sessions
@@ -359,7 +359,7 @@ export function ProfileContent({
 					<Avatar
 						onClick={triggerUpload}
 						className="h-14 w-14 border-[length:var(--border-width)] border-black shadow-brutal shrink-0 cursor-pointer hover:opacity-90 transition-opacity">
-						<AvatarImage src={avatar} alt={userName} />
+						<AvatarImage src={avatar || DEFAULT_AVATAR_URL} alt={userName} />
 						<AvatarFallback className="bg-primary text-primary-foreground text-lg font-black font-title">
 							{userInitials}
 						</AvatarFallback>
