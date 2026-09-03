@@ -13,6 +13,21 @@ const protectedRoutes = [
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith("/join/")) {
+    const parts = pathname.split("/");
+    const code = parts[2];
+    if (code) {
+      const response = NextResponse.next();
+      response.cookies.set("ref_code", code.toUpperCase(), {
+        maxAge: 30 * 24 * 60 * 60,
+        path: "/",
+        sameSite: "lax",
+      });
+      return response;
+    }
+  }
+
   const isProtected = protectedRoutes.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
   );

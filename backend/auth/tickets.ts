@@ -16,6 +16,7 @@ interface TicketPayload {
 	userId?: string;
 	passwordHash?: string;
 	name?: string;
+	referralCode?: string;
 	iat: number;
 	exp: number;
 }
@@ -26,6 +27,7 @@ export function createAuthTicket(params: {
 	userId?: string;
 	passwordHash?: string;
 	name?: string;
+	referralCode?: string;
 }): string {
 	const now = Date.now();
 	const payload: TicketPayload = {

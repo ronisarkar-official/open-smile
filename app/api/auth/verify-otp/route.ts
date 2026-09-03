@@ -5,6 +5,7 @@ import {
   createSessionForUser,
   createUserWithAccount,
   findUserByEmail,
+  createPendingReferral,
 } from "@/backend/db";
 import { rateLimit } from "@/backend/services";
 import { sendLoginNotificationEmail } from "@/backend/mailer";
@@ -90,10 +91,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (signupResult.valid && signupResult.payload) {
-      const { name, passwordHash } = signupResult.payload as {
+      const { name, passwordHash, referralCode } = signupResult.payload as {
         name: string;
         email: string;
         passwordHash: string;
+        referralCode?: string;
       };
 
       if (!passwordHash) {
@@ -117,6 +119,19 @@ export async function POST(req: NextRequest) {
         passwordHash,
       });
 
+      // Link pending referral if signed up via referral code or cookie
+      const effectiveReferralCode = referralCode || req.cookies.get("ref_code")?.value;
+      if (effectiveReferralCode) {
+        try {
+          await createPendingReferral({
+            referrerCode: effectiveReferralCode,
+            newUserId: user.id,
+          });
+        } catch (refErr) {
+          console.error("[verify-otp] Failed to create pending referral:", refErr);
+        }
+      }
+
       const session = await createSessionForUser(user.id, req);
 
       const response = NextResponse.json(
@@ -125,6 +140,7 @@ export async function POST(req: NextRequest) {
       );
 
       setSessionCookie(response, session.token, session.expiresAt);
+      response.cookies.delete("ref_code");
       return response;
     }
 

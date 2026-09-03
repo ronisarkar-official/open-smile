@@ -31,6 +31,12 @@ export async function GET(_request: NextRequest) {
 			}
 		}
 
+		const { getSystemSettingsMap } = await import('@/backend/db');
+		const settings = await getSystemSettingsMap();
+		const referrerMaxCoins = Number(settings.referral_referrer_max_coins) || 200;
+		const refereeMaxCoins = Number(settings.referral_referee_max_coins) || 50;
+		const maxDaily = Math.max(1, Number(settings.max_daily_referral_rewards) || 5);
+
 		const [completedRes, pendingRes, bonusRes, dailyRes] = await Promise.all([
 			pool.query(
 				"SELECT COUNT(*) FROM referrals WHERE referrer_id = $1 AND status = 'completed'",
@@ -41,11 +47,15 @@ export async function GET(_request: NextRequest) {
 				[user.id]
 			),
 			pool.query(
-				"SELECT COALESCE(SUM(coins), 0) FROM coin_ledger WHERE user_id = $1 AND reason = 'referral_bonus'",
+				`SELECT COALESCE(SUM(coins), 0) FROM (
+					SELECT coins FROM scratch_cards WHERE user_id = $1 AND source = 'Referral Reward' AND is_scratched = true
+					UNION ALL
+					SELECT coins FROM coin_ledger WHERE user_id = $1 AND reason = 'referral_bonus'
+				) AS combined_bonuses`,
 				[user.id]
 			),
 			pool.query(
-				"SELECT COUNT(*) FROM coin_ledger WHERE user_id = $1 AND reason = 'referral_bonus' AND created_at >= (NOW() AT TIME ZONE 'UTC')::date",
+				"SELECT COUNT(*) FROM scratch_cards WHERE user_id = $1 AND source = 'Referral Reward' AND created_at AT TIME ZONE 'Asia/Kolkata' >= (NOW() AT TIME ZONE 'Asia/Kolkata')::date",
 				[user.id]
 			),
 		]);
@@ -54,11 +64,17 @@ export async function GET(_request: NextRequest) {
 		const pendingReferrals = parseInt(pendingRes.rows[0]?.count || '0', 10);
 		const bonusCoinsEarned = parseInt(bonusRes.rows[0]?.coalesce || '0', 10);
 		const dailyCount = parseInt(dailyRes.rows[0]?.count || '0', 10);
-		const remainingToday = Math.max(0, 5 - dailyCount);
+		const remainingToday = Math.max(0, maxDaily - dailyCount);
+
+		const origin = _request.nextUrl.origin || process.env.BETTER_AUTH_URL || 'https://opensmile.app';
+		const referralLink = `${origin}/join/${referralCode}`;
 
 		return NextResponse.json({
 			referral_code: referralCode,
-			referral_link: `https://opensmile.app/join/${referralCode}`,
+			referral_link: referralLink,
+			referrer_max_coins: referrerMaxCoins,
+			referee_max_coins: refereeMaxCoins,
+			max_daily_rewards: maxDaily,
 			stats: {
 				friends_referred: friendsReferred,
 				bonus_coins_earned: bonusCoinsEarned,

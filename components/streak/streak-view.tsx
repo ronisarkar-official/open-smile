@@ -9,7 +9,6 @@ import {
 	Crown,
 	Flame,
 	Lock,
-	RefreshCw,
 	Share2,
 	Sparkles,
 	Trophy,
@@ -70,17 +69,18 @@ const MILESTONES = [
 
 export function StreakView({ initialData }: StreakViewProps) {
 	const [data, setData] = React.useState<UserStreakFullDetails>(initialData);
-	const [loading, setLoading] = React.useState(false);
 	const [copied, setCopied] = React.useState(false);
 	const [timeLeft, setTimeLeft] = React.useState<string>('--:--:--');
+	const isFetchingRef = React.useRef(false);
 
 	const streak = data.streakCount;
 	const isTodayCompleted = data.isTodayCompleted;
 	const multiplierLabel = data.multiplierLabel;
 
 	const fetchLatest = React.useCallback(async () => {
+		if (isFetchingRef.current) return;
 		try {
-			setLoading(true);
+			isFetchingRef.current = true;
 			const res = await fetch('/api/user/streak', {
 				cache: 'no-store',
 				headers: { 'Cache-Control': 'no-cache' },
@@ -91,22 +91,62 @@ export function StreakView({ initialData }: StreakViewProps) {
 			}
 		} catch {
 		} finally {
-			setLoading(false);
+			isFetchingRef.current = false;
 		}
 	}, []);
 
 	React.useEffect(() => {
-		const handleStreakEvent = () => {
-			fetchLatest();
+		if (initialData) {
+			setData(initialData);
+		}
+	}, [initialData]);
+
+	React.useEffect(() => {
+		const handleSync = () => {
+			if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+				fetchLatest();
+			}
 		};
 
-		window.addEventListener(USER_STREAK_EVENT, handleStreakEvent);
+		window.addEventListener(USER_STREAK_EVENT, handleSync);
+		window.addEventListener('visibilitychange', handleSync);
+		window.addEventListener('focus', handleSync);
+
+		const syncInterval = setInterval(() => {
+			if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+				fetchLatest();
+			}
+		}, 30000);
+
+		const WinBroadcastChannel = typeof window !== 'undefined'
+			? (window as unknown as { BroadcastChannel?: typeof BroadcastChannel }).BroadcastChannel
+			: undefined;
+
+		let channel: BroadcastChannel | null = null;
+		if (WinBroadcastChannel) {
+			try {
+				channel = new WinBroadcastChannel('open-smile-streak');
+				channel.onmessage = () => {
+					fetchLatest();
+				};
+			} catch {
+			}
+		}
+
 		return () => {
-			window.removeEventListener(USER_STREAK_EVENT, handleStreakEvent);
+			window.removeEventListener(USER_STREAK_EVENT, handleSync);
+			window.removeEventListener('visibilitychange', handleSync);
+			window.removeEventListener('focus', handleSync);
+			clearInterval(syncInterval);
+			if (channel) {
+				channel.close();
+			}
 		};
 	}, [fetchLatest]);
 
 	React.useEffect(() => {
+		let dayRolledOver = false;
+
 		function updateCountdown() {
 			const now = new Date();
 			const istOffsetMs = (5 * 60 + 30) * 60 * 1000;
@@ -129,12 +169,20 @@ export function StreakView({ initialData }: StreakViewProps) {
 
 			const pad = (n: number) => n.toString().padStart(2, '0');
 			setTimeLeft(`${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
+
+			if (diffMs <= 1000 && !dayRolledOver) {
+				dayRolledOver = true;
+				fetchLatest();
+				setTimeout(() => {
+					dayRolledOver = false;
+				}, 3000);
+			}
 		}
 
 		updateCountdown();
 		const interval = setInterval(updateCountdown, 1000);
 		return () => clearInterval(interval);
-	}, []);
+	}, [fetchLatest]);
 
 	const nextMilestone = MILESTONES.find((m) => m.days > streak) || MILESTONES[MILESTONES.length - 1];
 	const prevMilestoneDays = MILESTONES.filter((m) => m.days <= streak).pop()?.days || 0;
@@ -186,33 +234,23 @@ export function StreakView({ initialData }: StreakViewProps) {
 				<div className="absolute -bottom-12 -left-12 size-48 rounded-full bg-warning/10 pointer-events-none blur-2xl" />
 
 				<div className="relative flex flex-col items-center text-center gap-6">
-					<div className="flex items-center gap-2">
-						<span
-							className={cn(
-								'inline-flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md px-3 py-1 font-mono text-xs font-black uppercase tracking-wider shadow-brutal-xs',
-								isTodayCompleted ? 'bg-success text-success-foreground' : 'bg-secondary text-secondary-foreground'
-							)}>
-							{isTodayCompleted ? (
-								<>
-									<Check className="size-4" strokeWidth={3} />
-									Streak Active Today
-								</>
-							) : (
-								<>
-									<Flame className="size-4 text-white fill-white animate-pulse" />
-									Daily Smile Pending
-								</>
-							)}
-						</span>
-
-						<button
-							onClick={fetchLatest}
-							disabled={loading}
-							title="Refresh Streak"
-							className="inline-flex size-7 items-center justify-center border-[length:var(--border-width)] border-black rounded-md bg-muted hover:bg-muted/80 active:scale-[0.96] transition-transform brutal-lift shadow-brutal-xs">
-							<RefreshCw className={cn('size-3.5', loading && 'animate-spin')} />
-						</button>
-					</div>
+					<span
+						className={cn(
+							'inline-flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md px-3 py-1 font-mono text-xs font-black uppercase tracking-wider shadow-brutal-xs',
+							isTodayCompleted ? 'bg-success text-success-foreground' : 'bg-secondary text-secondary-foreground'
+						)}>
+						{isTodayCompleted ? (
+							<>
+								<Check className="size-4" strokeWidth={3} />
+								Streak Active Today
+							</>
+						) : (
+							<>
+								<Flame className="size-4 text-white fill-white animate-pulse" />
+								Daily Smile Pending
+							</>
+						)}
+					</span>
 
 					{/* Giant Flame Icon with Neubrutalist Aura */}
 					<div className="relative flex size-28 sm:size-36 items-center justify-center">
@@ -263,7 +301,7 @@ export function StreakView({ initialData }: StreakViewProps) {
 
 					{/* Action Buttons */}
 					<div className="flex flex-wrap items-center justify-center gap-3 w-full sm:w-auto pt-2">
-						{!isTodayCompleted ? (
+						{!isTodayCompleted && (
 							<Button
 								asChild
 								size="lg"
@@ -271,17 +309,6 @@ export function StreakView({ initialData }: StreakViewProps) {
 								<Link href="/capture">
 									Smile Now (+Coins)
 									<ArrowRight className="size-5 ml-1" strokeWidth={2.5} />
-								</Link>
-							</Button>
-						) : (
-							<Button
-								asChild
-								variant="outline"
-								size="lg"
-								className="h-12 border-[length:var(--border-width)] border-black rounded-lg bg-success hover:bg-success/90 text-success-foreground px-6 font-title text-base font-black uppercase shadow-brutal brutal-lift">
-								<Link href="/capture">
-									<Check className="size-5 mr-1" strokeWidth={3} />
-									Practice Extra Smiles
 								</Link>
 							</Button>
 						)}
@@ -301,77 +328,84 @@ export function StreakView({ initialData }: StreakViewProps) {
 
 			{/* Weekly 7-Day Streak Strip (Duolingo Style) */}
 			<section
-				className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-5 sm:p-7 shadow-brutal-md reveal-in reveal-delay-1"
+				className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-3.5 sm:p-6 md:p-7 shadow-brutal-md reveal-in reveal-delay-1"
 				aria-label="Weekly Streak Tracker">
-				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-5 border-b-[length:var(--border-width)] border-black">
+				<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-2 pb-4 sm:pb-5 border-b-[length:var(--border-width)] border-black">
 					<div>
-						<h2 className="font-title text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground">
+						<h2 className="font-title text-lg sm:text-2xl font-black uppercase tracking-tight text-foreground leading-tight">
 							This Week&apos;s Track
 						</h2>
-						<p className="font-sans text-xs sm:text-sm text-muted-foreground font-medium">
+						<p className="font-sans text-xs sm:text-sm text-muted-foreground font-medium mt-0.5">
 							Complete each day to build momentum and maintain your multiplier
 						</p>
 					</div>
 
-					<span className="inline-flex self-start sm:self-auto items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-muted px-2.5 py-1 font-mono text-xs font-bold uppercase shadow-brutal-xs">
+					<span className="inline-flex self-start sm:self-auto shrink-0 items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-muted px-2 sm:px-2.5 py-0.5 sm:py-1 font-mono text-[11px] sm:text-xs font-bold uppercase shadow-brutal-xs">
 						<Calendar className="size-3.5" />
 						Current Week
 					</span>
 				</div>
 
-				<div className="grid grid-cols-7 gap-2 sm:gap-3 pt-6">
-					{data.weekDays.map((day: StreakDayItem) => {
-						const isDone = day.completed;
-						const isToday = day.isToday;
-						const isUpcoming = day.isFuture;
+				<div className="pt-4 sm:pt-6 overflow-x-auto -mx-1 px-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+					<div className="grid grid-cols-7 gap-1 sm:gap-2.5 md:gap-3 min-w-[290px] sm:min-w-0">
+						{data.weekDays.map((day: StreakDayItem) => {
+							const isDone = day.completed;
+							const isToday = day.isToday;
+							const isUpcoming = day.isFuture;
 
-						return (
-							<div
-								key={day.date}
-								className={cn(
-									'flex flex-col items-center justify-between p-2 sm:p-3 border-[length:var(--border-width)] border-black rounded-lg transition-all',
-									isDone && 'bg-warning/15 shadow-brutal-xs',
-									isToday && !isDone && 'bg-destructive/10 border-primary ring-2 ring-primary/40 shadow-brutal-xs',
-									!isDone && !isToday && !isUpcoming && 'bg-muted/40',
-									isUpcoming && 'bg-muted/20 opacity-70'
-								)}>
-								<span className="font-title text-xs sm:text-sm font-black uppercase text-foreground">
-									{day.dayLabel}
-								</span>
-
-								<div className="my-2 sm:my-3">
-									{isDone ? (
-										<div className="flex size-8 sm:size-11 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg bg-linear-to-tr from-amber-500 to-primary text-white shadow-brutal-xs">
-											<Flame className="size-4 sm:size-6 fill-white" />
-										</div>
-									) : isToday ? (
-										<div className="flex size-8 sm:size-11 items-center justify-center border-[length:var(--border-width)] border-dashed border-primary rounded-lg bg-card animate-pulse">
-											<Flame className="size-4 sm:size-6 text-primary" />
-										</div>
-									) : isUpcoming ? (
-										<div className="flex size-8 sm:size-11 items-center justify-center border-[length:var(--border-width)] border-dotted border-muted-foreground/50 rounded-lg bg-card">
-											<Lock className="size-3.5 sm:size-4 text-muted-foreground" />
-										</div>
-									) : (
-										<div className="flex size-8 sm:size-11 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg bg-muted/60">
-											<div className="size-2 rounded-full bg-muted-foreground" />
-										</div>
-									)}
-								</div>
-
-								<div className="flex flex-col items-center">
-									<span className="font-mono text-xs font-bold text-muted-foreground tabular-nums">
-										{day.dayNumber}
+							return (
+								<div
+									key={day.date}
+									aria-label={`${day.dayLabel}, ${day.dayNumber} - ${isDone ? 'Completed' : isToday ? 'Today, Pending' : isUpcoming ? 'Locked' : 'Missed'}`}
+									className={cn(
+										'flex flex-col items-center justify-between py-2 px-1 sm:p-2.5 md:p-3 border-[length:var(--border-width)] border-black rounded-md sm:rounded-lg transition-transform text-center select-none',
+										isDone && 'bg-warning/15 shadow-brutal-xs',
+										isToday && !isDone && 'bg-destructive/10 border-primary ring-2 ring-primary/40 shadow-brutal-xs',
+										!isDone && !isToday && !isUpcoming && 'bg-muted/40',
+										isUpcoming && 'bg-muted/20 opacity-70'
+									)}>
+									<span className="font-title text-[10px] sm:text-xs md:text-sm font-black uppercase text-foreground truncate w-full tracking-tight">
+										{day.dayLabel}
 									</span>
-									{isToday && (
-										<span className="font-mono text-[9px] sm:text-[10px] font-black uppercase text-primary leading-none mt-0.5">
-											Today
+
+									<div className="my-1.5 sm:my-2.5 md:my-3">
+										{isDone ? (
+											<div className="flex size-7 sm:size-10 md:size-11 items-center justify-center border-[length:var(--border-width)] border-black rounded-md sm:rounded-lg bg-linear-to-tr from-amber-500 to-primary text-white shadow-brutal-xs">
+												<Flame className="size-3.5 sm:size-5 md:size-6 fill-white" />
+											</div>
+										) : isToday ? (
+											<div className="flex size-7 sm:size-10 md:size-11 items-center justify-center border-[length:var(--border-width)] border-dashed border-primary rounded-md sm:rounded-lg bg-card animate-pulse">
+												<Flame className="size-3.5 sm:size-5 md:size-6 text-primary" />
+											</div>
+										) : isUpcoming ? (
+											<div className="flex size-7 sm:size-10 md:size-11 items-center justify-center border-[length:var(--border-width)] border-dotted border-muted-foreground/50 rounded-md sm:rounded-lg bg-card">
+												<Lock className="size-3 sm:size-4 text-muted-foreground" />
+											</div>
+										) : (
+											<div className="flex size-7 sm:size-10 md:size-11 items-center justify-center border-[length:var(--border-width)] border-black rounded-md sm:rounded-lg bg-muted/60">
+												<div className="size-1.5 sm:size-2 rounded-full bg-muted-foreground" />
+											</div>
+										)}
+									</div>
+
+									<div className="flex flex-col items-center justify-center min-h-[22px] sm:min-h-[28px]">
+										<span className="font-mono text-[10px] sm:text-xs font-bold text-muted-foreground tabular-nums leading-none">
+											{day.dayNumber}
 										</span>
-									)}
+										{isToday ? (
+											<span className="font-mono text-[8px] sm:text-[10px] font-black uppercase text-primary leading-none mt-0.5 tracking-tighter sm:tracking-normal">
+												Today
+											</span>
+										) : (
+											<span className="h-[8px] sm:h-[10px] select-none opacity-0 leading-none mt-0.5" aria-hidden="true">
+												·
+											</span>
+										)}
+									</div>
 								</div>
-							</div>
-						);
-					})}
+							);
+						})}
+					</div>
 				</div>
 			</section>
 

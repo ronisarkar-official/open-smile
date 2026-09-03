@@ -15,6 +15,15 @@ export function emitStreakUpdate(newStreak?: number) {
 				detail: { streak: newStreak },
 			})
 		);
+		try {
+			const WinBroadcastChannel = (window as unknown as { BroadcastChannel?: typeof BroadcastChannel }).BroadcastChannel;
+			if (WinBroadcastChannel) {
+				const channel = new WinBroadcastChannel('open-smile-streak');
+				channel.postMessage({ streak: newStreak });
+				channel.close();
+			}
+		} catch {
+		}
 	}
 }
 
@@ -62,9 +71,42 @@ export function useUserStreak(initialDays?: number) {
 			}
 		};
 
+		const handleSync = () => {
+			if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+				fetchStreak();
+			}
+		};
+
 		window.addEventListener(USER_STREAK_EVENT, handleUpdate);
+		window.addEventListener('visibilitychange', handleSync);
+		window.addEventListener('focus', handleSync);
+
+		const WinBroadcastChannel = typeof window !== 'undefined'
+			? (window as unknown as { BroadcastChannel?: typeof BroadcastChannel }).BroadcastChannel
+			: undefined;
+
+		let channel: BroadcastChannel | null = null;
+		if (WinBroadcastChannel) {
+			try {
+				channel = new WinBroadcastChannel('open-smile-streak');
+				channel.onmessage = (e) => {
+					if (typeof e.data?.streak === 'number') {
+						setStreak(e.data.streak);
+					} else {
+						fetchStreak();
+					}
+				};
+			} catch {
+			}
+		}
+
 		return () => {
 			window.removeEventListener(USER_STREAK_EVENT, handleUpdate);
+			window.removeEventListener('visibilitychange', handleSync);
+			window.removeEventListener('focus', handleSync);
+			if (channel) {
+				channel.close();
+			}
 		};
 	}, [fetchStreak]);
 

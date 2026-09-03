@@ -152,6 +152,7 @@ export async function POST(request: NextRequest) {
 		}
 
 		let referralBonusUnlocked = false;
+		let welcomeCardId: string | null = null;
 		try {
 			const countRes = await pool.query(
 				`SELECT COUNT(*) FROM smile_captures WHERE user_id = $1`,
@@ -164,17 +165,43 @@ export async function POST(request: NextRequest) {
 				);
 				if (refRes.rows.length > 0) {
 					const referrerId = refRes.rows[0].referrer_id;
-					const referrerCoins = Number(settings.referral_reward_coins) || 50;
-					const refereeCoins = Number(settings.referee_bonus_coins) || 25;
+					const referrerMin = Math.max(5, Number(settings.referral_referrer_min_coins) || 50);
+					const referrerMax = Math.max(referrerMin, Number(settings.referral_referrer_max_coins) || 200);
+					const refereeMin = Math.max(5, Number(settings.referral_referee_min_coins || settings.referee_bonus_coins) || 20);
+					const refereeMax = Math.max(refereeMin, Number(settings.referral_referee_max_coins) || 50);
+					const maxDailyRewards = Math.max(1, Number(settings.max_daily_referral_rewards) || 5);
 
-					await pool.query(
-						`INSERT INTO coin_ledger (user_id, coins, reason, created_at) VALUES ($1, $2, 'referral_bonus', NOW())`,
-						[referrerId, referrerCoins]
+					const referrerCoinsWon = Math.floor(Math.random() * (referrerMax - referrerMin + 1)) + referrerMin;
+					const refereeCoinsWon = Math.floor(Math.random() * (refereeMax - refereeMin + 1)) + refereeMin;
+
+					// Check referrer daily cap
+					const referrerDailyRes = await pool.query(
+						`SELECT COUNT(*) FROM scratch_cards
+						 WHERE user_id = $1 AND source = 'Referral Reward'
+						   AND created_at AT TIME ZONE 'Asia/Kolkata' >= (NOW() AT TIME ZONE 'Asia/Kolkata')::date`,
+						[referrerId]
 					);
-					await pool.query(
-						`INSERT INTO coin_ledger (user_id, coins, reason, created_at) VALUES ($1, $2, 'referral_bonus', NOW())`,
-						[user.id, refereeCoins]
+					const referrerDailyCount = parseInt(referrerDailyRes.rows[0]?.count || '0', 10);
+
+					// Award Mystery Scratch Card to Referrer if under cap
+					if (referrerDailyCount < maxDailyRewards) {
+						await pool.query(
+							`INSERT INTO scratch_cards (user_id, title, source, coins, is_scratched, theme_color, badge, created_at)
+							 VALUES ($1, 'Referral Bonus Card', 'Referral Reward', $2, false, '#FF2D78', '🎁', NOW())`,
+							[referrerId, referrerCoinsWon]
+						);
+					}
+
+					// Award Welcome Scratch Card to Newly Referred Friend
+					const friendCardRes = await pool.query(
+						`INSERT INTO scratch_cards (user_id, title, source, coins, is_scratched, theme_color, badge, created_at)
+						 VALUES ($1, 'Welcome Bonus Card', 'Friend Referral', $2, false, '#C6F135', '🎉', NOW())
+						 RETURNING id`,
+						[user.id, refereeCoinsWon]
 					);
+					welcomeCardId = friendCardRes.rows[0]?.id ? String(friendCardRes.rows[0].id) : null;
+
+					// Mark referral completed
 					await pool.query(
 						`UPDATE referrals SET status = 'completed', completed_at = NOW() WHERE id = $1`,
 						[refRes.rows[0].id]
@@ -201,6 +228,7 @@ export async function POST(request: NextRequest) {
 			card_id: cardId,
 			is_scratched: false,
 			first_capture_bonus_unlocked: referralBonusUnlocked,
+			welcome_card_id: welcomeCardId,
 			daily_captures_used: updatedDailyCapturesUsed,
 			max_daily_captures: maxDailyCaptures,
 			captures_remaining: capturesRemaining,

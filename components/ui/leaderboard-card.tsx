@@ -246,6 +246,9 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 			return diff > 0 && diff <= 60 * 60 * 1000;
 		}, [resetAt, activeRunId, countdownText]);
 
+		const currentReward =
+			TOURNAMENT_REWARDS[activeRunId] || TOURNAMENT_REWARDS.daily;
+
 		return (
 			<div
 				ref={ref}
@@ -338,19 +341,14 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 					</div>
 				</div>
 
-				{(() => {
-					const currentReward =
-						TOURNAMENT_REWARDS[activeRunId] || TOURNAMENT_REWARDS.daily;
-
-					return (
-						<div
-							className={cn(
-								'mb-6 brutal-surface p-4 sm:p-5 transition-all flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4',
-								isRushHour
-									? 'bg-destructive/10 border-destructive/80 animate-pulse'
-									: 'bg-card'
-							)}
-						>
+				<div
+					className={cn(
+						'mb-6 brutal-surface p-4 sm:p-5 transition-all flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4',
+						isRushHour
+							? 'bg-destructive/10 border-destructive/80 animate-pulse'
+							: 'bg-card'
+					)}
+				>
 							<div className="flex items-center gap-3.5 min-w-0">
 								<div
 									className={cn(
@@ -440,8 +438,6 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 								))}
 							</div>
 						</div>
-					);
-				})()}
 
 				{viewMode === 'history' ? (
 					yesterdayPodium && yesterdayPodium.length > 0 ? (
@@ -463,36 +459,57 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 									<span>{yesterdayPodium[0]?.periodDate || 'Recent'}</span>
 								</div>
 								<div className="divide-y divide-border/60">
-									{yesterdayPodium.map((winner: any) => (
-										<div
-											key={winner.rank}
-											className="flex items-center justify-between px-4 py-3 text-sm hover:bg-muted/40 transition-colors"
-										>
-											<div className="flex items-center gap-3">
-												<span className="font-mono text-xs font-black text-muted-foreground w-6 text-center">
-													#{winner.rank}
-												</span>
-												<Avatar className="size-8 shrink-0 border border-border">
-													<AvatarImage src={winner.avatarUrl || '/icons/default-icon.webp'} alt={winner.userName} />
-													<AvatarFallback className="text-xs font-semibold">
-														{winner.userName.slice(0, 2).toUpperCase()}
-													</AvatarFallback>
-												</Avatar>
-												<div>
-													<div className="font-semibold text-foreground">{winner.userName}</div>
-													<div className="font-mono text-xs text-muted-foreground">
-														Winning Score: {winner.score} pts
+									{yesterdayPodium.map((winner: any) => {
+										const rewardCard =
+											currentReward.cards.find((c) =>
+												c.rank.startsWith(String(winner.rank))
+											) || currentReward.cards[winner.rank - 1];
+
+										return (
+											<div
+												key={winner.rank}
+												className="flex items-center justify-between px-4 py-3 text-sm hover:bg-muted/40 transition-colors"
+											>
+												<div className="flex items-center gap-3">
+													<span className="font-mono text-xs font-black text-muted-foreground w-6 text-center">
+														#{winner.rank}
+													</span>
+													<Avatar className="size-8 shrink-0 border border-border">
+														<AvatarImage
+															src={winner.avatarUrl || '/icons/default-icon.webp'}
+															alt={winner.userName}
+														/>
+														<AvatarFallback className="text-xs font-semibold">
+															{winner.userName.slice(0, 2).toUpperCase()}
+														</AvatarFallback>
+													</Avatar>
+													<div>
+														<div className="font-semibold text-foreground">
+															{winner.userName}
+														</div>
+														<div className="font-mono text-xs text-muted-foreground">
+															Winning Score: {winner.score} pts
+														</div>
 													</div>
 												</div>
+												<div className="flex items-center gap-2">
+													<span
+														className={cn(
+															'inline-flex items-center gap-1.5 border-[length:var(--border-width)] border-border rounded-md px-2.5 py-1 font-mono text-xs font-black shadow-brutal-xs',
+															rewardCard
+																? rewardCard.badgeBg
+																: 'bg-rank-1 text-black font-black'
+														)}
+													>
+														<span className="text-sm leading-none">
+															{rewardCard?.medal || '🎁'}
+														</span>
+														<span>{rewardCard?.name || 'Mystery Scratch Card'}</span>
+													</span>
+												</div>
 											</div>
-											<div className="flex items-center gap-2">
-												<span className="inline-flex items-center gap-1 border-[length:var(--border-width)] border-border rounded-md bg-rank-1 px-2.5 py-1 font-mono text-xs font-black text-black shadow-brutal-xs">
-													<Gift className="size-3.5" />
-													Won {winner.coinsAwarded} Coins
-												</span>
-											</div>
-										</div>
-									))}
+										);
+									})}
 								</div>
 							</div>
 						</div>

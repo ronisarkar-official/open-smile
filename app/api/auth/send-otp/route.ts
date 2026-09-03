@@ -18,7 +18,7 @@ function getClientIp(req: NextRequest): string {
 export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req);
-    const { email, type, name, password } = await req.json();
+    const { email, type, name, password, referral_code } = await req.json();
 
     if (!email || typeof email !== "string") {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
         type: "signup",
         name: name || normalizedEmail.split("@")[0],
         passwordHash: hashedPw,
+        referralCode: typeof referral_code === "string" && referral_code.trim() ? referral_code.trim().toUpperCase() : undefined,
       });
 
       return NextResponse.json(

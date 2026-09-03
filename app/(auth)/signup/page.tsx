@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -11,6 +11,7 @@ import {
   Lock,
   User,
   Loader2,
+  Gift,
 } from "lucide-react";
 import { GitHubIcon, GoogleIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -25,9 +26,22 @@ function SignupForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [socialLoading, setSocialLoading] = useState<"github" | "google" | null>(null);
+  const [referralCode, setReferralCode] = useState<string>("");
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo");
+  const refParam = searchParams.get("ref");
+
+  useEffect(() => {
+    if (refParam) {
+      setReferralCode(refParam.toUpperCase());
+    } else if (typeof document !== "undefined") {
+      const match = document.cookie.match(/ref_code=([^;]+)/);
+      if (match?.[1]) {
+        setReferralCode(decodeURIComponent(match[1]).toUpperCase());
+      }
+    }
+  }, [refParam]);
 
   async function handleSocialSignIn(provider: "github" | "google") {
     try {
@@ -54,7 +68,13 @@ function SignupForm() {
       const res = await fetch("/api/auth/send-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name, password, type: "signup" }),
+        body: JSON.stringify({
+          email,
+          name,
+          password,
+          type: "signup",
+          referral_code: referralCode || undefined,
+        }),
       });
 
       const data = await res.json();
@@ -89,6 +109,15 @@ function SignupForm() {
         <p className="max-w-[42ch] text-sm leading-5 text-muted-foreground">
           Set up your Open Smile account and we&apos;ll save your place in line.
         </p>
+
+        {referralCode && (
+          <div className="mt-2 flex items-center gap-2 border-[length:var(--border-width)] border-border rounded-lg bg-accent/30 px-3 py-2 text-xs font-mono font-bold text-foreground shadow-brutal-xs">
+            <Gift className="size-4 text-primary shrink-0" />
+            <span className="truncate">
+              Welcome Scratch Card (up to 50 coins) unlocked with code: <strong>{referralCode}</strong>
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
