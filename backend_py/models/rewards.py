@@ -16,6 +16,7 @@ class VoucherItem(BaseModel):
     logoBg: str
     isPopular: Optional[bool] = False
     highlightTag: Optional[str] = None
+    voucherType: Optional[str] = "gift_card"
     remainingInventory: Optional[int] = None
     imageUrl: Optional[str] = None
 

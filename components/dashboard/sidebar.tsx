@@ -42,6 +42,7 @@ import {
 	Compass,
 	Download,
 	Lock,
+	User,
 } from 'lucide-react';
 import { usePwaContext } from '@/components/pwa/pwa-provider';
 import { IosInstallGuide } from '@/components/pwa/ios-install-guide';
@@ -226,7 +227,7 @@ const mobileTabs: {
 	},
 	{
 		title: 'Profile',
-		url: '/dashboard/settings',
+		url: '/profile',
 		isAvatar: true,
 	},
 ];
@@ -483,6 +484,17 @@ export const DashboardSidebar = ({
 											</div>
 										</DropdownMenuLabel>
 										<DropdownMenuGroup className="p-1">
+											<DropdownMenuItem asChild>
+												<Link
+													href="/profile"
+													className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-primary/20 focus:bg-primary/20">
+													<User
+														className="size-4"
+														strokeWidth={2.5}
+													/>
+													My Profile
+												</Link>
+											</DropdownMenuItem>
 											<DropdownMenuItem
 												onClick={() => openSettings('profile')}
 												className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-primary/20 focus:bg-primary/20">

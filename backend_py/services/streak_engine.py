@@ -55,16 +55,33 @@ async def update_user_streak(conn: asyncpg.Connection, user_id: str) -> Tuple[in
     last_capture_at = row["last_capture_at"]
     freeze_used_at = row["freeze_used_at"]
 
-    if last_capture_at is None:
+    has_captured_today = await conn.fetchval(
+        """
+        SELECT EXISTS (
+            SELECT 1 FROM smile_captures
+            WHERE user_id = $1 
+              AND (created_at AT TIME ZONE 'Asia/Kolkata')::date = (NOW() AT TIME ZONE 'Asia/Kolkata')::date
+              AND (flagged IS NULL OR flagged = false)
+        )
+        """,
+        user_id,
+    )
+
+    if has_captured_today:
         new_streak = max(1, streak_count)
     else:
-        if last_capture_at.tzinfo is None:
-            last_capture_at = last_capture_at.replace(tzinfo=timezone.utc)
-        elapsed_hours = (now - last_capture_at).total_seconds() / 3600.0
-
-        if elapsed_hours < 20.0:
-            new_streak = max(1, streak_count)
-        elif 20.0 <= elapsed_hours <= 48.0:
+        captured_yesterday = await conn.fetchval(
+            """
+            SELECT EXISTS (
+                SELECT 1 FROM smile_captures
+                WHERE user_id = $1 
+                  AND (created_at AT TIME ZONE 'Asia/Kolkata')::date = ((NOW() AT TIME ZONE 'Asia/Kolkata')::date - INTERVAL '1 day')
+                  AND (flagged IS NULL OR flagged = false)
+            )
+            """,
+            user_id,
+        )
+        if captured_yesterday:
             new_streak = streak_count + 1
         else:
             is_frozen = False

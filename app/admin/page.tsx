@@ -248,10 +248,10 @@ export default function AdminDashboardPage() {
 						</div>
 						<div>
 							<div className="font-mono font-black text-xs uppercase text-foreground">
-								Settings & Flags
+								Settings & Resets
 							</div>
 							<div className="font-mono text-[11px] text-muted-foreground">
-								Maintenance Mode
+								Controls & Danger Zone
 							</div>
 						</div>
 					</div>

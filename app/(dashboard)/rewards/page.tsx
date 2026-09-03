@@ -78,13 +78,13 @@ export default function RewardsPage() {
   const { settings } = useSystemSettings();
   const [activeTab, setActiveTab] = React.useState<'marketplace' | 'my-vouchers' | 'scratch' | 'badges'>('marketplace');
   const { balance: userCoins, setBalance: setUserCoins } = useUserCoins();
-  const [claimedVouchers, setClaimedVouchers] = React.useState<ClaimedVoucher[]>(INITIAL_CLAIMED_VOUCHERS);
+  const [claimedVouchers, setClaimedVouchers] = React.useState<ClaimedVoucher[]>([]);
   const [streakCount, setStreakCount] = React.useState(1);
 
   React.useEffect(() => {
     async function loadStreak() {
       try {
-        const res = await fetch('/api/v1/user/streak');
+        const res = await fetch('/api/user/streak');
         if (res.ok) {
           const json = await res.json();
           if (typeof json.streak_count === 'number') {
@@ -99,10 +99,10 @@ export default function RewardsPage() {
   React.useEffect(() => {
     async function loadClaimedVouchers() {
       try {
-        const res = await fetch('/api/v1/rewards/my-vouchers');
+        const res = await fetch('/api/rewards/my-vouchers');
         if (res.ok) {
           const json = await res.json();
-          if (Array.isArray(json) && json.length > 0) {
+          if (Array.isArray(json)) {
             setClaimedVouchers(json);
           }
         }

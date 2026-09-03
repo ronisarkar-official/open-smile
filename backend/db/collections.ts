@@ -280,27 +280,36 @@ export async function getUserCoinBalance(userId: string): Promise<number> {
 }
 
 export async function getUserStreak(userId: string): Promise<number> {
+	const settings = await getSystemSettingsMap();
+	const streakResetAt = settings.streak_reset_at ? new Date(settings.streak_reset_at) : null;
+
 	const { rows } = await getPool().query(
 		`WITH daily_captures AS (
-			SELECT DISTINCT DATE(created_at AT TIME ZONE 'UTC') AS capture_date
+			SELECT DISTINCT (created_at AT TIME ZONE 'Asia/Kolkata')::date AS capture_date
 			FROM smile_captures
-			WHERE user_id = $1
+			WHERE user_id = $1 
+			  AND (flagged IS NULL OR flagged = false)
+			  AND ($2::timestamptz IS NULL OR created_at >= $2::timestamptz)
 		),
 		ranked AS (
 			SELECT 
 				capture_date,
-				capture_date - (ROW_NUMBER() OVER (ORDER BY capture_date DESC) * INTERVAL '1 day') AS grp
+				capture_date - (ROW_NUMBER() OVER (ORDER BY capture_date ASC) * INTERVAL '1 day') AS grp
 			FROM daily_captures
+		),
+		streak_groups AS (
+			SELECT 
+				COUNT(*)::int AS length, 
+				MAX(capture_date) AS max_date
+			FROM ranked
+			GROUP BY grp
 		)
-		SELECT COALESCE(COUNT(*), 0)::int AS streak
-		FROM ranked
-		WHERE grp = (
-			SELECT grp FROM ranked ORDER BY capture_date DESC LIMIT 1
-		)
-		AND (
-			(SELECT MAX(capture_date) FROM daily_captures) >= (CURRENT_DATE - INTERVAL '1 day')
-		)`,
-		[userId]
+		SELECT COALESCE(length, 0)::int AS streak
+		FROM streak_groups
+		WHERE max_date >= ((NOW() AT TIME ZONE 'Asia/Kolkata')::date - INTERVAL '1 day')
+		ORDER BY max_date DESC
+		LIMIT 1`,
+		[userId, streakResetAt]
 	);
 	return rows[0]?.streak ?? 0;
 }
@@ -413,9 +422,89 @@ function calculateStreakMultiplier(streakCount: number): { multiplier: number; m
 	return { multiplier: 2.0, multiplierLabel: '2.0x' };
 }
 
+export async function recordCaptureStreak(userId: string): Promise<{ streakCount: number; streakMultiplier: number }> {
+	const pool = getPool();
+
+	const checkTodayRes = await pool.query(
+		`SELECT EXISTS (
+			SELECT 1 FROM smile_captures 
+			WHERE user_id = $1 
+			  AND (created_at AT TIME ZONE 'Asia/Kolkata')::date = (NOW() AT TIME ZONE 'Asia/Kolkata')::date
+			  AND (flagged IS NULL OR flagged = false)
+		) AS already_captured_today`,
+		[userId]
+	);
+	const alreadyCapturedToday = Boolean(checkTodayRes.rows[0]?.already_captured_today);
+
+	let streakCount = 1;
+	if (alreadyCapturedToday) {
+		const current = await getUserStreak(userId);
+		streakCount = Math.max(1, current);
+	} else {
+		const checkYesterdayRes = await pool.query(
+			`SELECT EXISTS (
+				SELECT 1 FROM smile_captures 
+				WHERE user_id = $1 
+				  AND (created_at AT TIME ZONE 'Asia/Kolkata')::date = ((NOW() AT TIME ZONE 'Asia/Kolkata')::date - INTERVAL '1 day')
+				  AND (flagged IS NULL OR flagged = false)
+			) AS captured_yesterday`,
+			[userId]
+		);
+		const capturedYesterday = Boolean(checkYesterdayRes.rows[0]?.captured_yesterday);
+
+		if (capturedYesterday) {
+			const prevStreak = await getUserStreak(userId);
+			streakCount = prevStreak + 1;
+		} else {
+			const freezeRes = await pool.query(
+				`SELECT freeze_used_at FROM streaks WHERE user_id = $1`,
+				[userId]
+			);
+			const freezeUsedAt = freezeRes.rows[0]?.freeze_used_at ? new Date(freezeRes.rows[0].freeze_used_at) : null;
+			const isFrozen = freezeUsedAt ? (Date.now() - freezeUsedAt.getTime()) <= 48 * 3600 * 1000 : false;
+
+			if (isFrozen) {
+				const prevStreak = await getUserStreak(userId);
+				streakCount = Math.max(1, prevStreak);
+			} else {
+				streakCount = 1;
+			}
+		}
+	}
+
+	await pool.query(
+		`INSERT INTO streaks (user_id, streak_count, last_capture_at, freeze_available)
+		 VALUES ($1, $2, NOW(), true)
+		 ON CONFLICT (user_id) DO UPDATE SET streak_count = $2, last_capture_at = NOW()`,
+		[userId, streakCount]
+	);
+
+	await pool.query(
+		`UPDATE "user" SET streak_count = $1, last_streak_at = NOW() WHERE id = $2`,
+		[streakCount, userId]
+	);
+
+	let streakMultiplier = 1.0;
+	if (streakCount === 2) streakMultiplier = 1.2;
+	else if (streakCount >= 3 && streakCount < 7) streakMultiplier = 1.5;
+	else if (streakCount >= 7) streakMultiplier = Math.min(2.0, 1.5 + (streakCount - 3) * 0.1);
+
+	return { streakCount, streakMultiplier };
+}
+
 export async function getUserStreakFullDetails(userId: string): Promise<UserStreakFullDetails> {
 	const pool = getPool();
 	const now = new Date();
+
+	const settings = await getSystemSettingsMap();
+	const streakResetAt = settings.streak_reset_at ? new Date(settings.streak_reset_at) : null;
+
+	const istDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(now);
+	const [currYear, currMonth, currDay] = istDateStr.split('-').map(Number);
+	const istMidnight = new Date(Date.UTC(currYear, currMonth - 1, currDay));
+	const dayOfWeek = istMidnight.getUTCDay();
+	const daysSinceMonday = (dayOfWeek + 6) % 7;
+	const monday = new Date(Date.UTC(currYear, currMonth - 1, currDay - daysSinceMonday));
 
 	const [
 		calculatedStreak,
@@ -435,21 +524,24 @@ export async function getUserStreakFullDetails(userId: string): Promise<UserStre
 			`SELECT EXISTS (
 				SELECT 1 FROM smile_captures 
 				WHERE user_id = $1 
-				  AND (created_at AT TIME ZONE 'UTC')::date = (NOW() AT TIME ZONE 'UTC')::date
+				  AND (created_at AT TIME ZONE 'Asia/Kolkata')::date = (NOW() AT TIME ZONE 'Asia/Kolkata')::date
 				  AND (flagged IS NULL OR flagged = false)
+				  AND ($2::timestamptz IS NULL OR created_at >= $2::timestamptz)
 			) AS is_today_completed`,
-			[userId]
+			[userId, streakResetAt]
 		),
 		pool.query(
 			`WITH daily_captures AS (
-				SELECT DISTINCT DATE(created_at AT TIME ZONE 'UTC') AS capture_date
+				SELECT DISTINCT (created_at AT TIME ZONE 'Asia/Kolkata')::date AS capture_date
 				FROM smile_captures
-				WHERE user_id = $1 AND (flagged IS NULL OR flagged = false)
+				WHERE user_id = $1 
+				  AND (flagged IS NULL OR flagged = false)
+				  AND ($2::timestamptz IS NULL OR created_at >= $2::timestamptz)
 			),
 			ranked AS (
 				SELECT 
 					capture_date,
-					capture_date - (ROW_NUMBER() OVER (ORDER BY capture_date) * INTERVAL '1 day') AS grp
+					capture_date - (ROW_NUMBER() OVER (ORDER BY capture_date ASC) * INTERVAL '1 day') AS grp
 				FROM daily_captures
 			),
 			streak_groups AS (
@@ -459,7 +551,7 @@ export async function getUserStreakFullDetails(userId: string): Promise<UserStre
 			)
 			SELECT COALESCE(MAX(length), 0)::int AS longest_streak
 			FROM streak_groups`,
-			[userId]
+			[userId, streakResetAt]
 		),
 		pool.query(
 			`SELECT 
@@ -471,23 +563,39 @@ export async function getUserStreakFullDetails(userId: string): Promise<UserStre
 		),
 		pool.query(
 			`SELECT 
-				(created_at AT TIME ZONE 'UTC')::date::text AS capture_date,
+				(created_at AT TIME ZONE 'Asia/Kolkata')::date::text AS capture_date,
 				COUNT(*)::int AS count,
 				MAX(smile_score)::int AS max_score,
 				SUM(coins_awarded)::int AS total_coins
 			 FROM smile_captures
 			 WHERE user_id = $1 
-			   AND created_at >= date_trunc('month', NOW() AT TIME ZONE 'UTC')
+			   AND (created_at AT TIME ZONE 'Asia/Kolkata')::date >= LEAST(date_trunc('month', NOW() AT TIME ZONE 'Asia/Kolkata')::date, $2::date)
 			   AND (flagged IS NULL OR flagged = false)
-			 GROUP BY (created_at AT TIME ZONE 'UTC')::date
+			   AND ($3::timestamptz IS NULL OR created_at >= $3::timestamptz)
+			 GROUP BY (created_at AT TIME ZONE 'Asia/Kolkata')::date
 			 ORDER BY capture_date ASC`,
-			[userId]
+			[userId, monday.toISOString().slice(0, 10), streakResetAt]
 		),
 		getUserRecentSmiles(userId, 8),
 	]);
 
 	const dbStreak = Number(streaksRowRes.rows[0]?.streak_count) || 0;
-	const streakCount = Math.max(calculatedStreak, dbStreak);
+	const streakCount = calculatedStreak;
+
+	if (dbStreak !== calculatedStreak) {
+		pool.query(
+			`INSERT INTO streaks (user_id, streak_count, last_capture_at, freeze_available)
+			 VALUES ($1, $2, NOW(), true)
+			 ON CONFLICT (user_id) DO UPDATE SET streak_count = $2`,
+			[userId, calculatedStreak]
+		).catch(() => {});
+
+		pool.query(
+			`UPDATE "user" SET streak_count = $1 WHERE id = $2`,
+			[calculatedStreak, userId]
+		).catch(() => {});
+	}
+
 	const lastCaptureAt = streaksRowRes.rows[0]?.last_capture_at 
 		? new Date(streaksRowRes.rows[0].last_capture_at).toISOString() 
 		: null;
@@ -496,24 +604,28 @@ export async function getUserStreakFullDetails(userId: string): Promise<UserStre
 	const totalSmiles = Number(totalsRes.rows[0]?.total_captures) || 0;
 	const bestScore = Number(totalsRes.rows[0]?.best_score) || 0;
 
-	const monthlyCaptures: MonthlyCaptureItem[] = monthCapturesRes.rows.map((r) => ({
-		date: String(r.capture_date),
-		count: Number(r.count) || 0,
-		maxScore: Number(r.max_score) || 0,
-		totalCoins: Number(r.total_coins) || 0,
-	}));
+	const monthStartStr = `${currYear}-${currMonth.toString().padStart(2, '0')}-01`;
+	const monthlyCaptures: MonthlyCaptureItem[] = monthCapturesRes.rows
+		.filter((r) => String(r.capture_date) >= monthStartStr)
+		.map((r) => ({
+			date: String(r.capture_date),
+			count: Number(r.count) || 0,
+			maxScore: Number(r.max_score) || 0,
+			totalCoins: Number(r.total_coins) || 0,
+		}));
 
-	const monthCaptureMap = new Map<string, MonthlyCaptureItem>();
-	for (const mc of monthlyCaptures) {
-		monthCaptureMap.set(mc.date, mc);
+	const captureDateMap = new Map<string, MonthlyCaptureItem>();
+	for (const r of monthCapturesRes.rows) {
+		captureDateMap.set(String(r.capture_date), {
+			date: String(r.capture_date),
+			count: Number(r.count) || 0,
+			maxScore: Number(r.max_score) || 0,
+			totalCoins: Number(r.total_coins) || 0,
+		});
 	}
 
-	const currentDayOfWeek = now.getUTCDay();
-	const daysSinceMonday = (currentDayOfWeek + 6) % 7;
-	const monday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - daysSinceMonday));
-
 	const weekDayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-	const todayDateStr = now.toISOString().slice(0, 10);
+	const todayDateStr = istDateStr;
 
 	const weekDays: StreakDayItem[] = [];
 	for (let i = 0; i < 7; i++) {
@@ -522,8 +634,8 @@ export async function getUserStreakFullDetails(userId: string): Promise<UserStre
 		const isToday = dateStr === todayDateStr;
 		const isPast = dateStr < todayDateStr;
 		const isFuture = dateStr > todayDateStr;
-		const monthItem = monthCaptureMap.get(dateStr);
-		const completed = Boolean(monthItem && monthItem.count > 0);
+		const dayItem = captureDateMap.get(dateStr);
+		const completed = Boolean(dayItem && dayItem.count > 0);
 
 		weekDays.push({
 			date: dateStr,
@@ -533,13 +645,11 @@ export async function getUserStreakFullDetails(userId: string): Promise<UserStre
 			isPast,
 			isFuture,
 			completed,
-			score: monthItem?.maxScore,
+			score: dayItem?.maxScore,
 		});
 	}
 
-	const year = now.getUTCFullYear();
-	const month = now.getUTCMonth();
-	const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+	const daysInMonth = new Date(Date.UTC(currYear, currMonth, 0)).getUTCDate();
 	const activeDaysThisMonth = monthlyCaptures.length;
 
 	const { multiplier, multiplierLabel } = calculateStreakMultiplier(streakCount);
@@ -642,6 +752,14 @@ export async function getLeaderboardSmileRankings(
 	endDate?: Date
 ): Promise<LeaderboardSmileUserRow[]> {
 	const pool = getPool();
+	const settings = await getSystemSettingsMap();
+	const lbResetAt = settings.leaderboard_reset_at ? new Date(settings.leaderboard_reset_at) : null;
+	const effectiveStartDate = lbResetAt && lbResetAt > startDate ? lbResetAt : startDate;
+
+	if (endDate && effectiveStartDate >= endDate) {
+		return [];
+	}
+
 	const query = endDate
 		? `WITH daily_user_points AS (
 			SELECT 
@@ -688,7 +806,7 @@ export async function getLeaderboardSmileRankings(
 		 ORDER BY primary_value DESC, MIN(dup.first_capture_at) ASC
 		 LIMIT $2`;
 
-	const params = endDate ? [startDate, endDate, limit] : [startDate, limit];
+	const params = endDate ? [effectiveStartDate, endDate, limit] : [effectiveStartDate, limit];
 	const res = await pool.query(query, params);
 	return res.rows || [];
 }
@@ -704,6 +822,14 @@ export async function getUserLeaderboardRank(
 	endDate?: Date
 ): Promise<UserLeaderboardRankResult | null> {
 	const pool = getPool();
+	const settings = await getSystemSettingsMap();
+	const lbResetAt = settings.leaderboard_reset_at ? new Date(settings.leaderboard_reset_at) : null;
+	const effectiveStartDate = lbResetAt && lbResetAt > startDate ? lbResetAt : startDate;
+
+	if (endDate && effectiveStartDate >= endDate) {
+		return null;
+	}
+
 	const query = endDate
 		? `WITH daily_user_points AS (
 			SELECT 
@@ -750,7 +876,7 @@ export async function getUserLeaderboardRank(
 		)
 		SELECT rank, primary_value FROM user_totals WHERE user_id = $2`;
 
-	const params = endDate ? [startDate, endDate, userId] : [startDate, userId];
+	const params = endDate ? [effectiveStartDate, endDate, userId] : [effectiveStartDate, userId];
 	const res = await pool.query(query, params);
 
 	if (res.rows && res.rows.length > 0) {
@@ -1471,7 +1597,7 @@ export async function getAdminUsers(params: {
 
 export async function getAdminUserDetail(userId: string) {
 	const pool = getPool();
-	const [userRes, balance, capturesRes, ledgerRes, rewardsRes] = await Promise.all([
+	const [userRes, balance, capturesRes, ledgerRes, rewardsRes, scratchCardsRes] = await Promise.all([
 		pool.query(
 			`SELECT u.id, u.name, u.email, COALESCE(u.image, '/icons/default-icon.webp') AS image, COALESCE(u.role, 'user') AS role,
 				COALESCE(u.banned, false) AS banned, u."banReason", u."banExpires",
@@ -1496,6 +1622,11 @@ export async function getAdminUserDetail(userId: string) {
 			 FROM rewards WHERE user_id = $1 ORDER BY claimed_at DESC LIMIT 10`,
 			[userId]
 		),
+		pool.query(
+			`SELECT id, title, source, coins, is_scratched, theme_color, badge, created_at, scratched_at
+			 FROM scratch_cards WHERE user_id = $1 ORDER BY created_at DESC LIMIT 20`,
+			[userId]
+		),
 	]);
 
 	if (!userRes.rows[0]) return null;
@@ -1506,7 +1637,42 @@ export async function getAdminUserDetail(userId: string) {
 		captures: capturesRes.rows,
 		ledger: ledgerRes.rows,
 		rewards: rewardsRes.rows,
+		scratchCards: scratchCardsRes.rows,
 	};
+}
+
+export async function adminGrantUserScratchCard(
+	adminId: string,
+	adminEmail: string,
+	targetUserId: string,
+	coins: number,
+	title?: string,
+	badge?: string,
+	themeColor?: string
+) {
+	const pool = getPool();
+	const sanitizedTitle = (title && title.trim()) || 'Admin Surprise Reward';
+	const sanitizedBadge = (badge && badge.trim()) || '🎁';
+	const sanitizedTheme = (themeColor && themeColor.trim()) || '#FF2D78';
+
+	const res = await pool.query(
+		`INSERT INTO scratch_cards (user_id, title, source, coins, is_scratched, theme_color, badge, created_at)
+		 VALUES ($1, $2, 'Admin Grant', $3, false, $4, $5, NOW())
+		 RETURNING id, user_id, title, source, coins, is_scratched, theme_color, badge, created_at`,
+		[targetUserId, sanitizedTitle, coins, sanitizedTheme, sanitizedBadge]
+	);
+
+	const card = res.rows[0];
+
+	await logAdminAction(adminId, adminEmail, 'grant_scratch_card', 'user', targetUserId, {
+		cardId: card?.id,
+		coins,
+		title: sanitizedTitle,
+		badge: sanitizedBadge,
+		themeColor: sanitizedTheme,
+	});
+
+	return card;
 }
 
 export async function adminAdjustUserCoins(
@@ -1740,12 +1906,19 @@ export async function getAdminVouchers() {
 	let catalogRows = [];
 	try {
 		const catalogRes = await pool.query(
-			`SELECT id, brand_name as "brandName", title, description, category, image_url as "imageUrl", numeric_value as "numericValue", coins_cost as "coinsCost", highlight_tag as "highlightTag", is_active as "isActive", created_at as "createdAt"
+			`SELECT id, brand_name as "brandName", title, description, category, image_url as "imageUrl",
+			        numeric_value as "numericValue", coins_cost as "coinsCost", highlight_tag as "highlightTag",
+			        is_active as "isActive",
+			        COALESCE(voucher_type, 'gift_card') as "voucherType",
+			        COALESCE(value_formatted, '₹' || numeric_value::text) as "valueFormatted",
+			        created_at as "createdAt"
 			 FROM vouchers_catalog
 			 ORDER BY created_at DESC`
 		);
 		catalogRows = catalogRes.rows;
-	} catch {}
+	} catch (err) {
+		console.error("Failed to query vouchers_catalog:", err);
+	}
 
 	return {
 		inventorySummary: inventoryRes.rows,
@@ -1763,6 +1936,8 @@ export async function createAdminVoucher(params: {
 	description?: string;
 	category?: string;
 	imageUrl?: string;
+	voucherType?: string;
+	valueFormatted?: string;
 	numericValue: number;
 	coinsCost: number;
 	highlightTag?: string;
@@ -1770,11 +1945,11 @@ export async function createAdminVoucher(params: {
 }) {
 	const pool = getPool();
 	const cleanBrand = params.brandName.toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 4) || 'vouc';
-	const id = `${cleanBrand}-${params.numericValue}-${Date.now().toString(36).slice(-4)}`;
+	const id = `${cleanBrand}-${params.numericValue || 'rew'}-${Date.now().toString(36).slice(-4)}`;
 
 	await pool.query(
-		`INSERT INTO vouchers_catalog (id, brand_name, title, description, category, image_url, numeric_value, coins_cost, highlight_tag, is_active, created_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, NOW())
+		`INSERT INTO vouchers_catalog (id, brand_name, title, description, category, image_url, numeric_value, coins_cost, highlight_tag, is_active, voucher_type, value_formatted, created_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, $10, $11, NOW())
 		 ON CONFLICT (id) DO UPDATE SET
 		 	brand_name = EXCLUDED.brand_name,
 		 	title = EXCLUDED.title,
@@ -1783,7 +1958,9 @@ export async function createAdminVoucher(params: {
 		 	image_url = EXCLUDED.image_url,
 		 	numeric_value = EXCLUDED.numeric_value,
 		 	coins_cost = EXCLUDED.coins_cost,
-		 	highlight_tag = EXCLUDED.highlight_tag`,
+		 	highlight_tag = EXCLUDED.highlight_tag,
+		 	voucher_type = EXCLUDED.voucher_type,
+		 	value_formatted = EXCLUDED.value_formatted`,
 		[
 			id,
 			params.brandName,
@@ -1794,6 +1971,8 @@ export async function createAdminVoucher(params: {
 			params.numericValue,
 			params.coinsCost,
 			params.highlightTag || null,
+			params.voucherType || 'gift_card',
+			params.valueFormatted || (params.numericValue ? `₹${params.numericValue}` : params.title),
 		]
 	);
 
@@ -1816,10 +1995,138 @@ export async function createAdminVoucher(params: {
 		title: params.title,
 		numericValue: params.numericValue,
 		coinsCost: params.coinsCost,
+		voucherType: params.voucherType,
+		valueFormatted: params.valueFormatted,
 		codesCount: insertedCodes,
 	});
 
 	return { success: true, voucherId: id, insertedCodes };
+}
+
+export async function updateAdminVoucher(params: {
+	adminId: string;
+	adminEmail: string;
+	voucherId: string;
+	brandName: string;
+	title: string;
+	description?: string;
+	category?: string;
+	imageUrl?: string | null;
+	voucherType?: string;
+	valueFormatted?: string | null;
+	numericValue: number;
+	coinsCost: number;
+	highlightTag?: string | null;
+	isActive?: boolean;
+}) {
+	const pool = getPool();
+	const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
+
+		const vRes = await client.query(
+			`UPDATE vouchers_catalog
+			 SET brand_name = $2,
+			     title = $3,
+			     description = $4,
+			     category = $5,
+			     image_url = $6,
+			     numeric_value = $7,
+			     coins_cost = $8,
+			     highlight_tag = $9,
+			     is_active = COALESCE($10, is_active),
+			     voucher_type = COALESCE($11, voucher_type),
+			     value_formatted = COALESCE($12, value_formatted)
+			 WHERE id = $1
+			 RETURNING id, brand_name as "brandName", title, description, category, image_url as "imageUrl",
+			           numeric_value as "numericValue", coins_cost as "coinsCost", highlight_tag as "highlightTag",
+			           is_active as "isActive", voucher_type as "voucherType", value_formatted as "valueFormatted"`,
+			[
+				params.voucherId,
+				params.brandName,
+				params.title,
+				params.description !== undefined ? params.description : null,
+				params.category || 'ecommerce',
+				params.imageUrl !== undefined ? params.imageUrl : null,
+				params.numericValue,
+				params.coinsCost,
+				params.highlightTag !== undefined ? params.highlightTag : null,
+				params.isActive !== undefined ? params.isActive : null,
+				params.voucherType !== undefined ? params.voucherType : null,
+				params.valueFormatted !== undefined ? params.valueFormatted : null,
+			]
+		);
+
+		if (vRes.rowCount === 0) {
+			throw new Error("Voucher not found");
+		}
+
+		await client.query(
+			`UPDATE voucher_inventory
+			 SET brand_name = $2, title = $3
+			 WHERE voucher_id = $1`,
+			[params.voucherId, params.brandName, params.title]
+		);
+
+		await client.query('COMMIT');
+
+		await logAdminAction(params.adminId, params.adminEmail, 'update_voucher', 'voucher', params.voucherId, {
+			brandName: params.brandName,
+			title: params.title,
+			numericValue: params.numericValue,
+			coinsCost: params.coinsCost,
+			voucherType: params.voucherType,
+			valueFormatted: params.valueFormatted,
+			isActive: params.isActive,
+		});
+
+		return { success: true, voucher: vRes.rows[0] };
+	} catch (err) {
+		await client.query('ROLLBACK');
+		throw err;
+	} finally {
+		client.release();
+	}
+}
+
+export async function deleteAdminVoucher(params: {
+	adminId: string;
+	adminEmail: string;
+	voucherId: string;
+}) {
+	const pool = getPool();
+	const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
+
+		const vRes = await client.query(`SELECT brand_name, title FROM vouchers_catalog WHERE id = $1`, [params.voucherId]);
+		const voucher = vRes.rows[0];
+		if (!voucher) {
+			throw new Error("Voucher not found");
+		}
+
+		const invRes = await client.query(
+			`DELETE FROM voucher_inventory WHERE voucher_id = $1 AND status = 'available'`,
+			[params.voucherId]
+		);
+
+		await client.query(`DELETE FROM vouchers_catalog WHERE id = $1`, [params.voucherId]);
+
+		await client.query('COMMIT');
+
+		await logAdminAction(params.adminId, params.adminEmail, 'delete_voucher', 'voucher', params.voucherId, {
+			brandName: voucher.brand_name,
+			title: voucher.title,
+			deletedAvailableCodes: invRes.rowCount || 0,
+		});
+
+		return { success: true, deletedAvailableCodes: invRes.rowCount || 0 };
+	} catch (err) {
+		await client.query('ROLLBACK');
+		throw err;
+	} finally {
+		client.release();
+	}
 }
 
 export async function adminSeedVoucherCodes(
@@ -2202,6 +2509,696 @@ export async function createPendingReferral(params: {
 		await client.query('ROLLBACK');
 		console.error('[createPendingReferral] Error:', err);
 		return { success: false, error: err.message };
+	} finally {
+		client.release();
+	}
+}
+
+export interface ProfileBadgeItem {
+	id: string;
+	name: string;
+	description: string;
+	category: 'streak' | 'quality' | 'social' | 'economy';
+	iconName: string;
+	thresholdText: string;
+	isUnlocked: boolean;
+	unlockedAt?: string | null;
+	accentColor: string;
+}
+
+export interface UserProfileFullDetails {
+	id: string;
+	name: string;
+	username: string;
+	email: string;
+	image: string | null;
+	role: string;
+	joinDate: string;
+	stats: {
+		streakCount: number;
+		longestStreak: number;
+		multiplier: number;
+		multiplierLabel: string;
+		isTodayCompleted: boolean;
+		totalSmiles: number;
+		bestScore: number;
+		avgScore: number;
+		lifetimeCoinsEarned: number;
+		currentCoinsBalance: number;
+		dailyRank: number | null;
+		totalUsers: number;
+		tierName: string;
+		tierIcon: string;
+		tierLevel: number;
+	};
+	streakSociety: {
+		isMember: boolean;
+		daysRequired: number;
+		daysLeft: number;
+	};
+	referral: {
+		code: string;
+		shareUrl: string;
+		totalReferred: number;
+		coinsEarned: number;
+	};
+	badges: ProfileBadgeItem[];
+	recentCaptures: RecentSmileItem[];
+	monthlyCaptures: MonthlyCaptureItem[];
+	publicPosts: Array<{
+		id: string;
+		smileScore: number;
+		likesCount: number;
+		createdAt: string;
+		timeRemainingHours: number;
+	}>;
+}
+
+export interface UserPublicProfileDetails {
+	id: string;
+	name: string;
+	username: string;
+	image: string | null;
+	avatarLetters: string;
+	joinDate: string;
+	stats: {
+		streakCount: number;
+		longestStreak: number;
+		multiplierLabel: string;
+		totalSmiles: number;
+		bestScore: number;
+		dailyRank: number | null;
+		tierName: string;
+		tierIcon: string;
+		tierLevel: number;
+	};
+	streakSociety: {
+		isMember: boolean;
+	};
+	badges: ProfileBadgeItem[];
+	publicPosts: Array<{
+		id: string;
+		smileScore: number;
+		likesCount: number;
+		createdAt: string;
+		timeAgo: string;
+		bg: string;
+	}>;
+	referralCode?: string;
+}
+
+function getSmilerTier(totalSmiles: number): { tierName: string; tierIcon: string; tierLevel: number } {
+	if (totalSmiles >= 300) return { tierName: 'Smile Grandmaster', tierIcon: '👑', tierLevel: 5 };
+	if (totalSmiles >= 100) return { tierName: 'Duchenne Master', tierIcon: '🏆', tierLevel: 4 };
+	if (totalSmiles >= 30) return { tierName: 'Radiant Beamer', tierIcon: '⚡', tierLevel: 3 };
+	if (totalSmiles >= 10) return { tierName: 'Warm Smiler', tierIcon: '☀️', tierLevel: 2 };
+	return { tierName: 'Gentle Grinner', tierIcon: '🌱', tierLevel: 1 };
+}
+
+export function computeProfileBadges(params: {
+	streakCount: number;
+	longestStreak: number;
+	bestScore: number;
+	totalSmiles: number;
+	totalReferred: number;
+	vouchersClaimed: number;
+	publicPostsCount: number;
+	totalLikes: number;
+}): ProfileBadgeItem[] {
+	const {
+		streakCount,
+		longestStreak,
+		bestScore,
+		totalSmiles,
+		totalReferred,
+		vouchersClaimed,
+		publicPostsCount,
+		totalLikes,
+	} = params;
+
+	const effectiveStreak = Math.max(streakCount, longestStreak);
+
+	return [
+		// Streak badges
+		{
+			id: 'streak-3',
+			name: '3-Day Spark',
+			description: 'Maintained a 3-day consecutive smile streak',
+			category: 'streak',
+			iconName: 'Flame',
+			thresholdText: '3 Days',
+			isUnlocked: effectiveStreak >= 3,
+			accentColor: 'bg-amber-400',
+		},
+		{
+			id: 'streak-7',
+			name: '7-Day Warrior',
+			description: 'Completed a full week of daily smile captures',
+			category: 'streak',
+			iconName: 'Zap',
+			thresholdText: '7 Days',
+			isUnlocked: effectiveStreak >= 7,
+			accentColor: 'bg-primary',
+		},
+		{
+			id: 'streak-14',
+			name: '14-Day Habit Master',
+			description: 'Two full weeks of positive facial AI check-ins',
+			category: 'streak',
+			iconName: 'Award',
+			thresholdText: '14 Days',
+			isUnlocked: effectiveStreak >= 14,
+			accentColor: 'bg-accent',
+		},
+		{
+			id: 'streak-30',
+			name: '30-Day Titan',
+			description: 'A complete month of uninterrupted daily smiles',
+			category: 'streak',
+			iconName: 'Trophy',
+			thresholdText: '30 Days',
+			isUnlocked: effectiveStreak >= 30,
+			accentColor: 'bg-secondary',
+		},
+		{
+			id: 'streak-60',
+			name: '60-Day Grandmaster',
+			description: 'Legendary 60-day smile devotion and maximum coin boost',
+			category: 'streak',
+			iconName: 'Crown',
+			thresholdText: '60 Days',
+			isUnlocked: effectiveStreak >= 60,
+			accentColor: 'bg-emerald-400',
+		},
+
+		// Quality badges
+		{
+			id: 'quality-first',
+			name: 'First Smile',
+			description: 'Completed your very first on-device AI smile capture',
+			category: 'quality',
+			iconName: 'Camera',
+			thresholdText: '1 Capture',
+			isUnlocked: totalSmiles >= 1,
+			accentColor: 'bg-primary',
+		},
+		{
+			id: 'quality-radiant',
+			name: 'Radiant Beam',
+			description: 'Achieved an AI smile score of 85 or higher',
+			category: 'quality',
+			iconName: 'Sparkles',
+			thresholdText: 'Score 85+',
+			isUnlocked: bestScore >= 85,
+			accentColor: 'bg-accent',
+		},
+		{
+			id: 'quality-pure',
+			name: 'Pure Joy',
+			description: 'Achieved an elite AI smile score of 95 or higher',
+			category: 'quality',
+			iconName: 'Heart',
+			thresholdText: 'Score 95+',
+			isUnlocked: bestScore >= 95,
+			accentColor: 'bg-warning',
+		},
+		{
+			id: 'quality-duchenne',
+			name: 'Perfect 100',
+			description: 'Maxed out genuine Duchenne facial markers at 100/100',
+			category: 'quality',
+			iconName: 'Crown',
+			thresholdText: 'Score 100',
+			isUnlocked: bestScore >= 100,
+			accentColor: 'bg-secondary',
+		},
+
+		// Social & Explorer
+		{
+			id: 'social-debut',
+			name: 'Public Debut',
+			description: 'Opted in to share a capture to the public Explore feed',
+			category: 'social',
+			iconName: 'Share2',
+			thresholdText: '1 Shared Post',
+			isUnlocked: publicPostsCount >= 1,
+			accentColor: 'bg-info',
+		},
+		{
+			id: 'social-popular',
+			name: 'Smile Luminary',
+			description: 'Gathered 5+ likes on your public smile posts',
+			category: 'social',
+			iconName: 'Heart',
+			thresholdText: '5 Likes',
+			isUnlocked: totalLikes >= 5,
+			accentColor: 'bg-pink-400',
+		},
+
+		// Economy & Referrals
+		{
+			id: 'econ-claim',
+			name: 'First Cashout',
+			description: 'Redeemed your hard-earned smile coins for a real voucher',
+			category: 'economy',
+			iconName: 'Gift',
+			thresholdText: '1 Voucher',
+			isUnlocked: vouchersClaimed >= 1,
+			accentColor: 'bg-success',
+		},
+		{
+			id: 'econ-scout',
+			name: 'Referral Scout',
+			description: 'Successfully invited a friend who joined Open Smile',
+			category: 'economy',
+			iconName: 'Users',
+			thresholdText: '1 Referral',
+			isUnlocked: totalReferred >= 1,
+			accentColor: 'bg-amber-300',
+		},
+		{
+			id: 'econ-ambassador',
+			name: 'Super Ambassador',
+			description: 'Invited 5+ friends to smile and earn rewards',
+			category: 'economy',
+			iconName: 'Trophy',
+			thresholdText: '5 Referrals',
+			isUnlocked: totalReferred >= 5,
+			accentColor: 'bg-purple-400',
+		},
+	];
+}
+
+export async function getUserProfileFullDetails(userId: string): Promise<UserProfileFullDetails> {
+	const pool = getPool();
+
+	const [
+		userRes,
+		streakData,
+		coinsCurrentRes,
+		coinsLifetimeRes,
+		dailyRankData,
+		referralsRes,
+		referralCoinsRes,
+		vouchersClaimedRes,
+		avgScoreRes,
+		publicPostsRes,
+	] = await Promise.all([
+		pool.query(
+			`SELECT id, name, email, image, role, referral_code, created_at, "createdAt"
+			 FROM "user"
+			 WHERE id = $1
+			 LIMIT 1`,
+			[userId]
+		),
+		getUserStreakFullDetails(userId),
+		pool.query(
+			`SELECT COALESCE(SUM(coins), 0)::int AS current_balance
+			 FROM coin_ledger
+			 WHERE user_id = $1`,
+			[userId]
+		),
+		pool.query(
+			`SELECT COALESCE(SUM(coins), 0)::int AS lifetime_coins
+			 FROM coin_ledger
+			 WHERE user_id = $1 AND coins > 0`,
+			[userId]
+		),
+		getUserDailyRank(userId),
+		pool.query(
+			`SELECT COUNT(*)::int AS total_referred
+			 FROM referrals
+			 WHERE referrer_id = $1`,
+			[userId]
+		),
+		pool.query(
+			`SELECT COALESCE(SUM(coins), 0)::int AS referral_coins
+			 FROM coin_ledger
+			 WHERE user_id = $1 AND reason ILIKE '%referral%'`,
+			[userId]
+		),
+		pool.query(
+			`SELECT COUNT(*)::int AS claimed_count
+			 FROM voucher_inventory
+			 WHERE claimed_by = $1`,
+			[userId]
+		),
+		pool.query(
+			`SELECT COALESCE(ROUND(AVG(smile_score)), 0)::int AS avg_score
+			 FROM smile_captures
+			 WHERE user_id = $1 AND (flagged IS NULL OR flagged = false)`,
+			[userId]
+		),
+		pool.query(
+			`SELECT id, smile_score, likes_count, created_at
+			 FROM explore_posts
+			 WHERE user_id = $1 AND created_at >= NOW() - INTERVAL '24 hours'
+			 ORDER BY created_at DESC
+			 LIMIT 12`,
+			[userId]
+		),
+	]);
+
+	const userRow = userRes.rows[0];
+	const userName = userRow?.name || 'Smiler';
+	const userEmail = userRow?.email || '';
+	const userImage = userRow?.image || null;
+	const userRole = userRow?.role || 'user';
+	const createdDt = userRow?.created_at || userRow?.createdAt ? new Date(userRow.created_at || userRow.createdAt) : new Date();
+	const joinDateStr = createdDt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+	let referralCode = userRow?.referral_code;
+	if (!referralCode) {
+		referralCode = `SMILE${userId.slice(0, 5).toUpperCase()}`;
+		void pool.query(`UPDATE "user" SET referral_code = $1 WHERE id = $2 AND referral_code IS NULL`, [referralCode, userId]).catch(() => {});
+	}
+
+	const totalSmiles = streakData.stats.totalSmiles;
+	const bestScore = streakData.stats.bestScore;
+	const avgScore = Number(avgScoreRes.rows[0]?.avg_score) || (bestScore > 0 ? bestScore : 0);
+	const currentCoinsBalance = Number(coinsCurrentRes.rows[0]?.current_balance) || 0;
+	const lifetimeCoinsEarned = Number(coinsLifetimeRes.rows[0]?.lifetime_coins) || currentCoinsBalance;
+	const totalReferred = Number(referralsRes.rows[0]?.total_referred) || 0;
+	const referralCoinsEarned = Number(referralCoinsRes.rows[0]?.referral_coins) || 0;
+	const vouchersClaimed = Number(vouchersClaimedRes.rows[0]?.claimed_count) || 0;
+
+	const now = Date.now();
+	const publicPosts = publicPostsRes.rows.map((p) => {
+		const postTime = new Date(p.created_at).getTime();
+		const elapsedHours = (now - postTime) / (1000 * 60 * 60);
+		const timeRemainingHours = Math.max(1, Math.round(24 - elapsedHours));
+		return {
+			id: String(p.id),
+			smileScore: Number(p.smile_score) || 0,
+			likesCount: Number(p.likes_count) || 0,
+			createdAt: new Date(p.created_at).toISOString(),
+			timeRemainingHours,
+		};
+	});
+
+	const totalLikes = publicPosts.reduce((acc, p) => acc + p.likesCount, 0);
+	const tier = getSmilerTier(totalSmiles);
+
+	const badges = computeProfileBadges({
+		streakCount: streakData.streakCount,
+		longestStreak: streakData.stats.longestStreak,
+		bestScore,
+		totalSmiles,
+		totalReferred,
+		vouchersClaimed,
+		publicPostsCount: publicPosts.length,
+		totalLikes,
+	});
+
+	const usernameSlug = (userName.toLowerCase().replace(/[^a-z0-9]/g, '') || `user${userId.slice(0, 4)}`);
+
+	return {
+		id: userId,
+		name: userName,
+		username: usernameSlug,
+		email: userEmail,
+		image: userImage,
+		role: userRole,
+		joinDate: joinDateStr,
+		stats: {
+			streakCount: streakData.streakCount,
+			longestStreak: streakData.stats.longestStreak,
+			multiplier: streakData.multiplier,
+			multiplierLabel: streakData.multiplierLabel,
+			isTodayCompleted: streakData.isTodayCompleted,
+			totalSmiles,
+			bestScore,
+			avgScore,
+			lifetimeCoinsEarned,
+			currentCoinsBalance,
+			dailyRank: dailyRankData.rank,
+			totalUsers: dailyRankData.totalUsers,
+			tierName: tier.tierName,
+			tierIcon: tier.tierIcon,
+			tierLevel: tier.tierLevel,
+		},
+		streakSociety: streakData.streakSociety,
+		referral: {
+			code: referralCode,
+			shareUrl: `/join/${referralCode}`,
+			totalReferred,
+			coinsEarned: referralCoinsEarned,
+		},
+		badges,
+		recentCaptures: streakData.recentSmiles,
+		monthlyCaptures: streakData.monthlyCaptures,
+		publicPosts,
+	};
+}
+
+export async function getUserPublicProfileByUsername(username: string): Promise<UserPublicProfileDetails | null> {
+	if (!username || !username.trim()) return null;
+	const pool = getPool();
+	const cleanUsername = username.trim().toLowerCase();
+
+	let userRow = (
+		await pool.query(
+			`SELECT id, name, image, referral_code, streak_count, created_at, "createdAt"
+			 FROM "user"
+			 WHERE LOWER(name) = $1 OR LOWER(REPLACE(name, ' ', '')) = $1 OR id = $1 OR LOWER(referral_code) = $1
+			 LIMIT 1`,
+			[cleanUsername]
+		)
+	).rows[0];
+
+	if (!userRow) {
+		userRow = (
+			await pool.query(
+				`SELECT id, name, image, referral_code, streak_count, created_at, "createdAt"
+				 FROM "user"
+				 WHERE LOWER(name) LIKE $1
+				 LIMIT 1`,
+				[`%${cleanUsername}%`]
+			)
+		).rows[0];
+	}
+
+	if (!userRow) {
+		return null;
+	}
+
+	const userId = userRow.id;
+	const userName = userRow.name || 'Smiler';
+	const [streakData, totalsRes, dailyRankData, publicPostsRes, vouchersClaimedRes, referralsRes] = await Promise.all([
+		getUserStreakFullDetails(userId),
+		pool.query(
+			`SELECT COUNT(*)::int AS total_smiles, COALESCE(MAX(smile_score), 0)::int AS best_score
+			 FROM smile_captures
+			 WHERE user_id = $1 AND (flagged IS NULL OR flagged = false)`,
+			[userId]
+		),
+		getUserDailyRank(userId),
+		pool.query(
+			`SELECT id, smile_score, likes_count, created_at
+			 FROM explore_posts
+			 WHERE user_id = $1 AND created_at >= NOW() - INTERVAL '24 hours'
+			 ORDER BY created_at DESC
+			 LIMIT 8`,
+			[userId]
+		),
+		pool.query(`SELECT COUNT(*)::int AS count FROM voucher_inventory WHERE claimed_by = $1`, [userId]),
+		pool.query(`SELECT COUNT(*)::int AS count FROM referrals WHERE referrer_id = $1`, [userId]),
+	]);
+
+	const totalSmiles = Number(totalsRes.rows[0]?.total_smiles) || 0;
+	const bestScore = Number(totalsRes.rows[0]?.best_score) || 0;
+	const vouchersClaimed = Number(vouchersClaimedRes.rows[0]?.count) || 0;
+	const totalReferred = Number(referralsRes.rows[0]?.count) || 0;
+
+	const tier = getSmilerTier(totalSmiles);
+
+	const bgClasses = ['bg-primary', 'bg-accent', 'bg-secondary', 'bg-success', 'bg-warning'];
+	const publicPosts = publicPostsRes.rows.map((p, idx) => ({
+		id: String(p.id),
+		smileScore: Number(p.smile_score) || 0,
+		likesCount: Number(p.likes_count) || 0,
+		createdAt: new Date(p.created_at).toISOString(),
+		timeAgo: 'today',
+		bg: bgClasses[idx % bgClasses.length],
+	}));
+
+	const totalLikes = publicPosts.reduce((acc, p) => acc + p.likesCount, 0);
+
+	const badges = computeProfileBadges({
+		streakCount: streakData.streakCount,
+		longestStreak: streakData.stats.longestStreak,
+		bestScore,
+		totalSmiles,
+		totalReferred,
+		vouchersClaimed,
+		publicPostsCount: publicPosts.length,
+		totalLikes,
+	});
+
+	const createdDt = userRow.created_at || userRow.createdAt ? new Date(userRow.created_at || userRow.createdAt) : new Date();
+	const joinDateStr = createdDt.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+	const parts = userName.trim().split(/\s+/);
+	const avatarLetters = parts.length >= 2 ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() : userName.slice(0, 2).toUpperCase() || 'OS';
+	const usernameSlug = userName.toLowerCase().replace(/[^a-z0-9]/g, '') || cleanUsername;
+
+	return {
+		id: userId,
+		name: userName,
+		username: usernameSlug,
+		image: userRow.image || null,
+		avatarLetters,
+		joinDate: joinDateStr,
+		stats: {
+			streakCount: streakData.streakCount,
+			longestStreak: streakData.stats.longestStreak,
+			multiplierLabel: streakData.multiplierLabel,
+			totalSmiles,
+			bestScore,
+			dailyRank: dailyRankData.rank,
+			tierName: tier.tierName,
+			tierIcon: tier.tierIcon,
+			tierLevel: tier.tierLevel,
+		},
+		streakSociety: {
+			isMember: streakData.streakSociety.isMember,
+		},
+		badges,
+		publicPosts,
+		referralCode: userRow.referral_code || undefined,
+	};
+}
+
+export interface AdminResetResult {
+	success: boolean;
+	scope: 'coins' | 'streaks' | 'leaderboard' | 'all';
+	message: string;
+	recordsModified?: number;
+	details: {
+		coinsReset?: boolean;
+		streaksReset?: boolean;
+		leaderboardReset?: boolean;
+		capturesPurged?: boolean;
+	};
+}
+
+export async function adminResetPlatform(
+	adminId: string,
+	adminEmail: string,
+	scope: 'coins' | 'streaks' | 'leaderboard' | 'all',
+	purgeCaptures = false
+): Promise<AdminResetResult> {
+	const pool = getPool();
+	const client = await pool.connect();
+	const nowIso = new Date().toISOString();
+
+	try {
+		await client.query('BEGIN');
+
+		const details: AdminResetResult['details'] = {};
+		let recordsModified = 0;
+
+		if (scope === 'coins' || scope === 'all') {
+			const ledgerRes = await client.query(`
+				INSERT INTO coin_ledger (user_id, coins, reason, created_at)
+				SELECT user_id, -SUM(coins), 'admin_global_reset: Platform coin balance reset', NOW()
+				FROM coin_ledger
+				GROUP BY user_id
+				HAVING SUM(coins) <> 0
+			`);
+			recordsModified += ledgerRes.rowCount ?? 0;
+
+			const scratchRes = await client.query(`
+				DELETE FROM scratch_cards WHERE is_scratched = false
+			`);
+			recordsModified += scratchRes.rowCount ?? 0;
+
+			details.coinsReset = true;
+		}
+
+		if (scope === 'streaks' || scope === 'all') {
+			const streaksRes = await client.query(`
+				UPDATE streaks 
+				SET streak_count = 0, 
+					last_capture_at = NULL, 
+					freeze_available = true, 
+					freeze_used_at = NULL
+			`);
+			recordsModified += streaksRes.rowCount ?? 0;
+
+			const userStreakRes = await client.query(`
+				UPDATE "user" 
+				SET streak_count = 0, 
+					last_streak_at = NULL
+			`);
+			recordsModified += userStreakRes.rowCount ?? 0;
+
+			await client.query(`
+				INSERT INTO system_settings (key, value, description, updated_at, updated_by)
+				VALUES ('streak_reset_at', $1::jsonb, 'Global streak reset cutoff timestamp', NOW(), $2)
+				ON CONFLICT (key) DO UPDATE 
+				SET value = EXCLUDED.value, 
+					updated_at = NOW(), 
+					updated_by = EXCLUDED.updated_by
+			`, [JSON.stringify(nowIso), adminEmail]);
+
+			details.streaksReset = true;
+		}
+
+		if (scope === 'leaderboard' || scope === 'all') {
+			const lbSettleRes = await client.query(`
+				DELETE FROM leaderboard_settlements
+			`);
+			recordsModified += lbSettleRes.rowCount ?? 0;
+
+			await client.query(`
+				INSERT INTO system_settings (key, value, description, updated_at, updated_by)
+				VALUES ('leaderboard_reset_at', $1::jsonb, 'Global leaderboard reset cutoff timestamp', NOW(), $2)
+				ON CONFLICT (key) DO UPDATE 
+				SET value = EXCLUDED.value, 
+					updated_at = NOW(), 
+					updated_by = EXCLUDED.updated_by
+			`, [JSON.stringify(nowIso), adminEmail]);
+
+			details.leaderboardReset = true;
+		}
+
+		if (purgeCaptures && (scope === 'all' || scope === 'leaderboard' || scope === 'streaks')) {
+			await client.query(`DELETE FROM explore_likes`);
+			await client.query(`DELETE FROM explore_posts`);
+			await client.query(`DELETE FROM likes`);
+			await client.query(`DELETE FROM posts`);
+			await client.query(`DELETE FROM image_hashes`);
+			const capRes = await client.query(`DELETE FROM smile_captures`);
+			recordsModified += capRes.rowCount ?? 0;
+			details.capturesPurged = true;
+		}
+
+		await client.query('COMMIT');
+
+		await logAdminAction(adminId, adminEmail, `reset_platform_${scope}`, 'system', 'global', {
+			scope,
+			purgeCaptures,
+			recordsModified,
+			timestamp: nowIso,
+		});
+
+		let message = 'Platform reset executed successfully.';
+		if (scope === 'coins') message = 'All user coin balances have been reset to 0 and pending scratch cards purged.';
+		else if (scope === 'streaks') message = 'All streaks have been reset to 0 across the platform.';
+		else if (scope === 'leaderboard') message = 'All leaderboard rankings and settlements have been reset.';
+		else if (scope === 'all') message = `Full platform reset complete: Coins, streaks, and leaderboards have been reset to 0${purgeCaptures ? ' (and captures purged)' : ''}.`;
+
+		return {
+			success: true,
+			scope,
+			message,
+			recordsModified,
+			details,
+		};
+	} catch (err) {
+		await client.query('ROLLBACK');
+		throw err;
 	} finally {
 		client.release();
 	}

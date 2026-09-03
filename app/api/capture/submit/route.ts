@@ -5,6 +5,7 @@ import {
 	insertSmileCapture,
 	getUserCoinBalance,
 	getSystemSettingsMap,
+	recordCaptureStreak,
 } from '@/backend/db';
 
 import { calculateSmileCoins } from '@/lib/reward-calculator';
@@ -77,48 +78,9 @@ export async function POST(request: NextRequest) {
 		let streakMultiplier = 1.0;
 
 		try {
-			const streakRes = await pool.query(
-				`SELECT streak_count, last_capture_at FROM streaks WHERE user_id = $1`,
-				[user.id]
-			);
-			const now = new Date();
-			if (streakRes.rows.length === 0) {
-				await pool.query(
-					`INSERT INTO streaks (user_id, streak_count, last_capture_at, freeze_available)
-					 VALUES ($1, 1, NOW(), true)
-					 ON CONFLICT (user_id) DO UPDATE SET streak_count = 1, last_capture_at = NOW()`,
-					[user.id]
-				);
-				streakCount = 1;
-			} else {
-				const lastAt = streakRes.rows[0].last_capture_at ? new Date(streakRes.rows[0].last_capture_at) : null;
-				const prevStreak = Number(streakRes.rows[0].streak_count) || 0;
-				if (lastAt) {
-					const elapsedHours = (now.getTime() - lastAt.getTime()) / (3600 * 1000);
-					if (elapsedHours < 20) {
-						streakCount = Math.max(1, prevStreak);
-					} else if (elapsedHours <= 48) {
-						streakCount = prevStreak + 1;
-					} else {
-						streakCount = 1;
-					}
-				} else {
-					streakCount = Math.max(1, prevStreak);
-				}
-				await pool.query(
-					`UPDATE streaks SET streak_count = $1, last_capture_at = NOW() WHERE user_id = $2`,
-					[streakCount, user.id]
-				);
-			}
-
-			await pool.query(
-				`UPDATE "user" SET streak_count = $1, last_streak_at = NOW() WHERE id = $2`,
-				[streakCount, user.id]
-			);
-
-			if (streakCount === 2) streakMultiplier = 1.2;
-			else if (streakCount >= 3 && streakCount < 7) streakMultiplier = 1.5;
-			else if (streakCount >= 7) streakMultiplier = Math.min(2.0, 1.5 + (streakCount - 3) * 0.1);
+			const streakData = await recordCaptureStreak(user.id);
+			streakCount = streakData.streakCount;
+			streakMultiplier = streakData.streakMultiplier;
 		} catch (e) {
 			console.error('Streak update error:', e);
 		}

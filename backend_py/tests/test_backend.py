@@ -104,7 +104,7 @@ async def test_unauthenticated_endpoints_rejected():
 
         r2 = await client.post(
             "/api/v1/rewards/claim",
-            json={"voucher_id": "amz-250"}
+            json={"voucher_id": "test-voucher-id"}
         )
         assert r2.status_code == 401
 

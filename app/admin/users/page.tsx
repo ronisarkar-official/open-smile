@@ -5,7 +5,7 @@ import {
 	Users,
 	Search,
 	Filter,
-	Coins,
+	Gift,
 	Shield,
 	Ban,
 	CheckCircle2,
@@ -26,6 +26,18 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from "@/components/ui/avatar";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
+interface AdminScratchCardItem {
+	id: string;
+	title: string;
+	source: string;
+	coins: number;
+	is_scratched: boolean;
+	theme_color?: string;
+	badge?: string;
+	created_at: string;
+	scratched_at?: string;
+}
+
 export default function AdminUsersPage() {
 	const { toast } = useToast();
 	const [users, setUsers] = React.useState<any[]>([]);
@@ -41,10 +53,12 @@ export default function AdminUsersPage() {
 	const [userDetail, setUserDetail] = React.useState<any | null>(null);
 	const [detailLoading, setDetailLoading] = React.useState(false);
 
-	const [coinModalUser, setCoinModalUser] = React.useState<any | null>(null);
-	const [coinAmount, setCoinAmount] = React.useState("");
-	const [coinReason, setCoinReason] = React.useState("");
-	const [coinActionLoading, setCoinActionLoading] = React.useState(false);
+	const [scratchModalUser, setScratchModalUser] = React.useState<any | null>(null);
+	const [scratchCoins, setScratchCoins] = React.useState("");
+	const [scratchTitle, setScratchTitle] = React.useState("");
+	const [scratchBadge, setScratchBadge] = React.useState("🎁");
+	const [scratchTheme, setScratchTheme] = React.useState("#FF2D78");
+	const [scratchActionLoading, setScratchActionLoading] = React.useState(false);
 
 	const [roleModalUser, setRoleModalUser] = React.useState<any | null>(null);
 	const [selectedRole, setSelectedRole] = React.useState("admin");
@@ -103,41 +117,49 @@ export default function AdminUsersPage() {
 		}
 	}
 
-	async function handleAdjustCoins(e: React.FormEvent) {
+	async function handleGrantScratchCard(e: React.FormEvent) {
 		e.preventDefault();
-		if (!coinModalUser) return;
-		const amt = Number(coinAmount);
-		if (isNaN(amt) || amt === 0) {
-			toast({ title: "Invalid Amount", description: "Please enter a valid non-zero coin amount.", variant: "warning" });
+		if (!scratchModalUser) return;
+		const coins = Number(scratchCoins);
+		if (isNaN(coins) || coins <= 0) {
+			toast({ title: "Invalid Amount", description: "Please enter a positive coin amount greater than 0.", variant: "warning" });
 			return;
 		}
 
-		setCoinActionLoading(true);
+		setScratchActionLoading(true);
 		try {
-			const res = await fetch(`/api/admin/users/${coinModalUser.id}/adjust-coins`, {
+			const res = await fetch(`/api/admin/users/${scratchModalUser.id}/scratch-card`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ amount: amt, reason: coinReason }),
+				body: JSON.stringify({
+					coins,
+					title: scratchTitle.trim() || undefined,
+					badge: scratchBadge,
+					themeColor: scratchTheme,
+				}),
 			});
 			const json = await res.json();
-			if (!res.ok) throw new Error(json.error || "Failed to adjust coins");
+			if (!res.ok) throw new Error(json.error || "Failed to grant scratch card");
 
 			toast({
-				title: "Coins Adjusted",
-				description: `Adjusted ${amt > 0 ? `+${amt}` : amt} coins for ${coinModalUser.name}.`,
+				title: "Scratch Card Granted",
+				description: `Issued a ${coins}-coin scratch card to ${scratchModalUser.name}.`,
 				variant: "success",
 			});
-			setCoinModalUser(null);
-			setCoinAmount("");
-			setCoinReason("");
+			setScratchModalUser(null);
+			setScratchCoins("");
+			setScratchTitle("");
+			setScratchBadge("🎁");
+			setScratchTheme("#FF2D78");
 			fetchUsers();
-			if (selectedUser?.id === coinModalUser.id) {
-				openUserDetail(coinModalUser);
+			if (selectedUser?.id === scratchModalUser.id) {
+				openUserDetail(scratchModalUser);
 			}
-		} catch (err: any) {
-			toast({ title: "Adjustment Failed", description: err.message, variant: "error" });
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : "Failed to grant scratch card";
+			toast({ title: "Grant Failed", description: message, variant: "error" });
 		} finally {
-			setCoinActionLoading(false);
+			setScratchActionLoading(false);
 		}
 	}
 
@@ -410,14 +432,16 @@ export default function AdminUsersPage() {
 
 												<Button
 													onClick={() => {
-														setCoinModalUser(u);
-														setCoinAmount("");
-														setCoinReason("");
+														setScratchModalUser(u);
+														setScratchCoins("");
+														setScratchTitle("");
+														setScratchBadge("🎁");
+														setScratchTheme("#FF2D78");
 													}}
 													className="size-8 p-0 border border-black rounded-md bg-primary hover:bg-primary/80 text-black shadow-brutal-xs"
-													title="Adjust coins"
+													title="Grant scratch card"
 												>
-													<Coins className="size-3.5" />
+													<Gift className="size-3.5" />
 												</Button>
 
 												<Button
@@ -601,7 +625,68 @@ export default function AdminUsersPage() {
 									</ScrollArea>
 								</div>
 
-								<div className="pt-4 border-t border-black/15">
+								<div className="space-y-2">
+									<h4 className="font-mono text-xs font-black uppercase text-foreground flex items-center gap-1.5">
+										<Gift className="size-3.5" /> Scratch Cards ({userDetail.scratchCards?.length || 0})
+									</h4>
+									<ScrollArea className="max-h-48 w-full border border-black/10 rounded-md p-1.5 bg-muted/10">
+										{userDetail.scratchCards && userDetail.scratchCards.length > 0 ? (
+											<div className="space-y-1.5 pr-3">
+												{userDetail.scratchCards.map((c: AdminScratchCardItem) => (
+													<div
+														key={c.id}
+														className="flex items-center justify-between p-2.5 rounded-md border border-black/10 bg-card font-mono text-[11px]"
+													>
+														<div className="flex items-center gap-2 min-w-0">
+															<span className="text-base shrink-0">{c.badge || "🎁"}</span>
+															<div className="min-w-0">
+																<div className="font-bold truncate max-w-[180px] text-foreground">
+																	{c.title || "Scratch Card"}
+																</div>
+																<div className="text-[10px] text-muted-foreground truncate max-w-[180px]">
+																	{c.source} • {new Date(c.created_at).toLocaleDateString()}
+																</div>
+															</div>
+														</div>
+														<div className="flex items-center gap-2 shrink-0">
+															<span className="font-black text-foreground">
+																{c.coins} 🪙
+															</span>
+															{c.is_scratched ? (
+																<span className="border border-success/40 rounded-xs bg-success/15 px-1.5 py-0.5 text-[9px] font-black text-success uppercase">
+																	Scratched
+																</span>
+															) : (
+																<span className="border border-primary/40 rounded-xs bg-primary/20 px-1.5 py-0.5 text-[9px] font-black text-foreground uppercase animate-pulse">
+																	Unscratched
+																</span>
+															)}
+														</div>
+													</div>
+												))}
+											</div>
+										) : (
+											<div className="py-6 text-center font-mono text-xs text-muted-foreground">
+												No scratch cards issued yet
+											</div>
+										)}
+									</ScrollArea>
+								</div>
+
+								<div className="pt-4 border-t border-black/15 space-y-2">
+									<Button
+										onClick={() => {
+											setScratchModalUser(userDetail.user);
+											setScratchCoins("");
+											setScratchTitle("");
+											setScratchBadge("🎁");
+											setScratchTheme("#FF2D78");
+										}}
+										className="w-full border-[length:var(--border-width)] border-black bg-primary hover:bg-primary/80 text-black font-mono text-xs font-black uppercase shadow-brutal-xs"
+									>
+										<Gift className="size-4 mr-2" />
+										Grant Scratch Card
+									</Button>
 									<Button
 										onClick={() => {
 											setDeleteModalUser(userDetail.user);
@@ -620,21 +705,20 @@ export default function AdminUsersPage() {
 				</div>
 			) : null}
 
-			{/* Coin Adjustment Modal */}
-			{coinModalUser ? (
+			{scratchModalUser ? (
 				<div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
 					<form
-						onSubmit={handleAdjustCoins}
+						onSubmit={handleGrantScratchCard}
 						className="w-full max-w-md border-[length:var(--border-width)] border-black rounded-xl bg-card p-6 shadow-brutal space-y-4"
 					>
 						<div className="flex items-center justify-between border-b-[length:var(--border-width)] border-black/15 pb-3">
 							<div className="flex items-center gap-2">
-								<Coins className="size-5 text-primary" />
-								<h3 className="font-black font-title text-lg text-foreground">Adjust Coins</h3>
+								<Gift className="size-5 text-primary" />
+								<h3 className="font-black font-title text-lg text-foreground">Grant Scratch Card</h3>
 							</div>
 							<Button
 								type="button"
-								onClick={() => setCoinModalUser(null)}
+								onClick={() => setScratchModalUser(null)}
 								className="size-7 p-0 border border-black rounded-md bg-card text-foreground"
 							>
 								<X className="size-3.5" />
@@ -642,52 +726,133 @@ export default function AdminUsersPage() {
 						</div>
 
 						<p className="font-mono text-xs text-muted-foreground">
-							Manually grant or deduct coins for <strong className="text-foreground">{coinModalUser.name}</strong>. All adjustments are permanently audited.
+							Reward <strong className="text-foreground">{scratchModalUser.name}</strong> with a mystery scratch card. The user can scratch it on their Rewards page to reveal and claim coins.
 						</p>
 
 						<div className="space-y-3">
 							<div>
 								<label className="block font-mono text-[11px] font-black uppercase text-foreground mb-1">
-									Amount (positive to add, negative to deduct)
+									Coins to Reveal
 								</label>
 								<Input
 									type="number"
+									min="1"
 									required
-									placeholder="e.g. 50 or -25"
-									value={coinAmount}
-									onChange={(e) => setCoinAmount(e.target.value)}
+									placeholder="e.g. 50 or 250"
+									value={scratchCoins}
+									onChange={(e) => setScratchCoins(e.target.value)}
 									className="border-[length:var(--border-width)] border-black font-mono text-sm shadow-brutal-xs"
 								/>
 							</div>
 
 							<div>
 								<label className="block font-mono text-[11px] font-black uppercase text-foreground mb-1">
-									Reason / Audit Note
+									Card Title / Occasion (Optional)
 								</label>
 								<Input
-									required
-									placeholder="e.g. Contest bonus or Manual refund"
-									value={coinReason}
-									onChange={(e) => setCoinReason(e.target.value)}
+									placeholder="e.g. Community Hero or Contest Bonus"
+									value={scratchTitle}
+									onChange={(e) => setScratchTitle(e.target.value)}
 									className="border-[length:var(--border-width)] border-black font-mono text-xs shadow-brutal-xs"
 								/>
 							</div>
+
+							<div>
+								<label className="block font-mono text-[11px] font-black uppercase text-foreground mb-1.5">
+									Card Badge
+								</label>
+								<div className="flex items-center gap-2">
+									{["🎁", "🎉", "⭐", "🔥", "💎", "👑"].map((emoji) => (
+										<button
+											key={emoji}
+											type="button"
+											onClick={() => setScratchBadge(emoji)}
+											className={cn(
+												"size-9 rounded-md border text-lg flex items-center justify-center transition-all",
+												scratchBadge === emoji
+													? "border-black bg-accent shadow-brutal-xs scale-105"
+													: "border-black/20 hover:border-black/50 bg-card"
+											)}
+										>
+											{emoji}
+										</button>
+									))}
+								</div>
+							</div>
+
+							<div>
+								<label className="block font-mono text-[11px] font-black uppercase text-foreground mb-1.5">
+									Theme Accent
+								</label>
+								<div className="flex items-center gap-2">
+									{[
+										{ label: "Pink", color: "#FF2D78" },
+										{ label: "Lime", color: "#C6F135" },
+										{ label: "Purple", color: "#7B61FF" },
+										{ label: "Gold", color: "#FFC700" },
+									].map((item) => (
+										<button
+											key={item.color}
+											type="button"
+											onClick={() => setScratchTheme(item.color)}
+											style={{ backgroundColor: item.color }}
+											className={cn(
+												"h-7 px-2.5 rounded-md border border-black font-mono text-[10px] font-black text-black flex items-center justify-center transition-all",
+												scratchTheme === item.color
+													? "shadow-brutal-xs ring-2 ring-black scale-105"
+													: "opacity-75 hover:opacity-100"
+											)}
+										>
+											{item.label}
+										</button>
+									))}
+								</div>
+							</div>
+
+							<div className="pt-2">
+								<label className="block font-mono text-[10px] font-black uppercase text-muted-foreground mb-1">
+									Card Live Preview
+								</label>
+								<div
+									style={{ backgroundColor: scratchTheme }}
+									className="border-[length:var(--border-width)] border-black rounded-xl p-3.5 shadow-brutal-xs flex items-center justify-between text-black transition-colors"
+								>
+									<div className="flex items-center gap-2.5 min-w-0">
+										<div className="size-9 rounded-lg border border-black bg-white flex items-center justify-center text-lg shadow-brutal-xs shrink-0">
+											{scratchBadge}
+										</div>
+										<div className="min-w-0">
+											<div className="font-mono text-[9px] font-black uppercase tracking-wider opacity-80 truncate">
+												Mystery Card • Admin Grant
+											</div>
+											<div className="font-title font-black text-sm text-black truncate">
+												{scratchTitle.trim() || "Admin Surprise Reward"}
+											</div>
+										</div>
+									</div>
+									<div className="text-right shrink-0">
+										<span className="inline-block border border-black rounded-xs bg-white px-2 py-0.5 font-mono text-xs font-black text-black shadow-brutal-xs">
+											{scratchCoins ? `${scratchCoins} 🪙` : "??? 🪙"}
+										</span>
+									</div>
+								</div>
+							</div>
 						</div>
 
-						<div className="flex justify-end gap-2 pt-2">
+						<div className="flex justify-end gap-2 pt-2 border-t border-black/15">
 							<Button
 								type="button"
-								onClick={() => setCoinModalUser(null)}
+								onClick={() => setScratchModalUser(null)}
 								className="border border-black bg-card font-mono text-xs font-bold text-foreground"
 							>
 								Cancel
 							</Button>
 							<Button
 								type="submit"
-								disabled={coinActionLoading}
+								disabled={scratchActionLoading}
 								className="border-[length:var(--border-width)] border-black bg-primary text-black font-mono text-xs font-black uppercase shadow-brutal-xs"
 							>
-								{coinActionLoading ? "Adjusting..." : "Confirm Adjustment"}
+								{scratchActionLoading ? "Granting..." : "Grant Scratch Card"}
 							</Button>
 						</div>
 					</form>

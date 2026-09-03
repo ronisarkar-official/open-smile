@@ -46,7 +46,8 @@ export function VoucherMarketplace({
   const isMarketplaceDisabled = settings.marketplace_enabled === false;
   const isRedemptionBlocked = isMaintenance || isMarketplaceDisabled;
 
-  const [vouchers, setVouchers] = React.useState<VoucherItem[]>(VOUCHERS_CATALOG);
+  const [vouchers, setVouchers] = React.useState<VoucherItem[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [selectedCategory, setSelectedCategory] = React.useState<VoucherCategory>('all');
   const [searchQuery, setSearchQuery] = React.useState('');
   const [onlyAffordable, setOnlyAffordable] = React.useState(false);
@@ -56,18 +57,19 @@ export function VoucherMarketplace({
 
   React.useEffect(() => {
     async function loadCatalog() {
+      setLoading(true);
       try {
-        let res = await fetch('/api/v1/rewards/catalog');
-        if (!res.ok) {
-          res = await fetch('/api/rewards/catalog');
-        }
+        const res = await fetch('/api/rewards/catalog');
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             setVouchers(data);
           }
         }
-      } catch {}
+      } catch {
+      } finally {
+        setLoading(false);
+      }
     }
     loadCatalog();
   }, []);
@@ -181,7 +183,20 @@ export function VoucherMarketplace({
         </div>
       </div>
 
-      {filteredVouchers.length === 0 ? (
+      {loading ? (
+        <div className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-12 text-center shadow-brutal font-mono text-xs font-bold text-muted-foreground flex items-center justify-center gap-2">
+          <span className="size-2 bg-primary rounded-full animate-ping" />
+          Loading rewards catalog...
+        </div>
+      ) : vouchers.length === 0 ? (
+        <div className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-8 sm:p-12 text-center shadow-brutal space-y-3">
+          <ShoppingBag className="mx-auto size-12 text-muted-foreground" strokeWidth={1.5} />
+          <h3 className="mt-3 font-display text-xl font-black text-foreground">No Vouchers In Store Yet</h3>
+          <p className="mx-auto max-w-md text-xs text-muted-foreground font-mono leading-relaxed">
+            Platform administrators have not published active vouchers yet. New reward vouchers will appear here as soon as they are added in the admin panel.
+          </p>
+        </div>
+      ) : filteredVouchers.length === 0 ? (
         <div className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-8 sm:p-12 text-center shadow-brutal">
           <ShoppingBag className="mx-auto size-12 text-muted-foreground" strokeWidth={1.5} />
           <h3 className="mt-3 font-display text-xl font-black">No matching vouchers found</h3>

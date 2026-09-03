@@ -19,237 +19,6 @@ from backend_py.services.coin_engine import deduct_coins, award_coins, get_user_
 
 router = APIRouter()
 
-STATIC_VOUCHERS_CATALOG = [
-    {
-        "id": "amz-250",
-        "brandId": "amazon",
-        "brandName": "Amazon",
-        "category": "ecommerce",
-        "title": "₹250 Amazon Shopping Voucher",
-        "valueFormatted": "₹250",
-        "numericValue": 250,
-        "coinsCost": 500,
-        "highlightTag": "Instant E-Code",
-        "description": "Valid across millions of products, recharges, and bill payments on Amazon India.",
-        "instructions": [
-            "Copy the 16-character gift card code below.",
-            "Go to Amazon Pay > Add Gift Card in your Amazon app or website.",
-            "Paste the voucher code and click 'Add to your balance'.",
-            "The balance will be instantly added with 1-year validity.",
-        ],
-        "logoBg": "#FF9900",
-        "isPopular": True,
-    },
-    {
-        "id": "amz-500",
-        "brandId": "amazon",
-        "brandName": "Amazon",
-        "category": "ecommerce",
-        "title": "₹500 Amazon Gift Card",
-        "valueFormatted": "₹500",
-        "numericValue": 500,
-        "coinsCost": 1000,
-        "highlightTag": "Best Seller",
-        "description": "Claim ₹500 directly in your Amazon Pay balance for shopping and subscriptions.",
-        "instructions": [
-            "Copy the voucher code and security PIN.",
-            "Visit amazon.in/addgiftcard and login to your Amazon account.",
-            "Enter the gift card code and apply.",
-        ],
-        "logoBg": "#FF9900",
-        "isPopular": True,
-    },
-    {
-        "id": "amz-1000",
-        "brandId": "amazon",
-        "brandName": "Amazon",
-        "category": "ecommerce",
-        "title": "₹1,000 Amazon Prime / Pay Voucher",
-        "valueFormatted": "₹1,000",
-        "numericValue": 1000,
-        "coinsCost": 1900,
-        "originalCoinsCost": 2000,
-        "highlightTag": "5% Coin Saver",
-        "description": "High-value Amazon Gift Voucher to fuel electronics, books, apparel, or grocery orders.",
-        "instructions": [
-            "Add code in Amazon Pay wallet.",
-            "Use at checkout for any Amazon purchase.",
-        ],
-        "logoBg": "#FF9900",
-        "isPopular": False,
-    },
-    {
-        "id": "flp-250",
-        "brandId": "flipkart",
-        "brandName": "Flipkart",
-        "category": "ecommerce",
-        "title": "₹250 Flipkart E-Gift Card",
-        "valueFormatted": "₹250",
-        "numericValue": 250,
-        "coinsCost": 500,
-        "highlightTag": "Supercoins Ready",
-        "description": "Redeem across Flipkart Big Billion Days, mobiles, fashion, and daily essentials.",
-        "instructions": [
-            "Copy your 16-digit Flipkart Gift Card number and 6-digit PIN.",
-            "In Flipkart checkout or Account > Gift Cards, select 'Add a Gift Card'.",
-            "Enter Card Number and PIN to add to your Flipkart wallet.",
-        ],
-        "logoBg": "#2874F0",
-        "isPopular": False,
-    },
-    {
-        "id": "flp-500",
-        "brandId": "flipkart",
-        "brandName": "Flipkart",
-        "category": "ecommerce",
-        "title": "₹500 Flipkart Shopping Voucher",
-        "valueFormatted": "₹500",
-        "numericValue": 500,
-        "coinsCost": 1000,
-        "highlightTag": "Instant Delivery",
-        "description": "Enjoy ₹500 off your next electronics, books, home appliances, or fashion haul.",
-        "instructions": [
-            "Go to Flipkart > My Account > Saved Cards & Wallet > Add Gift Card.",
-            "Type in the gift voucher code and PIN provided.",
-        ],
-        "logoBg": "#2874F0",
-        "isPopular": True,
-    },
-    {
-        "id": "boat-500",
-        "brandId": "boat",
-        "brandName": "boAt",
-        "category": "audio",
-        "title": "₹500 boAt Lifestyle Audio Voucher",
-        "valueFormatted": "₹500",
-        "numericValue": 500,
-        "coinsCost": 750,
-        "originalCoinsCost": 1000,
-        "highlightTag": "25% Coin Discount 🔥",
-        "description": "Get ₹500 off on true wireless earbuds, Airdopes, smartwatches, or Bluetooth speakers.",
-        "instructions": [
-            "Visit boat-lifestyle.com and add your favorite audio gear to cart.",
-            "At checkout, enter the discount promo code in the 'Apply Coupon' field.",
-            "The ₹500 discount will be deducted immediately.",
-        ],
-        "logoBg": "#E21B24",
-        "isPopular": True,
-    },
-    {
-        "id": "boat-1000",
-        "brandId": "boat",
-        "brandName": "boAt",
-        "category": "audio",
-        "title": "₹1,000 boAt Pro Gear Voucher",
-        "valueFormatted": "₹1,000",
-        "numericValue": 1000,
-        "coinsCost": 1500,
-        "originalCoinsCost": 2000,
-        "highlightTag": "Super Value",
-        "description": "Level up your audio setup with ₹1,000 off premium Nirvana ANC headphones & smartwatches.",
-        "instructions": [
-            "Enter promo code on boAt checkout page.",
-            "Instant deduction on cart subtotal.",
-        ],
-        "logoBg": "#E21B24",
-        "isPopular": False,
-    },
-    {
-        "id": "mynt-300",
-        "brandId": "myntra",
-        "brandName": "Myntra",
-        "category": "fashion",
-        "title": "₹300 Myntra Fashion Voucher",
-        "valueFormatted": "₹300",
-        "numericValue": 300,
-        "coinsCost": 600,
-        "highlightTag": "Trending Fashion",
-        "description": "Shop top apparel brands, sneakers, accessories, and cosmetics on Myntra.",
-        "instructions": [
-            "Open Myntra App / Web > Profile > Myntra Credit / Gift Cards.",
-            "Click 'Add Gift Card', enter the 16-digit card number and PIN.",
-            "Use Myntra Credit at checkout with a single click.",
-        ],
-        "logoBg": "#FF3F6C",
-        "isPopular": True,
-    },
-    {
-        "id": "swig-150",
-        "brandId": "swiggy",
-        "brandName": "Swiggy",
-        "category": "food",
-        "title": "₹150 Swiggy Food & Instamart",
-        "valueFormatted": "₹150",
-        "numericValue": 150,
-        "coinsCost": 300,
-        "highlightTag": "Quick Treat",
-        "description": "Order your favorite snacks, meals, or 10-min groceries on Swiggy Instamart.",
-        "instructions": [
-            "Open Swiggy App > Account > Swiggy Money.",
-            "Tap 'Add Gift Card' and enter the 16-digit voucher number and PIN.",
-            "Pay with Swiggy Money on food, Dineout, or Instamart orders.",
-        ],
-        "logoBg": "#FC8019",
-        "isPopular": False,
-    },
-    {
-        "id": "zom-150",
-        "brandId": "zomato",
-        "brandName": "Zomato",
-        "category": "food",
-        "title": "₹150 Zomato Dining & Delivery",
-        "valueFormatted": "₹150",
-        "numericValue": 150,
-        "coinsCost": 300,
-        "highlightTag": "Instant E-Code",
-        "description": "Treat yourself to fresh meals, desserts, or dine-in restaurant discounts.",
-        "instructions": [
-            "In Zomato App, go to Profile > Claim Gift Card.",
-            "Enter the 16-character code and PIN.",
-            "Credit is added to your Zomato balance automatically.",
-        ],
-        "logoBg": "#E23744",
-        "isPopular": False,
-    },
-    {
-        "id": "sbx-250",
-        "brandId": "starbucks",
-        "brandName": "Starbucks",
-        "category": "food",
-        "title": "₹250 Starbucks Coffee Card",
-        "valueFormatted": "₹250",
-        "numericValue": 250,
-        "coinsCost": 500,
-        "highlightTag": "Coffee Break",
-        "description": "Enjoy handcrafted coffees, frappuccinos, and bakery treats at any Starbucks store in India.",
-        "instructions": [
-            "Show the barcode or 16-digit card code to the barista at the payment counter.",
-            "Or add to Starbucks India App as a digital card balance.",
-        ],
-        "logoBg": "#00704A",
-        "isPopular": False,
-    },
-    {
-        "id": "bms-200",
-        "brandId": "bookmyshow",
-        "brandName": "BookMyShow",
-        "category": "entertainment",
-        "title": "₹200 BookMyShow Movie Voucher",
-        "valueFormatted": "₹200",
-        "numericValue": 200,
-        "coinsCost": 400,
-        "highlightTag": "Weekend Movies",
-        "description": "Catch the latest blockbusters, concerts, comedy shows, and live events.",
-        "instructions": [
-            "Select movie tickets on BookMyShow website or mobile app.",
-            "On payment page, select 'Unlock Offers or Apply Promo / Gift Voucher'.",
-            "Select 'Gift Voucher', enter your 16-digit code and submit.",
-        ],
-        "logoBg": "#F84464",
-        "isPopular": False,
-    },
-]
-
 def generate_voucher_code(brand_id: str):
     prefix = brand_id[:4].upper()
     part1 = secrets.token_hex(2).upper()
@@ -287,40 +56,41 @@ async def get_catalog(pool: asyncpg.Pool = Depends(get_db_pool)):
                     vc.numeric_value, 
                     vc.coins_cost, 
                     vc.highlight_tag,
+                    COALESCE(vc.voucher_type, 'gift_card') as voucher_type,
+                    COALESCE(vc.value_formatted, '₹' || vc.numeric_value::text) as value_formatted,
                     COUNT(vi.id) FILTER (WHERE vi.status = 'available')::int as remaining_inventory
                 FROM vouchers_catalog vc
                 LEFT JOIN voucher_inventory vi ON vc.id = vi.voucher_id
                 WHERE vc.is_active = true
-                GROUP BY vc.id, vc.brand_name, vc.title, vc.description, vc.category, vc.image_url, vc.numeric_value, vc.coins_cost, vc.highlight_tag
+                GROUP BY vc.id, vc.brand_name, vc.title, vc.description, vc.category, vc.image_url, vc.numeric_value, vc.coins_cost, vc.highlight_tag, vc.voucher_type, vc.value_formatted
                 ORDER BY vc.numeric_value ASC
                 """
             )
-            if rows:
-                items = []
-                for r in rows:
-                    brand_id = r["brand_name"].lower().replace(" ", "")
-                    items.append(VoucherItem(
-                        id=str(r["id"]),
-                        brandId=brand_id,
-                        brandName=r["brand_name"],
-                        category=r["category"] or "ecommerce",
-                        title=r["title"],
-                        valueFormatted=f"₹{r['numeric_value']:,}",
-                        numericValue=r["numeric_value"],
-                        coinsCost=r["coins_cost"],
-                        highlightTag=r["highlight_tag"],
-                        description=r["description"] or f"Redeem {r['title']} with your smile coins.",
-                        instructions=[f"Copy secret code and apply on {r['brand_name']} checkout."],
-                        logoBg="#FF2D78",
-                        imageUrl=r["image_url"],
-                        isPopular=r["numeric_value"] >= 500,
-                        remainingInventory=r["remaining_inventory"] or 0,
-                    ))
-                return items
-        except Exception:
-            pass
-
-    return [VoucherItem(**v) for v in STATIC_VOUCHERS_CATALOG]
+            items = []
+            for r in rows:
+                brand_id = r["brand_name"].lower().replace(" ", "")
+                items.append(VoucherItem(
+                    id=str(r["id"]),
+                    brandId=brand_id,
+                    brandName=r["brand_name"],
+                    category=r["category"] or "ecommerce",
+                    title=r["title"],
+                    voucherType=r["voucher_type"] or "gift_card",
+                    valueFormatted=r["value_formatted"] or f"₹{r['numeric_value']:,}",
+                    numericValue=r["numeric_value"],
+                    coinsCost=r["coins_cost"],
+                    highlightTag=r["highlight_tag"],
+                    description=r["description"] or f"Redeem {r['title']} with your smile coins.",
+                    instructions=[f"Copy secret code and apply on {r['brand_name']} checkout."],
+                    logoBg="#FF2D78",
+                    imageUrl=r["image_url"],
+                    isPopular=r["numeric_value"] >= 500,
+                    remainingInventory=r["remaining_inventory"] or 0,
+                ))
+            return items
+        except Exception as e:
+            print("Error fetching vouchers catalog:", e)
+            return []
 
 @router.post("/claim", response_model=ClaimedVoucherResponse)
 async def claim_voucher(

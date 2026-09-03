@@ -214,9 +214,11 @@ export function StreakView({ initialData }: StreakViewProps) {
 	};
 
 	const now = new Date();
-	const currentMonthName = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+	const istDateStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(now);
+	const [istYear, istMonth] = istDateStr.split('-').map(Number);
+	const currentMonthName = new Date(Date.UTC(istYear, istMonth - 1, 1)).toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
 	const daysInMonth = data.stats.totalDaysInMonth;
-	const firstDayOfMonthIndex = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).getUTCDay();
+	const firstDayOfMonthIndex = new Date(Date.UTC(istYear, istMonth - 1, 1)).getUTCDay();
 	const startPadding = (firstDayOfMonthIndex + 6) % 7;
 
 	const captureDateMap = new Map<string, { count: number; maxScore: number; totalCoins: number }>();
@@ -620,13 +622,9 @@ export function StreakView({ initialData }: StreakViewProps) {
 
 						{Array.from({ length: daysInMonth }).map((_, idx) => {
 							const dayNum = idx + 1;
-							const year = now.getUTCFullYear();
-							const month = now.getUTCMonth();
-							const dayDate = new Date(Date.UTC(year, month, dayNum));
-							const dateStr = dayDate.toISOString().slice(0, 10);
-							const todayStr = now.toISOString().slice(0, 10);
-							const isToday = dateStr === todayStr;
-							const isPast = dateStr < todayStr;
+							const dateStr = `${istYear}-${istMonth.toString().padStart(2, '0')}-${dayNum.toString().padStart(2, '0')}`;
+							const isToday = dateStr === istDateStr;
+							const isPast = dateStr < istDateStr;
 							const capture = captureDateMap.get(dateStr);
 							const hasCaptured = Boolean(capture && capture.count > 0);
 
