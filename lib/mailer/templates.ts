@@ -213,3 +213,142 @@ export function getBetaWaitlistEmailHtml(): string {
 			'You are receiving this confirmation because you signed up for the Open Smile beta waitlist.',
 	});
 }
+
+export function getStreakReminderEmailHtml(
+	name: string,
+	currentStreak: number,
+	hoursLeft: number = 4,
+	appUrl?: string,
+	unsubscribeUrl?: string,
+): string {
+	const displayName = name ? escapeHtml(name) : 'Smiler';
+	const url = (
+		appUrl ||
+		process.env.BETTER_AUTH_URL ||
+		'http://localhost:3000'
+	).replace(/\/+$/, '');
+
+	return renderEmailLayout({
+		title: 'Keep Your Smile Streak Alive! 🔥',
+		badgeText: 'STREAK ALERT',
+		badgeBg: '#FF2D78',
+		badgeColor: '#ffffff',
+		unsubscribeUrl,
+		content: `
+			<div style="display: inline-block; background-color: #FFD23F; color: #0f0f0f; font-size: 11px; font-weight: 900; padding: 4px 10px; border: 1px solid #0f0f0f; border-radius: 7px; box-shadow: 1.5px 1.5px 0px 0px #0f0f0f; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+				${currentStreak}-Day Streak Active 🔥
+			</div>
+
+			<h1 style="font-size: 24px; font-weight: 900; color: #0f0f0f; margin: 0 0 12px; letter-spacing: -0.5px;">Don't lose your streak, ${displayName}! ⏳</h1>
+			<p style="color: #57534e; font-size: 15px; line-height: 1.65; margin: 12px 0;">You have approximately <strong>${hoursLeft} hours left</strong> before midnight IST to record today's smile. Keep your streak going to maintain your coin multipliers and leaderboard standing!</p>
+
+			<div style="background-color: #faf8f5; border: 1px solid #0f0f0f; border-radius: 7px; box-shadow: 2px 2px 0px #0f0f0f; padding: 20px; margin: 24px 0; text-align: center;">
+				<div style="font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; color: #57534e; margin-bottom: 6px;">CURRENT STREAK MULTIPLIER</div>
+				<div style="font-family: 'Space Mono', monospace; font-size: 32px; font-weight: 900; color: #FF2D78; margin: 0;">
+					${currentStreak >= 7 ? '2.0x' : currentStreak >= 3 ? '1.5x' : '1.2x'} Drop Bonus
+				</div>
+			</div>
+
+			<div style="margin: 28px 0 16px;">
+				<a href="${url}/capture" class="btn" style="display: inline-block; background-color: #FF2D78; color: #ffffff !important; text-decoration: none; padding: 14px 30px; font-size: 15px; font-weight: 900; border: 1px solid #0f0f0f; border-radius: 7px; box-shadow: 2px 2px 0px #0f0f0f; text-transform: uppercase; letter-spacing: 0.5px;">Smile Now & Save Streak 📸</a>
+			</div>
+
+			<p style="color: #57534e; font-size: 13px; line-height: 1.5; margin: 16px 0 0;">Taking a smile takes less than 5 seconds with on-device private AI.</p>
+		`,
+		footerNote:
+			'You are receiving this daily reminder based on your streak notification preferences.',
+	});
+}
+
+export function getRewardUnlockedEmailHtml(
+	name: string,
+	rewardTitle: string,
+	coinsValue: number,
+	voucherCode?: string,
+	appUrl?: string,
+	unsubscribeUrl?: string,
+): string {
+	const displayName = name ? escapeHtml(name) : 'Smiler';
+	const url = (
+		appUrl ||
+		process.env.BETTER_AUTH_URL ||
+		'http://localhost:3000'
+	).replace(/\/+$/, '');
+
+	return renderEmailLayout({
+		title: 'New Reward Unlocked! 🎁',
+		badgeText: 'REWARD DROP',
+		badgeBg: '#C6F135',
+		badgeColor: '#0f0f0f',
+		unsubscribeUrl,
+		content: `
+			<div style="display: inline-block; background-color: #C6F135; color: #0f0f0f; font-size: 11px; font-weight: 900; padding: 4px 10px; border: 1px solid #0f0f0f; border-radius: 7px; box-shadow: 1.5px 1.5px 0px 0px #0f0f0f; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+				Prize Claim Ready 🪙
+			</div>
+
+			<h1 style="font-size: 24px; font-weight: 900; color: #0f0f0f; margin: 0 0 12px; letter-spacing: -0.5px;">Congratulations, ${displayName}! 🎉</h1>
+			<p style="color: #57534e; font-size: 15px; line-height: 1.65; margin: 12px 0;">You unlocked a new prize: <strong>${escapeHtml(rewardTitle)}</strong> valued at <strong>${coinsValue} coins</strong>!</p>
+
+			${
+				voucherCode
+					? `
+				<div style="background-color: #faf8f5; border: 1px solid #0f0f0f; border-radius: 7px; box-shadow: 2px 2px 0px #0f0f0f; padding: 20px; margin: 24px 0; text-align: center;">
+					<div style="font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; color: #57534e; margin-bottom: 6px;">YOUR VOUCHER CODE</div>
+					<div style="font-family: 'Space Mono', monospace; font-size: 24px; font-weight: 900; letter-spacing: 4px; color: #0f0f0f; margin: 0; word-break: break-all;">
+						${escapeHtml(voucherCode)}
+					</div>
+				</div>
+				`
+					: ''
+			}
+
+			<div style="margin: 28px 0 16px;">
+				<a href="${url}/rewards" class="btn" style="display: inline-block; background-color: #7B61FF; color: #ffffff !important; text-decoration: none; padding: 14px 30px; font-size: 15px; font-weight: 900; border: 1px solid #0f0f0f; border-radius: 7px; box-shadow: 2px 2px 0px #0f0f0f; text-transform: uppercase; letter-spacing: 0.5px;">View In Rewards Vault 🎁</a>
+			</div>
+		`,
+		footerNote:
+			'You received this notification because of an achievement or claim on Open Smile.',
+	});
+}
+
+export function getAdminBroadcastEmailHtml(
+	subject: string,
+	headline: string,
+	bodyHtml: string,
+	ctaText?: string,
+	ctaUrl?: string,
+	appUrl?: string,
+	unsubscribeUrl?: string,
+): string {
+	const url = (
+		appUrl ||
+		process.env.BETTER_AUTH_URL ||
+		'http://localhost:3000'
+	).replace(/\/+$/, '');
+
+	return renderEmailLayout({
+		title: subject,
+		badgeText: 'ANNOUNCEMENT',
+		badgeBg: '#7B61FF',
+		badgeColor: '#ffffff',
+		unsubscribeUrl,
+		content: `
+			<h1 style="font-size: 24px; font-weight: 900; color: #0f0f0f; margin: 0 0 12px; letter-spacing: -0.5px;">${escapeHtml(headline || subject)}</h1>
+			<div style="color: #57534e; font-size: 15px; line-height: 1.65; margin: 16px 0;">
+				${bodyHtml}
+			</div>
+
+			${
+				ctaText && ctaUrl
+					? `
+				<div style="margin: 28px 0 16px;">
+					<a href="${ctaUrl.startsWith('http') ? ctaUrl : `${url}${ctaUrl.startsWith('/') ? '' : '/'}${ctaUrl}`}" class="btn" style="display: inline-block; background-color: #FF2D78; color: #ffffff !important; text-decoration: none; padding: 14px 30px; font-size: 15px; font-weight: 900; border: 1px solid #0f0f0f; border-radius: 7px; box-shadow: 2px 2px 0px #0f0f0f; text-transform: uppercase; letter-spacing: 0.5px;">${escapeHtml(ctaText)}</a>
+				</div>
+				`
+					: ''
+			}
+		`,
+		footerNote:
+			'You are receiving this official announcement as an Open Smile community member.',
+	});
+}

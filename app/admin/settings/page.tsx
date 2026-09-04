@@ -27,6 +27,8 @@ import {
 	Layers,
 	CheckCircle2,
 	XCircle,
+	Mail,
+	Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -131,6 +133,28 @@ const FEATURE_SWITCHES: SettingToggleConfig[] = [
 		description: "Enforce 6-digit email OTP verification before creating authenticated sessions.",
 		defaultValue: true,
 		icon: Shield,
+	},
+	{
+		key: "email_service_enabled",
+		label: "Outbound Email Dispatcher",
+		description: "Master kill-switch for outbound emails across OTP, welcome, notifications, and broadcasts.",
+		defaultValue: true,
+		icon: Mail,
+		danger: true,
+	},
+	{
+		key: "in_app_notifications_enabled",
+		label: "In-App Notification Dispatcher",
+		description: "Master switch for generating user in-app activity notifications and badges.",
+		defaultValue: true,
+		icon: Bell,
+	},
+	{
+		key: "streak_reminder_emails_enabled",
+		label: "Daily Streak Reminder Emails",
+		description: "Allow system to dispatch daily streak expiration reminder emails to active smilers.",
+		defaultValue: true,
+		icon: Flame,
 	},
 ];
 

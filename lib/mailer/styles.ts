@@ -105,6 +105,7 @@ export interface RenderEmailLayoutOptions {
 	badgeColor?: string;
 	content: string;
 	footerNote?: string;
+	unsubscribeUrl?: string;
 }
 
 export function renderEmailLayout({
@@ -114,6 +115,7 @@ export function renderEmailLayout({
 	badgeColor = "#0f0f0f",
 	content,
 	footerNote = "You are receiving this transactional email regarding your Open Smile account.",
+	unsubscribeUrl,
 }: RenderEmailLayoutOptions): string {
 	return `<!DOCTYPE html>
 <html lang="en">
@@ -160,6 +162,11 @@ export function renderEmailLayout({
       <div style="font-weight: 800; color: #0f0f0f; margin-bottom: 4px; font-size: 13px;">Open Smile • Smile More, Win More</div>
       <div style="color: #78716c; margin-bottom: 8px;">Private on-device AI smile recognition & rewards platform.</div>
       <div style="font-size: 11px; color: #a8a29e;">${footerNote}</div>
+      ${
+				unsubscribeUrl
+					? `<div style="font-size: 11px; margin-top: 10px;"><a href="${unsubscribeUrl}" style="color: #78716c; text-decoration: underline;">Unsubscribe from these emails</a></div>`
+					: ""
+			}
     </div>
 
   </div>

@@ -6,6 +6,7 @@ import {
 	getUserCoinBalance,
 	getSystemSettingsMap,
 	recordCaptureStreak,
+	createNotification,
 } from '@/lib/db';
 
 import { calculateSmileCoins } from '@/lib/reward-calculator';
@@ -99,6 +100,16 @@ export async function POST(request: NextRequest) {
 			).catch(() => {});
 		}
 
+		void createNotification({
+			userId: user.id,
+			title: `${coinsAwarded} Coins Earned! 📸`,
+			description: `You scored a ${smileScore}% genuine smile and continued your streak.`,
+			category: 'rewards',
+			iconType: 'sparkles',
+			actionLabel: 'View Dashboard',
+			actionUrl: '/dashboard',
+		}).catch(() => {});
+
 		let cardId: string | null = null;
 		if (settings.scratch_cards_enabled !== false) {
 			try {
@@ -169,6 +180,16 @@ export async function POST(request: NextRequest) {
 						[refRes.rows[0].id]
 					);
 					referralBonusUnlocked = true;
+
+					void createNotification({
+						userId: referrerId,
+						title: 'Friend Joined & Smiled! 🎁',
+						description: 'Your friend just completed their first smile! A referral bonus scratch card was awarded.',
+						category: 'social',
+						iconType: 'gift',
+						actionLabel: 'Claim Scratch Card',
+						actionUrl: '/rewards',
+					}).catch(() => {});
 				}
 			}
 		} catch (e) {

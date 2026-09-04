@@ -29,9 +29,15 @@ export function getPool(): Pool {
 
 	_pool = new Pool({
 		connectionString: DATABASE_URL,
-		max: isServerless ? 2 : 20,
-		idleTimeoutMillis: isServerless ? 5000 : 30000,
-		connectionTimeoutMillis: 8000,
+		max: isServerless ? 2 : 15,
+		idleTimeoutMillis: isServerless ? 5000 : 20000,
+		connectionTimeoutMillis: 25000,
+		keepAlive: true,
+		keepAliveInitialDelayMillis: 10000,
+	});
+
+	_pool.on("error", (err) => {
+		console.error("[pg-pool] Idle client error:", err.message);
 	});
 
 	if (process.env.NODE_ENV === "development") {

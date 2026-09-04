@@ -13,6 +13,8 @@ import {
 	Compass,
 	SlidersHorizontal,
 	ScrollText,
+	Bell,
+	Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from "@/components/ui/avatar";
@@ -21,6 +23,8 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 const MOBILE_NAV_ITEMS = [
 	{ href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
 	{ href: "/admin/users", label: "Users", icon: Users },
+	{ href: "/admin/notifications", label: "Notifications", icon: Bell },
+	{ href: "/admin/mailer", label: "Mailer", icon: Mail },
 	{ href: "/admin/vouchers", label: "Vouchers", icon: Gift },
 	{ href: "/admin/captures", label: "Captures", icon: Camera },
 	{ href: "/admin/explore", label: "Explore", icon: Compass },

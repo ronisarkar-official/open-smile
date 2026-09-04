@@ -129,6 +129,62 @@ export function ensureIndexes(): Promise<void> {
 					ALTER TABLE smile_captures ADD COLUMN IF NOT EXISTS flagged_at TIMESTAMPTZ;
 					ALTER TABLE smile_captures ADD COLUMN IF NOT EXISTS flagged_by TEXT;
 
+					CREATE TABLE IF NOT EXISTS notifications (
+						id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+						user_id TEXT NOT NULL,
+						title TEXT NOT NULL,
+						description TEXT NOT NULL,
+						category TEXT NOT NULL DEFAULT 'system',
+						icon_type TEXT NOT NULL DEFAULT 'bell',
+						action_label TEXT,
+						action_url TEXT,
+						read BOOLEAN NOT NULL DEFAULT FALSE,
+						read_at TIMESTAMPTZ,
+						created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+					);
+
+					CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notifications (user_id, created_at DESC);
+					CREATE INDEX IF NOT EXISTS idx_notifications_user_unread ON notifications (user_id, read) WHERE read = FALSE;
+
+					CREATE TABLE IF NOT EXISTS user_notification_preferences (
+						user_id TEXT PRIMARY KEY,
+						security_emails BOOLEAN NOT NULL DEFAULT TRUE,
+						streak_reminders BOOLEAN NOT NULL DEFAULT TRUE,
+						leaderboard_alerts BOOLEAN NOT NULL DEFAULT TRUE,
+						reward_alerts BOOLEAN NOT NULL DEFAULT TRUE,
+						marketing_emails BOOLEAN NOT NULL DEFAULT FALSE,
+						in_app_streaks BOOLEAN NOT NULL DEFAULT TRUE,
+						in_app_rewards BOOLEAN NOT NULL DEFAULT TRUE,
+						in_app_leaderboard BOOLEAN NOT NULL DEFAULT TRUE,
+						in_app_system BOOLEAN NOT NULL DEFAULT TRUE,
+						updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+					);
+
+					CREATE TABLE IF NOT EXISTS email_logs (
+						id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+						recipient_email TEXT NOT NULL,
+						user_id TEXT,
+						template TEXT NOT NULL,
+						subject TEXT NOT NULL,
+						status TEXT NOT NULL DEFAULT 'sent',
+						provider TEXT NOT NULL DEFAULT 'mock',
+						message_id TEXT,
+						error TEXT,
+						metadata JSONB,
+						created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+					);
+
+					CREATE INDEX IF NOT EXISTS idx_email_logs_recipient ON email_logs (recipient_email, created_at DESC);
+					CREATE INDEX IF NOT EXISTS idx_email_logs_created ON email_logs (created_at DESC);
+					CREATE INDEX IF NOT EXISTS idx_email_logs_status ON email_logs (status);
+
+					CREATE TABLE IF NOT EXISTS email_suppressions (
+						email TEXT PRIMARY KEY,
+						reason TEXT NOT NULL DEFAULT 'unsubscribe',
+						category TEXT NOT NULL DEFAULT 'all',
+						created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+					);
+
 					INSERT INTO system_settings (key, value, description, updated_at)
 					VALUES 
 						('maintenance_mode', 'false'::jsonb, 'Global maintenance mode flag', NOW()),
@@ -136,7 +192,12 @@ export function ensureIndexes(): Promise<void> {
 						('explore_feed_enabled', 'true'::jsonb, 'Explore social feed visibility', NOW()),
 						('coin_multiplier', '1.0'::jsonb, 'Global coin reward multiplier', NOW()),
 						('min_capture_cooldown_minutes', '60'::jsonb, 'Minimum minutes between scored captures', NOW()),
-						('referral_reward_coins', '50'::jsonb, 'Coin grant for successful referral', NOW())
+						('referral_reward_coins', '50'::jsonb, 'Coin grant for successful referral', NOW()),
+						('email_service_enabled', 'true'::jsonb, 'Master outbound email service enabled', NOW()),
+						('in_app_notifications_enabled', 'true'::jsonb, 'Master in-app notifications enabled', NOW()),
+						('streak_reminder_emails_enabled', 'true'::jsonb, 'Daily streak reminder emails enabled', NOW()),
+						('welcome_email_enabled', 'true'::jsonb, 'Send welcome email on signup', NOW()),
+						('login_alert_email_enabled', 'true'::jsonb, 'Send login security alert email', NOW())
 					ON CONFLICT (key) DO NOTHING;
 
 					CREATE INDEX IF NOT EXISTS idx_explore_posts_created ON explore_posts (created_at DESC);

@@ -12,12 +12,16 @@ import {
 	ScrollText,
 	ArrowLeft,
 	Shield,
+	Bell,
+	Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
 	{ href: "/admin", label: "Overview", icon: LayoutDashboard, exact: true },
 	{ href: "/admin/users", label: "Users & Roles", icon: Users },
+	{ href: "/admin/notifications", label: "Notifications", icon: Bell },
+	{ href: "/admin/mailer", label: "Mail Service", icon: Mail },
 	{ href: "/admin/vouchers", label: "Vouchers & Stock", icon: Gift },
 	{ href: "/admin/captures", label: "Captures & Anti-Cheat", icon: Camera },
 	{ href: "/admin/explore", label: "Explore Feed", icon: Compass },

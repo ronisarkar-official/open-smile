@@ -53,6 +53,7 @@ import { cn } from '@/lib/utils';
 import { CoinIcon } from '@/components/ui/coin-icon';
 import { UserCoinBalance, UserStreak } from '@/components/icons';
 import { useSystemSettings } from '@/hooks/use-system-settings';
+import { useNotificationCount } from '@/hooks/use-notification-count';
 
 function ExploreNaviIcon({ className }: { className?: string }) {
 	return (
@@ -247,6 +248,7 @@ export const DashboardSidebar = ({
 	const [avatarOverride, setAvatarOverride] = React.useState<string | null>(
 		null,
 	);
+	const { unreadCount } = useNotificationCount();
 
 	const openSettings = (section: SettingsSection = 'profile') => {
 		setSettingsSection(section);
@@ -435,9 +437,11 @@ export const DashboardSidebar = ({
 										className="size-4.5 sm:size-5 text-black"
 										strokeWidth={2.2}
 									/>
-									<span className="absolute -top-1 -right-1 flex size-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#E11D48] border-2 border-white text-[9px] sm:text-[10px] font-black text-white shadow-xs">
-										3
-									</span>
+									{unreadCount > 0 && (
+										<span className="absolute -top-1 -right-1 flex size-4.5 min-w-4.5 items-center justify-center rounded-full bg-[#E11D48] border-2 border-white text-[9px] sm:text-[10px] font-black text-white shadow-xs">
+											{unreadCount > 99 ? '99+' : unreadCount}
+										</span>
+									)}
 								</Link>
 
 								<DropdownMenu>
@@ -507,12 +511,19 @@ export const DashboardSidebar = ({
 											<DropdownMenuItem asChild>
 												<Link
 													href="/notifications"
-													className="flex items-center gap-2 px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-accent/20 focus:bg-accent/20">
-													<Bell
-														className="size-4"
-														strokeWidth={2.5}
-													/>
-													Notifications
+													className="flex items-center justify-between px-3 py-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-accent/20 focus:bg-accent/20">
+													<div className="flex items-center gap-2">
+														<Bell
+															className="size-4"
+															strokeWidth={2.5}
+														/>
+														Notifications
+													</div>
+													{unreadCount > 0 && (
+														<span className="flex size-4.5 items-center justify-center rounded-full bg-[#E11D48] text-[9px] font-black text-white">
+															{unreadCount > 99 ? '99+' : unreadCount}
+														</span>
+													)}
 												</Link>
 											</DropdownMenuItem>
 											{!isInstalled && (isInstallable || isIOS) && (
