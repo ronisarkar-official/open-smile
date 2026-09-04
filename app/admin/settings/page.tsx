@@ -29,8 +29,15 @@ import {
 	XCircle,
 	Mail,
 	Bell,
+	ScanFace,
+	Hand,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { MediaPipeDrawingSpecCard } from "@/components/admin/mediapipe-drawingspec-card";
+import {
+	DEFAULT_DRAWING_SPEC,
+	type MediaPipeDrawingSpec,
+} from "@/lib/mediapipe-drawing";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -155,6 +162,13 @@ const FEATURE_SWITCHES: SettingToggleConfig[] = [
 		description: "Allow system to dispatch daily streak expiration reminder emails to active smilers.",
 		defaultValue: true,
 		icon: Flame,
+	},
+	{
+		key: "palm_shutter_enabled",
+		label: "Palm Shutter Gesture",
+		description: "Allow smilers to trigger camera shutter countdown by showing an open palm and closing into a fist.",
+		defaultValue: true,
+		icon: Hand,
 	},
 ];
 
@@ -597,7 +611,7 @@ const PODIUM_TIERS = [
 	},
 ];
 
-type SettingsTab = "all" | "modules" | "economics" | "podiums" | "danger";
+type SettingsTab = "all" | "modules" | "vision" | "economics" | "podiums" | "danger";
 
 export default function AdminSettingsPage() {
 	const { toast } = useToast();
@@ -608,6 +622,7 @@ export default function AdminSettingsPage() {
 
 	const [activeTab, setActiveTab] = React.useState<SettingsTab>("all");
 	const [searchQuery, setSearchQuery] = React.useState("");
+	const [isSavingDrawingSpec, setIsSavingDrawingSpec] = React.useState(false);
 
 	const [cleanupLoading, setCleanupLoading] = React.useState(false);
 	const [cleanupResult, setCleanupResult] = React.useState<any | null>(null);
@@ -817,6 +832,49 @@ export default function AdminSettingsPage() {
 		}
 	}
 
+	async function handleSaveDrawingSpec(spec: MediaPipeDrawingSpec) {
+		setIsSavingDrawingSpec(true);
+		try {
+			const res = await fetch("/api/admin/settings", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					key: "mediapipe_drawing_spec",
+					value: spec,
+					description: "MediaPipe face mesh and landmark drawing shape specification in webcam view",
+				}),
+			});
+			const json = await res.json();
+			if (!res.ok) throw new Error(json.error || "Failed to save DrawingSpec");
+
+			setSettings((prev) => ({
+				...prev,
+				mediapipe_drawing_spec: {
+					...prev.mediapipe_drawing_spec,
+					value: spec,
+				},
+			}));
+
+			if (typeof window !== "undefined") {
+				window.dispatchEvent(new Event("system-settings-changed"));
+			}
+
+			toast({
+				title: "DrawingSpec Saved",
+				description: "Updated MediaPipe face drawing shape for all webcam capture feeds.",
+				variant: "success",
+			});
+		} catch (err: any) {
+			toast({
+				title: "Save Failed",
+				description: err.message || "Failed to update DrawingSpec",
+				variant: "error",
+			});
+		} finally {
+			setIsSavingDrawingSpec(false);
+		}
+	}
+
 	function getToggleValue(key: string, fallback: boolean) {
 		if (settings[key]?.value !== undefined) {
 			return Boolean(settings[key]?.value);
@@ -879,6 +937,19 @@ export default function AdminSettingsPage() {
 		activeTab === "all" || activeTab === "modules" || (normalizedSearch.length > 0 && (filteredFeatureSwitches.length > 0 || filteredAntiCheatSwitches.length > 0));
 	const showEconomics =
 		activeTab === "all" || activeTab === "economics" || (normalizedSearch.length > 0 && (filteredAntiCheatNumbers.length > 0 || filteredEconomyNumbers.length > 0));
+	const showVision =
+		activeTab === "all" ||
+		activeTab === "vision" ||
+		(normalizedSearch.length > 0 &&
+			("mediapipe".includes(normalizedSearch) ||
+				"vision".includes(normalizedSearch) ||
+				"drawing".includes(normalizedSearch) ||
+				"drawingspec".includes(normalizedSearch) ||
+				"mesh".includes(normalizedSearch) ||
+				"landmark".includes(normalizedSearch) ||
+				"contour".includes(normalizedSearch) ||
+				"shape".includes(normalizedSearch) ||
+				"face".includes(normalizedSearch)));
 	const showPodiums =
 		activeTab === "all" || activeTab === "podiums" || (normalizedSearch.length > 0 && filteredPodiumTiers.length > 0);
 	const showDanger =
@@ -939,6 +1010,7 @@ export default function AdminSettingsPage() {
 						[
 							{ id: "all", label: "All", icon: Layers },
 							{ id: "modules", label: "Modules", icon: Shield },
+							{ id: "vision", label: "MediaPipe Vision", icon: ScanFace },
 							{ id: "economics", label: "Economics", icon: Coins },
 							{ id: "podiums", label: "Podiums", icon: Trophy },
 							{ id: "danger", label: "Danger Zone", icon: AlertTriangle },
@@ -1046,6 +1118,21 @@ export default function AdminSettingsPage() {
 						})}
 					</div>
 				</div>
+			) : null}
+
+			{/* Section: MediaPipe Vision & DrawingSpec */}
+			{showVision ? (
+				<MediaPipeDrawingSpecCard
+					value={
+						settings.mediapipe_drawing_spec?.value !== undefined
+							? settings.mediapipe_drawing_spec.value
+							: typeof settings.mediapipe_drawing_spec === "object"
+								? settings.mediapipe_drawing_spec
+								: DEFAULT_DRAWING_SPEC
+					}
+					onSave={handleSaveDrawingSpec}
+					isSaving={isSavingDrawingSpec}
+				/>
 			) : null}
 
 			{/* Section 2: Economics, Caps & Anti-Cheat Thresholds */}

@@ -100,16 +100,6 @@ export async function POST(request: NextRequest) {
 			).catch(() => {});
 		}
 
-		void createNotification({
-			userId: user.id,
-			title: `${coinsAwarded} Coins Earned! 📸`,
-			description: `You scored a ${smileScore}% genuine smile and continued your streak.`,
-			category: 'rewards',
-			iconType: 'sparkles',
-			actionLabel: 'View Dashboard',
-			actionUrl: '/dashboard',
-		}).catch(() => {});
-
 		let cardId: string | null = null;
 		if (settings.scratch_cards_enabled !== false) {
 			try {

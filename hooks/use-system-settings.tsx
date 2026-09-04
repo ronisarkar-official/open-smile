@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { type MediaPipeDrawingSpec, DEFAULT_DRAWING_SPEC } from "@/lib/mediapipe-drawing";
 
 export interface SystemSettingsState {
 	maintenance_mode: boolean;
@@ -23,6 +24,8 @@ export interface SystemSettingsState {
 	daily_streak_coins: number;
 	scratch_min_coins: number;
 	scratch_max_coins: number;
+	palm_shutter_enabled?: boolean;
+	mediapipe_drawing_spec?: MediaPipeDrawingSpec;
 	[key: string]: any;
 }
 
@@ -47,6 +50,8 @@ const DEFAULT_SETTINGS: SystemSettingsState = {
 	daily_streak_coins: 5,
 	scratch_min_coins: 5,
 	scratch_max_coins: 100,
+	palm_shutter_enabled: true,
+	mediapipe_drawing_spec: DEFAULT_DRAWING_SPEC,
 };
 
 interface SystemSettingsContextValue {

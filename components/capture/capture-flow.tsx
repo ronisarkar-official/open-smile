@@ -102,6 +102,55 @@ export function CaptureFlow({
 	const [shareMessage, setShareMessage] = React.useState<string | null>(null);
 	const [earnedCardId, setEarnedCardId] = React.useState<string | null>(null);
 
+	const earnedCardIdRef = React.useRef<string | null>(null);
+	const isRewardClaimedRef = React.useRef<boolean>(false);
+
+	React.useEffect(() => {
+		earnedCardIdRef.current = earnedCardId;
+	}, [earnedCardId]);
+
+	React.useEffect(() => {
+		isRewardClaimedRef.current = isRewardClaimed;
+	}, [isRewardClaimed]);
+
+	const triggerUnscratchedNotification = React.useCallback(
+		(cardId?: string | null) => {
+			const targetCardId = cardId || earnedCardIdRef.current;
+			if (!targetCardId || isRewardClaimedRef.current) return;
+
+			try {
+				fetch('/api/capture/unscratched-notify', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ cardId: targetCardId }),
+					keepalive: true,
+				})
+					.then(() => {
+						window.dispatchEvent(new CustomEvent('notifications-updated'));
+					})
+					.catch(() => {});
+			} catch {}
+		},
+		[],
+	);
+
+	React.useEffect(() => {
+		const handleBeforeUnload = () => {
+			if (earnedCardIdRef.current && !isRewardClaimedRef.current) {
+				triggerUnscratchedNotification(earnedCardIdRef.current);
+			}
+		};
+
+		window.addEventListener('beforeunload', handleBeforeUnload);
+
+		return () => {
+			window.removeEventListener('beforeunload', handleBeforeUnload);
+			if (earnedCardIdRef.current && !isRewardClaimedRef.current) {
+				triggerUnscratchedNotification(earnedCardIdRef.current);
+			}
+		};
+	}, [triggerUnscratchedNotification]);
+
 	const [captureStatus, setCaptureStatus] = React.useState<{
 		daily_captures_used: number;
 		max_daily_captures: number;
@@ -155,7 +204,7 @@ export function CaptureFlow({
 	const cameraStreamRef = React.useRef<MediaStream | null>(null);
 	cameraStreamRef.current = cameraStream;
 	const isTriggeringRef = React.useRef<boolean>(false);
-	const captureSourceRef = React.useRef<'SMILE' | 'MANUAL'>('SMILE');
+	const captureSourceRef = React.useRef<'SMILE' | 'MANUAL' | 'PALM'>('SMILE');
 	const countdownTimeoutsRef = React.useRef<NodeJS.Timeout[]>([]);
 
 	React.useEffect(() => {
@@ -250,6 +299,8 @@ export function CaptureFlow({
 				}
 
 				if (data.card_id) {
+					earnedCardIdRef.current = String(data.card_id);
+					isRewardClaimedRef.current = false;
 					setEarnedCardId(String(data.card_id));
 				}
 				if (typeof data.coins_awarded === 'number') {
@@ -283,7 +334,7 @@ export function CaptureFlow({
 	);
 
 	const triggerCaptureSequence = React.useCallback(
-		(instantScore?: number, triggerSource: 'SMILE' | 'MANUAL' = 'SMILE') => {
+		(instantScore?: number, triggerSource: 'SMILE' | 'MANUAL' | 'PALM' = 'SMILE') => {
 			if (isTriggeringRef.current) return;
 			isTriggeringRef.current = true;
 			captureSourceRef.current = triggerSource;
@@ -294,7 +345,9 @@ export function CaptureFlow({
 
 			setPhase('COUNTDOWN');
 
-			if (triggerSource === 'MANUAL') {
+			if (triggerSource === 'PALM') {
+				setCountdownText('PALM SHUTTER! ✋📸');
+			} else if (triggerSource === 'MANUAL') {
 				setCountdownText('GET READY! 📸');
 			} else {
 				setCountdownText('SMILE DETECTED! 😄');
@@ -337,6 +390,7 @@ export function CaptureFlow({
 				const currentResult = lastResultRef.current;
 				const isSmileValid =
 					triggerSource === 'MANUAL' ||
+					triggerSource === 'PALM' ||
 					(currentResult &&
 						currentResult.hasFace &&
 						currentResult.score >= SMILE_HOLD_THRESHOLD);
@@ -545,6 +599,8 @@ export function CaptureFlow({
 	const handleCardScratched = async (cardId: string, coinsWon: number) => {
 		if (!isLoggedIn) return;
 
+		isRewardClaimedRef.current = true;
+		setIsRewardClaimed(true);
 		setSaving(true);
 		const targetId = earnedCardId || cardId;
 		try {
@@ -578,6 +634,11 @@ export function CaptureFlow({
 	};
 
 	const handleCaptureAgain = () => {
+		if (earnedCardIdRef.current && !isRewardClaimedRef.current) {
+			triggerUnscratchedNotification(earnedCardIdRef.current);
+		}
+		earnedCardIdRef.current = null;
+		isRewardClaimedRef.current = false;
 		cancelCountdown();
 		if (cameraStream) {
 			cameraStream.getTracks().forEach((track) => track.stop());
@@ -914,6 +975,11 @@ export function CaptureFlow({
 								onStreamChange={setCameraStream}
 								onSmileUpdate={handleSmileUpdate}
 								onReady={handleCameraReady}
+								onPalmShutterTrigger={() => {
+									if (phase === 'CAMERA_ACTIVE') {
+										triggerCaptureSequence(undefined, 'PALM');
+									}
+								}}
 								isLiveVerified={livenessState.isLiveVerified || settings.liveness_detection_enabled === false}
 								livenessPrompt={livenessState.instruction}
 							/>

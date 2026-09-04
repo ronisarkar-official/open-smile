@@ -197,7 +197,9 @@ export function ensureIndexes(): Promise<void> {
 						('in_app_notifications_enabled', 'true'::jsonb, 'Master in-app notifications enabled', NOW()),
 						('streak_reminder_emails_enabled', 'true'::jsonb, 'Daily streak reminder emails enabled', NOW()),
 						('welcome_email_enabled', 'true'::jsonb, 'Send welcome email on signup', NOW()),
-						('login_alert_email_enabled', 'true'::jsonb, 'Send login security alert email', NOW())
+						('login_alert_email_enabled', 'true'::jsonb, 'Send login security alert email', NOW()),
+						('palm_shutter_enabled', 'true'::jsonb, 'Palm-to-shutter camera gesture detection', NOW()),
+						('mediapipe_drawing_spec', '{"enabled":true,"showConnectors":true,"connectionMode":"contours","connectionColor":"#00FF00","connectionLineWidth":1.5,"showLandmarks":true,"landmarkColor":"#FF0000","landmarkRadius":1.5,"landmarkLineWidth":1,"opacity":0.9}'::jsonb, 'MediaPipe face mesh and landmark drawing shape specification', NOW())
 					ON CONFLICT (key) DO NOTHING;
 
 					CREATE INDEX IF NOT EXISTS idx_explore_posts_created ON explore_posts (created_at DESC);

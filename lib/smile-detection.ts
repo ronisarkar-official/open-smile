@@ -4,7 +4,13 @@ import {
 	FaceLandmarker,
 	FilesetResolver,
 	type FaceLandmarkerResult,
+	type NormalizedLandmark,
 } from '@mediapipe/tasks-vision';
+export {
+	type MediaPipeDrawingSpec,
+	DEFAULT_DRAWING_SPEC,
+	renderFaceDrawingShape,
+} from '@/lib/mediapipe-drawing';
 
 if (typeof window !== 'undefined') {
 	const originalConsoleError = console.error;
@@ -126,6 +132,7 @@ export interface SmileDetectionResult {
 		width: number;
 		height: number;
 	};
+	landmarks?: NormalizedLandmark[];
 }
 
 function distance(
@@ -294,6 +301,7 @@ export function computeSmileScore(
 			eyeBlinkRight,
 		},
 		faceGeometry,
+		landmarks,
 	};
 }
 

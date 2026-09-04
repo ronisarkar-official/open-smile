@@ -10,6 +10,7 @@ import {
 	createISTDate,
 	getDaysAgoInIST,
 } from '@/lib/ist-date';
+import { DEFAULT_DRAWING_SPEC } from '@/lib/mediapipe-drawing';
 
 function generateSessionToken(): string {
 	return crypto.randomBytes(32).toString('base64url');
@@ -2577,6 +2578,8 @@ export async function getSystemSettingsMap(): Promise<Record<string, any>> {
 		monthly_podium_2_max_coins: 600,
 		monthly_podium_3_min_coins: 200,
 		monthly_podium_3_max_coins: 350,
+		palm_shutter_enabled: true,
+		mediapipe_drawing_spec: DEFAULT_DRAWING_SPEC,
 	};
 	for (const row of rows) {
 		defaults[row.key] = row.value;
@@ -3834,6 +3837,98 @@ export async function createNotification(params: {
 	);
 
 	return rows[0] ?? null;
+}
+
+export async function notifyUnscratchedCard(
+	userId: string,
+	cardId: string,
+): Promise<boolean> {
+	await ensureIndexes();
+	const pool = getPool();
+
+	const cardRes = await pool.query(
+		`SELECT id, is_scratched, created_at
+		 FROM scratch_cards
+		 WHERE id = $1 AND user_id = $2`,
+		[cardId, userId],
+	);
+
+	if (!cardRes.rows || cardRes.rows.length === 0) {
+		return false;
+	}
+
+	const card = cardRes.rows[0];
+	if (card.is_scratched) {
+		return false;
+	}
+
+	const existingRes = await pool.query(
+		`SELECT id FROM notifications
+		 WHERE user_id = $1
+		   AND category = 'rewards'
+		   AND action_url = '/rewards'
+		   AND created_at >= $2 - INTERVAL '5 seconds'`,
+		[userId, card.created_at],
+	);
+
+	if (existingRes.rows && existingRes.rows.length > 0) {
+		return false;
+	}
+
+	const created = await createNotification({
+		userId,
+		title: 'You won a Scratch Card! 🎁',
+		description: 'You have an unscratched reward waiting from your smile check. Scratch it to reveal your prize!',
+		category: 'rewards',
+		iconType: 'gift',
+		actionLabel: 'Scratch Now',
+		actionUrl: '/rewards',
+	});
+
+	return Boolean(created);
+}
+
+export async function syncUnscratchedCardNotifications(
+	userId: string,
+): Promise<number> {
+	await ensureIndexes();
+	const pool = getPool();
+
+	const { rows } = await pool.query(
+		`SELECT sc.id, sc.created_at
+		 FROM scratch_cards sc
+		 WHERE sc.user_id = $1
+		   AND sc.is_scratched = false
+		   AND sc.created_at <= NOW() - INTERVAL '30 seconds'
+		   AND NOT EXISTS (
+		     SELECT 1 FROM notifications n
+		     WHERE n.user_id = $1
+		       AND n.category = 'rewards'
+		       AND n.action_url = '/rewards'
+		       AND n.created_at >= sc.created_at - INTERVAL '5 seconds'
+		   )
+		 ORDER BY sc.created_at ASC
+		 LIMIT 3`,
+		[userId],
+	);
+
+	let count = 0;
+	for (const row of rows) {
+		const created = await createNotification({
+			userId,
+			title: 'You won a Scratch Card! 🎁',
+			description: 'You have an unscratched reward waiting from your smile check. Scratch it to reveal your prize!',
+			category: 'rewards',
+			iconType: 'gift',
+			actionLabel: 'Scratch Now',
+			actionUrl: '/rewards',
+		});
+		if (created) {
+			count++;
+		}
+	}
+
+	return count;
 }
 
 export async function createBroadcastNotification(params: {

@@ -1,15 +1,26 @@
 'use client';
 
 import * as React from 'react';
-import { Camera, ScanFace, AlertTriangle, RefreshCw, Settings, ShieldAlert } from 'lucide-react';
+import { Camera, ScanFace, AlertTriangle, RefreshCw, Settings, ShieldAlert, Hand } from 'lucide-react';
 import {
 	initSmileDetector,
 	detectSmile,
 	type SmileDetectionResult,
 } from '@/lib/smile-detection';
-import type { FaceLandmarker } from '@mediapipe/tasks-vision';
+import type { FaceLandmarker, GestureRecognizer, NormalizedLandmark } from '@mediapipe/tasks-vision';
+import {
+	initGestureRecognizer,
+	detectHandGesture,
+	renderHandDrawingShape,
+} from '@/lib/hand-gesture';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useSystemSettings } from '@/hooks/use-system-settings';
+import {
+	renderFaceDrawingShape,
+	DEFAULT_DRAWING_SPEC,
+	type MediaPipeDrawingSpec,
+} from '@/lib/mediapipe-drawing';
 
 export async function requestCameraStream(): Promise<MediaStream> {
 	if (typeof window === 'undefined' || !navigator?.mediaDevices?.getUserMedia) {
@@ -52,6 +63,11 @@ interface WebcamViewProps {
 	className?: string;
 	isLiveVerified?: boolean;
 	livenessPrompt?: string;
+	drawingSpec?: Partial<MediaPipeDrawingSpec>;
+	showMeshToggle?: boolean;
+	onPalmShutterTrigger?: () => void;
+	palmShutterEnabled?: boolean;
+	showPalmToggle?: boolean;
 }
 
 export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
@@ -67,13 +83,50 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 			className,
 			isLiveVerified = false,
 			livenessPrompt,
+			drawingSpec: customDrawingSpec,
+			showMeshToggle = true,
+			onPalmShutterTrigger,
+			palmShutterEnabled: palmShutterProp,
+			showPalmToggle = true,
 		},
 		ref
 	) {
+		const { settings } = useSystemSettings();
 		const videoRef = React.useRef<HTMLVideoElement>(null);
+		const canvasRef = React.useRef<HTMLCanvasElement>(null);
 		const detectorRef = React.useRef<FaceLandmarker | null>(null);
+		const gestureRecognizerRef = React.useRef<GestureRecognizer | null>(null);
 		const rafRef = React.useRef<number>(0);
 		const localStreamRef = React.useRef<MediaStream | null>(null);
+		const [userMeshToggled, setUserMeshToggled] = React.useState<boolean | null>(null);
+		const [userPalmToggled, setUserPalmToggled] = React.useState<boolean | null>(null);
+
+		const isPalmActive = userPalmToggled !== null ? userPalmToggled : (palmShutterProp ?? (settings.palm_shutter_enabled !== false));
+		const isPalmActiveRef = React.useRef(isPalmActive);
+		isPalmActiveRef.current = isPalmActive;
+
+		const onPalmShutterTriggerRef = React.useRef(onPalmShutterTrigger);
+		onPalmShutterTriggerRef.current = onPalmShutterTrigger;
+
+		const [palmHudStatus, setPalmHudStatus] = React.useState<'idle' | 'detected' | 'triggered'>('idle');
+		const palmStateRef = React.useRef<'idle' | 'detected' | 'triggered'>('idle');
+		const palmDetectedTimeRef = React.useRef<number>(0);
+		const lastPalmTriggerTimeRef = React.useRef<number>(0);
+		const lastGestureCheckTimeRef = React.useRef<number>(0);
+		const isRecognizingGestureRef = React.useRef<boolean>(false);
+
+		const activeDrawingSpec: MediaPipeDrawingSpec = React.useMemo(() => {
+			const base = settings.mediapipe_drawing_spec || DEFAULT_DRAWING_SPEC;
+			const isEnabled = userMeshToggled !== null ? userMeshToggled : (customDrawingSpec?.enabled ?? base.enabled);
+			return {
+				...base,
+				...customDrawingSpec,
+				enabled: isEnabled,
+			};
+		}, [settings.mediapipe_drawing_spec, customDrawingSpec, userMeshToggled]);
+
+		const activeDrawingSpecRef = React.useRef(activeDrawingSpec);
+		activeDrawingSpecRef.current = activeDrawingSpec;
 
 		const onSmileUpdateRef = React.useRef(onSmileUpdate);
 		onSmileUpdateRef.current = onSmileUpdate;
@@ -186,6 +239,14 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 
 				if (faceDetector) detectorRef.current = faceDetector;
 
+				initGestureRecognizer()
+					.then((recognizer) => {
+						gestureRecognizerRef.current = recognizer;
+					})
+					.catch((err) => {
+						console.warn('[OpenSmile] Gesture recognizer init failed:', err);
+					});
+
 				setStatus('ready');
 				onReadyRef.current?.();
 			} catch {
@@ -255,6 +316,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 					lastInferenceTimeRef.current = now;
 					isDetectingRef.current = true;
 
+					let faceLandmarks: NormalizedLandmark[] | undefined = undefined;
 					if (detectorRef.current) {
 						try {
 							const result = detectSmile(
@@ -262,6 +324,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 								video,
 								now
 							);
+							faceLandmarks = result?.landmarks;
 
 							onSmileUpdateRef.current?.(result);
 
@@ -284,6 +347,85 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 					} else {
 						isDetectingRef.current = false;
 					}
+
+					let handLandmarks: NormalizedLandmark[] | undefined = undefined;
+					if (
+						isPalmActiveRef.current &&
+						gestureRecognizerRef.current &&
+						!isRecognizingGestureRef.current &&
+						now - lastGestureCheckTimeRef.current >= 70
+					) {
+						lastGestureCheckTimeRef.current = now;
+						isRecognizingGestureRef.current = true;
+						try {
+							const gestureResult = detectHandGesture(
+								gestureRecognizerRef.current,
+								video,
+								now
+							);
+							handLandmarks = gestureResult?.landmarks;
+
+							const nowMs = Date.now();
+							if (nowMs - lastPalmTriggerTimeRef.current > 3000) {
+								if (palmStateRef.current === 'idle') {
+									if (gestureResult?.isOpenPalm && !gestureResult.isClosedFist) {
+										palmStateRef.current = 'detected';
+										palmDetectedTimeRef.current = nowMs;
+										setPalmHudStatus('detected');
+									}
+								} else if (palmStateRef.current === 'detected') {
+									const elapsedSinceDetected = nowMs - palmDetectedTimeRef.current;
+									// Trigger ONLY when user closes their hand into a fist
+									if (
+										elapsedSinceDetected >= 250 &&
+										gestureResult?.isClosedFist &&
+										!gestureResult.isOpenPalm
+									) {
+										palmStateRef.current = 'triggered';
+										lastPalmTriggerTimeRef.current = nowMs;
+										setPalmHudStatus('triggered');
+										onPalmShutterTriggerRef.current?.();
+										setTimeout(() => {
+											palmStateRef.current = 'idle';
+											setPalmHudStatus('idle');
+										}, 3000);
+									} else if (elapsedSinceDetected > 5000 && !gestureResult?.hasHand) {
+										palmStateRef.current = 'idle';
+										setPalmHudStatus('idle');
+									}
+								}
+							}
+						} finally {
+							isRecognizingGestureRef.current = false;
+						}
+					}
+
+					const canvas = canvasRef.current;
+					if (canvas) {
+						const ctx = canvas.getContext('2d');
+						if (ctx) {
+							const currentSpec = activeDrawingSpecRef.current;
+							const hasFaceToDraw = Boolean(faceLandmarks && faceLandmarks.length > 0 && currentSpec.enabled);
+							const hasHandToDraw = Boolean(handLandmarks && handLandmarks.length > 0 && currentSpec.enabled);
+
+							if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+								canvas.width = video.videoWidth;
+								canvas.height = video.videoHeight;
+							}
+
+							if (hasFaceToDraw || hasHandToDraw) {
+								ctx.clearRect(0, 0, canvas.width, canvas.height);
+								if (hasFaceToDraw && faceLandmarks) {
+									renderFaceDrawingShape(ctx, faceLandmarks, currentSpec);
+								}
+								if (hasHandToDraw && handLandmarks) {
+									renderHandDrawingShape(ctx, handLandmarks, currentSpec);
+								}
+							} else {
+								ctx.clearRect(0, 0, canvas.width, canvas.height);
+							}
+						}
+					}
 				}
 
 				rafRef.current = requestAnimationFrame(tick);
@@ -296,6 +438,16 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 				if (rafRef.current) cancelAnimationFrame(rafRef.current);
 			};
 		}, [status, isFrozen]);
+
+		React.useEffect(() => {
+			if (isFrozen || status !== 'ready' || !activeDrawingSpec.enabled) {
+				const canvas = canvasRef.current;
+				if (canvas) {
+					const ctx = canvas.getContext('2d');
+					ctx?.clearRect(0, 0, canvas.width, canvas.height);
+				}
+			}
+		}, [isFrozen, status, activeDrawingSpec.enabled]);
 
 		const getScoreColor = (score: number) => {
 			if (score >= 80) return 'bg-success';
@@ -329,6 +481,42 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 						Camera Feed
 					</div>
 					<div className="flex items-center gap-2">
+						{showMeshToggle && status === 'ready' && !isFrozen && (
+							<button
+								type="button"
+								onClick={() => setUserMeshToggled((prev) => (prev !== null ? !prev : !activeDrawingSpec.enabled))}
+								className={cn(
+									'relative flex size-7 items-center justify-center rounded-md border-[length:var(--border-width-sm)] border-border transition-all shadow-brutal-xs cursor-pointer active:scale-90',
+									activeDrawingSpec.enabled
+										? 'bg-success/20 text-success border-success/60 hover:bg-success/30'
+										: 'bg-muted/60 text-muted-foreground/50 border-border/50 hover:text-muted-foreground hover:bg-muted'
+								)}
+								title={`Face Mesh: ${activeDrawingSpec.enabled ? 'ON' : 'OFF'}`}
+								aria-label={`Face Mesh: ${activeDrawingSpec.enabled ? 'ON' : 'OFF'}`}>
+								<ScanFace className="size-3.5" strokeWidth={2.2} />
+								{activeDrawingSpec.enabled && (
+									<span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-success border border-border" />
+								)}
+							</button>
+						)}
+						{showPalmToggle && status === 'ready' && !isFrozen && (
+							<button
+								type="button"
+								onClick={() => setUserPalmToggled((prev) => (prev !== null ? !prev : !isPalmActive))}
+								className={cn(
+									'relative flex size-7 items-center justify-center rounded-md border-[length:var(--border-width-sm)] border-border transition-all shadow-brutal-xs cursor-pointer active:scale-90',
+									isPalmActive
+										? 'bg-primary/20 text-primary border-primary/60 hover:bg-primary/30'
+										: 'bg-muted/60 text-muted-foreground/50 border-border/50 hover:text-muted-foreground hover:bg-muted'
+								)}
+								title={`Palm Shutter: ${isPalmActive ? 'ON' : 'OFF'}`}
+								aria-label={`Palm Shutter: ${isPalmActive ? 'ON' : 'OFF'}`}>
+								<Hand className="size-3.5" strokeWidth={2.2} />
+								{isPalmActive && (
+									<span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-primary border border-border" />
+								)}
+							</button>
+						)}
 						{status === 'ready' && !isFrozen && (
 							<>
 								<span className="relative flex size-2">
@@ -360,6 +548,38 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 						autoPlay
 						style={{ transform: 'scaleX(-1)' }}
 					/>
+
+					<canvas
+						ref={canvasRef}
+						className={cn(
+							'absolute inset-0 size-full object-cover pointer-events-none',
+							(status !== 'ready' || isFrozen || !activeDrawingSpec.enabled) && 'hidden'
+						)}
+						style={{ transform: 'scaleX(-1)' }}
+					/>
+
+					{/* Palm Shutter Floating Gesture HUD */}
+					{status === 'ready' && !isFrozen && isPalmActive && (
+						<>
+							{palmHudStatus === 'detected' && (
+								<div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+									<div className="inline-flex items-center gap-2 rounded-xl border-[length:var(--border-width)] border-border bg-accent text-accent-foreground px-3.5 py-1.5 font-mono text-xs font-black uppercase tracking-wider shadow-brutal animate-bounce">
+										<span className="text-base leading-none">✋</span>
+										<span>Palm Ready! Close hand to snap ✊</span>
+									</div>
+								</div>
+							)}
+
+							{palmHudStatus === 'triggered' && (
+								<div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none animate-in fade-in zoom-in-95 duration-150">
+									<div className="inline-flex items-center gap-2 rounded-xl border-[length:var(--border-width)] border-border bg-success text-success-foreground px-3.5 py-1.5 font-mono text-xs font-black uppercase tracking-wider shadow-brutal">
+										<span className="text-base leading-none">✊</span>
+										<span>Snap Triggered! Get Ready!</span>
+									</div>
+								</div>
+							)}
+						</>
+					)}
 
 					<div className="absolute left-5 top-5 size-5 border-l-[length:var(--border-width-lg)] border-t-[length:var(--border-width-lg)] border-border/40 pointer-events-none" />
 					<div className="absolute right-5 top-5 size-5 border-r-[length:var(--border-width-lg)] border-t-[length:var(--border-width-lg)] border-border/40 pointer-events-none" />

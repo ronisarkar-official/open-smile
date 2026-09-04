@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireServerUser } from '@/lib/auth/session';
 import {
 	getUserNotifications,
+	syncUnscratchedCardNotifications,
 	markNotificationAsRead,
 	markAllNotificationsAsRead,
 	deleteNotification,
@@ -14,6 +15,8 @@ export async function GET(req: NextRequest) {
 	try {
 		const { user, error } = await requireServerUser();
 		if (!user) return error;
+
+		await syncUnscratchedCardNotifications(user.id).catch(() => 0);
 
 		const { searchParams } = new URL(req.url);
 		const category = searchParams.get('category') || undefined;
