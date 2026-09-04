@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/backend/auth";
-import { rateLimit } from "@/backend/services";
+import { auth } from "@/lib/auth";
+import { rateLimit } from "@/lib/services";
 
 const WINDOW = 15 * 60 * 1000;
 const MAX_PER_EMAIL = 5;

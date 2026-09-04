@@ -9,7 +9,7 @@ import {
 	Flame,
 	Sparkles,
 } from 'lucide-react';
-import type { MonthlyCaptureItem } from '@/backend/db/collections';
+import type { MonthlyCaptureItem } from '@/lib/db/collections';
 import { Button } from '@/components/ui/button';
 
 interface ConsistencyCalendarProps {

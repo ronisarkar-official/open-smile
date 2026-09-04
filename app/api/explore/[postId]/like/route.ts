@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getPool } from '@/backend/db/client';
-import { requireServerUser } from '@/backend/auth/session';
+import { getPool } from '@/lib/db/client';
+import { requireServerUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

@@ -15,7 +15,7 @@ import {
 	Trophy,
 	UserPlus,
 } from 'lucide-react';
-import type { UserPublicProfileDetails } from '@/backend/db/collections';
+import type { UserPublicProfileDetails } from '@/lib/db/collections';
 import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/navbar';

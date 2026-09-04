@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Camera, Check, Gift, Sparkles, Trophy, ArrowRight, ShieldCheck } from 'lucide-react';
-import { findUserByReferralCode, getSystemSettingsMap } from '@/backend/db';
+import { findUserByReferralCode, getSystemSettingsMap } from '@/lib/db';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ReferralTracker } from './referral-tracker';

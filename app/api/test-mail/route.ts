@@ -10,7 +10,7 @@ import {
 	getResetPasswordEmailHtml,
 	getLoginNotificationEmailHtml,
 	getBetaWaitlistEmailHtml,
-} from "@/backend/mailer";
+} from "@/lib/mailer";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

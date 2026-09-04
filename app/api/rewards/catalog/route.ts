@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getPool } from '@/backend/db/client';
+import { getPool } from '@/lib/db/client';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

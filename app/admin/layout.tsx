@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { getServerUser, isUserAdmin } from '@/backend/auth/session';
+import { getServerUser, isUserAdmin } from '@/lib/auth/session';
 import { AdminHeader } from '@/components/admin/admin-header';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import { AdminBootstrapClient } from '@/components/admin/admin-bootstrap-client';

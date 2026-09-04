@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ServerUser } from "@/backend/auth/session";
+import { ServerUser } from "@/lib/auth/session";
 import {
 	Shield,
 	ExternalLink,

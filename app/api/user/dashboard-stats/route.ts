@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { requireServerUser } from '@/backend/auth/session';
+import { requireServerUser } from '@/lib/auth/session';
 import {
 	getUserCoinBalance,
 	getUserStreak,
 	getUserDailyRank,
 	getUserRecentSmiles,
-} from '@/backend/db';
+} from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { requireServerAdmin } from "@/backend/auth/session";
-import { adminResetPlatform } from "@/backend/db";
+import { requireServerAdmin } from "@/lib/auth/session";
+import { adminResetPlatform } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 

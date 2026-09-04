@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { requireServerUser } from "@/backend/auth/session";
-import { bootstrapAdminUser } from "@/backend/db";
+import { requireServerUser } from "@/lib/auth/session";
+import { bootstrapAdminUser } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 

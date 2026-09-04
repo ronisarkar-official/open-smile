@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getUserPublicProfileByUsername } from '@/backend/db';
+import { getUserPublicProfileByUsername } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

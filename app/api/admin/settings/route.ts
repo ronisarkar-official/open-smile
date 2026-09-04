@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { requireServerAdmin } from "@/backend/auth/session";
-import { getSystemSettings, updateSystemSetting } from "@/backend/db";
+import { requireServerAdmin } from "@/lib/auth/session";
+import { getSystemSettings, updateSystemSetting } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSystemSettingsMap } from "@/backend/db";
+import { getSystemSettingsMap } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;

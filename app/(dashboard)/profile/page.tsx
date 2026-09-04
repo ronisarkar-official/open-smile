@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { auth } from '@/backend/auth';
-import { getUserProfileFullDetails } from '@/backend/db';
+import { auth } from '@/lib/auth';
+import { getUserProfileFullDetails } from '@/lib/db';
 import { ProfileView } from '@/components/profile/profile-view';
 
 export const dynamic = 'force-dynamic';

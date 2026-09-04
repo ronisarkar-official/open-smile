@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cleanupExpiredOtpCodes, cleanupExpiredRateLimits, cleanupExpiredExplorePosts } from "@/backend/db";
+import { cleanupExpiredOtpCodes, cleanupExpiredRateLimits, cleanupExpiredExplorePosts } from "@/lib/db";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 

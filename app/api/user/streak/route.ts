@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { requireServerUser } from '@/backend/auth';
-import { getUserStreakFullDetails } from '@/backend/db';
+import { requireServerUser } from '@/lib/auth';
+import { getUserStreakFullDetails } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;

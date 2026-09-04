@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
-import { auth } from '@/backend/auth';
-import { getUserStreakFullDetails } from '@/backend/db';
+import { auth } from '@/lib/auth';
+import { getUserStreakFullDetails } from '@/lib/db';
 import { StreakView } from '@/components/streak/streak-view';
 
 export const dynamic = 'force-dynamic';

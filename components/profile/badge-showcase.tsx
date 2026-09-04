@@ -16,7 +16,7 @@ import {
 	Users,
 	Zap,
 } from 'lucide-react';
-import type { ProfileBadgeItem } from '@/backend/db/collections';
+import type { ProfileBadgeItem } from '@/lib/db/collections';
 import {
 	Dialog,
 	DialogContent,

@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyOTP, verifyAuthTicket } from "@/backend/auth";
+import { verifyOTP, verifyAuthTicket } from "@/lib/auth";
 import {
   updateUserEmailVerified,
   createSessionForUser,
   createUserWithAccount,
   findUserByEmail,
   createPendingReferral,
-} from "@/backend/db";
-import { rateLimit } from "@/backend/services";
-import { sendLoginNotificationEmail } from "@/backend/mailer";
+} from "@/lib/db";
+import { rateLimit } from "@/lib/services";
+import { sendLoginNotificationEmail } from "@/lib/mailer";
 
 const WINDOW = 15 * 60 * 1000;
 const MAX_PER_EMAIL = 15;

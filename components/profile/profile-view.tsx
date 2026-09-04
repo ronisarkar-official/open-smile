@@ -26,7 +26,7 @@ import {
 	Users,
 	Zap,
 } from 'lucide-react';
-import type { UserProfileFullDetails } from '@/backend/db/collections';
+import type { UserProfileFullDetails } from '@/lib/db/collections';
 import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { CoinIcon } from '@/components/ui/coin-icon';

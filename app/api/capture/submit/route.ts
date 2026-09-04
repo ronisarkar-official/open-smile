@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { requireServerUser } from '@/backend/auth';
+import { requireServerUser } from '@/lib/auth';
 import {
 	insertSmileCapture,
 	getUserCoinBalance,
 	getSystemSettingsMap,
 	recordCaptureStreak,
-} from '@/backend/db';
+} from '@/lib/db';
 
 import { calculateSmileCoins } from '@/lib/reward-calculator';
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
 			);
 		}
 
-		const { getPool } = await import('@/backend/db/client');
+		const { getPool } = await import('@/lib/db/client');
 		const pool = getPool();
 
 		const maxDailyCaptures = Math.max(1, Number(settings.max_daily_captures_per_user) || 10);

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Smile, ArrowLeft } from 'lucide-react';
-import { getUserPublicProfileByUsername } from '@/backend/db';
+import { getUserPublicProfileByUsername } from '@/lib/db';
 import { PublicProfileView } from '@/components/profile/public-profile-view';
 import { Button } from '@/components/ui/button';
 import { Navbar } from '@/components/navbar';

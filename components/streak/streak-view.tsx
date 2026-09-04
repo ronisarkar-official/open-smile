@@ -17,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { CoinIcon } from '@/components/ui/coin-icon';
 import { USER_STREAK_EVENT } from '@/components/ui/user-streak';
-import type { UserStreakFullDetails, StreakDayItem } from '@/backend/db/collections';
+import type { UserStreakFullDetails, StreakDayItem } from '@/lib/db/collections';
 import { cn } from '@/lib/utils';
 
 interface StreakViewProps {

@@ -7,8 +7,8 @@ import {
 	settleMonthlyLeaderboard,
 	getUserLeaderboardRank,
 	getLatestLeaderboardSettlement,
-} from '@/backend/db';
-import { getServerUser } from '@/backend/auth/session';
+} from '@/lib/db';
+import { getServerUser } from '@/lib/auth/session';
 import {
 	getStartOfISTDay,
 	getNextISTMidnight,

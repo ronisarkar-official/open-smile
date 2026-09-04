@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPassword } from "better-auth/crypto";
-import { findUserWithPasswordByEmail } from "@/backend/db";
-import { rateLimit } from "@/backend/services";
-import { generateOTP, saveOTP, createAuthTicket } from "@/backend/auth";
-import { sendOTPEmail } from "@/backend/mailer";
+import { findUserWithPasswordByEmail } from "@/lib/db";
+import { rateLimit } from "@/lib/services";
+import { generateOTP, saveOTP, createAuthTicket } from "@/lib/auth";
+import { sendOTPEmail } from "@/lib/mailer";
 
 const WINDOW = 15 * 60 * 1000;
 const MAX_PER_EMAIL = 10;

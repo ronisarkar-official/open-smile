@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sendLoginNotificationEmail } from "@/backend/mailer";
+import { sendLoginNotificationEmail } from "@/lib/mailer";
 
 export async function POST(req: NextRequest) {
   try {

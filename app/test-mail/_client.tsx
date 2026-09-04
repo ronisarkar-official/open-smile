@@ -32,7 +32,7 @@ import {
 	getResetPasswordEmailHtml,
 	getLoginNotificationEmailHtml,
 	getBetaWaitlistEmailHtml,
-} from "@/backend/mailer/templates";
+} from "@/lib/mailer/templates";
 
 type TemplateType = "otp" | "welcome" | "reset-password" | "login-alert" | "beta-waitlist";
 

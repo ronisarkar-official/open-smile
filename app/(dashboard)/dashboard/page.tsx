@@ -1,11 +1,11 @@
 import { headers } from "next/headers";
-import { auth } from "@/backend/auth";
+import { auth } from "@/lib/auth";
 import {
   getUserCoinBalance,
   getUserStreak,
   getUserDailyRank,
   getUserRecentSmiles,
-} from "@/backend/db";
+} from "@/lib/db";
 import { DashboardView, type DashboardStats } from "@/components/dashboard/dashboard-view";
 
 export const dynamic = "force-dynamic";

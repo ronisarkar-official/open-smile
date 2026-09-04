@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { getImageKitAuthParams, isImageKitConfigured } from "@/backend/services";
+import { getImageKitAuthParams, isImageKitConfigured } from "@/lib/services";
 
 export async function GET() {
   try {

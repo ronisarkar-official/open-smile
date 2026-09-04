@@ -3,7 +3,7 @@ import {
   settleDailyLeaderboard,
   settleWeeklyLeaderboard,
   settleMonthlyLeaderboard,
-} from "@/backend/db";
+} from "@/lib/db";
 import { getISTParts } from "@/lib/ist-date";
 
 const CRON_SECRET = process.env.CRON_SECRET;
