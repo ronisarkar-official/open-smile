@@ -9,6 +9,15 @@ import {
 	getLatestLeaderboardSettlement,
 } from '@/backend/db';
 import { getServerUser } from '@/backend/auth/session';
+import {
+	getStartOfISTDay,
+	getNextISTMidnight,
+	getNextWeeklyISTReset,
+	getNextMonthlyISTReset,
+	formatISTDateString,
+	getDaysAgoInIST,
+	getISTParts,
+} from '@/lib/ist-date';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -40,45 +49,44 @@ export async function GET(request: NextRequest) {
 		const period = searchParams.get('period') || 'daily';
 
 		const now = new Date();
+		const istParts = getISTParts(now);
 		let startDate: Date;
 		let endDate: Date | undefined;
 		let resetAt: string | undefined;
+		let fromDateStr: string;
+		let toDateStr = formatISTDateString(now);
 		let title = 'Daily Top Smile Points';
 
 		if (period === 'daily') {
-			startDate = new Date(
-				Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0)
-			);
+			startDate = getStartOfISTDay(now);
 			endDate = now;
-			const nextMidnight = new Date(
-				Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, 0, 0, 0, 0)
-			);
-			resetAt = nextMidnight.toISOString();
+			resetAt = getNextISTMidnight(now).toISOString();
+			fromDateStr = formatISTDateString(startDate);
 			title = 'Daily Top Smile Points';
 
 			settleDailyLeaderboard().catch((err) => {
 				console.error('Lazy daily settlement error:', err);
 			});
 		} else if (period === 'weekly') {
-			startDate = new Date(
-				Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 6, 0, 0, 0, 0)
-			);
+			startDate = getDaysAgoInIST(6, now);
 			endDate = now;
+			resetAt = getNextWeeklyISTReset(now).toISOString();
+			fromDateStr = formatISTDateString(startDate);
 			title = 'Weekly Top Smile Points';
 
-			if (now.getUTCDay() === 1) {
+			if (istParts.day === 1) {
 				settleWeeklyLeaderboard().catch((err) => {
 					console.error('Lazy weekly settlement error:', err);
 				});
 			}
 		} else {
-			startDate = new Date(
-				Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 29, 0, 0, 0, 0)
-			);
+			startDate = getDaysAgoInIST(29, now);
 			endDate = now;
+			resetAt = getNextMonthlyISTReset(now).toISOString();
+			fromDateStr = formatISTDateString(startDate);
 			title = 'Monthly Smile Champions';
 
-			if (now.getUTCDate() === 1) {
+			if (istParts.date === 1) {
 				settleMonthlyLeaderboard().catch((err) => {
 					console.error('Lazy monthly settlement error:', err);
 				});
@@ -111,7 +119,11 @@ export async function GET(request: NextRequest) {
 			if (foundInTop10) {
 				currentUserRanking = { ...foundInTop10 };
 			} else {
-				const userRank = await getUserLeaderboardRank(currentUser.id, startDate, endDate);
+				const userRank = await getUserLeaderboardRank(
+					currentUser.id,
+					startDate,
+					endDate,
+				);
 				if (userRank) {
 					currentUserRanking = {
 						rank: userRank.rank,
@@ -130,12 +142,13 @@ export async function GET(request: NextRequest) {
 			if (currentUserRanking && rankings.length > 0) {
 				if (currentUserRanking.rank > 1) {
 					const targetIndex =
-						currentUserRanking.rank <= 10
-							? currentUserRanking.rank - 2
-							: Math.min(rankings.length - 1, 9);
+						currentUserRanking.rank <= 10 ?
+							currentUserRanking.rank - 2
+						:	Math.min(rankings.length - 1, 9);
 					const targetUser = rankings[targetIndex];
 					if (targetUser) {
-						const diff = Number(targetUser.value) - Number(currentUserRanking.value);
+						const diff =
+							Number(targetUser.value) - Number(currentUserRanking.value);
 						currentUserRanking.pointsToOvertake = Math.max(1, diff + 1);
 						currentUserRanking.targetUserName = targetUser.userName;
 						currentUserRanking.targetRank = targetUser.rank;
@@ -152,14 +165,16 @@ export async function GET(request: NextRequest) {
 			avatarUrl: r.avatarUrl,
 		}));
 
-		const yesterdayPodium = await getLatestLeaderboardSettlement(period).catch(() => []);
+		const yesterdayPodium = await getLatestLeaderboardSettlement(period).catch(
+			() => [],
+		);
 
 		return NextResponse.json({
 			period,
 			metric: 'score',
 			title,
-			fromDate: startDate.toISOString().split('T')[0],
-			toDate: now.toISOString().split('T')[0],
+			fromDate: fromDateStr,
+			toDate: toDateStr,
 			resetAt,
 			podium,
 			yesterdayPodium,
@@ -168,7 +183,9 @@ export async function GET(request: NextRequest) {
 		});
 	} catch (err) {
 		console.error('Leaderboard error:', err);
-		return NextResponse.json({ error: 'Failed to fetch leaderboard' }, { status: 500 });
+		return NextResponse.json(
+			{ error: 'Failed to fetch leaderboard' },
+			{ status: 500 },
+		);
 	}
 }
-

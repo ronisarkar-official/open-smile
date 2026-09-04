@@ -4,6 +4,7 @@ import {
   settleWeeklyLeaderboard,
   settleMonthlyLeaderboard,
 } from "@/backend/db";
+import { getISTParts } from "@/lib/ist-date";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
@@ -31,15 +32,16 @@ export async function POST(req: NextRequest) {
     }
 
     const now = new Date();
+    const istParts = getISTParts(now);
     const daily = await settleDailyLeaderboard(targetDate);
 
     let weekly = null;
-    if (periodRequested === "weekly" || now.getUTCDay() === 1) {
+    if (periodRequested === "weekly" || istParts.day === 1) {
       weekly = await settleWeeklyLeaderboard(targetDate);
     }
 
     let monthly = null;
-    if (periodRequested === "monthly" || now.getUTCDate() === 1) {
+    if (periodRequested === "monthly" || istParts.date === 1) {
       monthly = await settleMonthlyLeaderboard(targetDate);
     }
 

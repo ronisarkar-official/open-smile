@@ -21,18 +21,19 @@ async def get_leaderboard(
     current_user: Optional[dict] = Depends(get_optional_user),
     pool: asyncpg.Pool = Depends(get_db_pool),
 ):
-    now = datetime.now(timezone.utc)
+    ist_tz = timezone(timedelta(hours=5, minutes=30))
+    now = datetime.now(ist_tz)
     reset_at_str = None
     if period == "daily":
-        start_date = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+        start_date = datetime(now.year, now.month, now.day, 0, 0, 0, tzinfo=ist_tz)
         next_midnight = start_date + timedelta(days=1)
-        reset_at_str = next_midnight.isoformat()
+        reset_at_str = next_midnight.astimezone(timezone.utc).isoformat()
         title = "Daily Top Smile Scores"
     elif period == "weekly":
-        start_date = now - timedelta(days=7)
+        start_date = datetime(now.year, now.month, now.day, 0, 0, 0, tzinfo=ist_tz) - timedelta(days=6)
         title = "Weekly Top Smile Scores"
     else:
-        start_date = now - timedelta(days=30)
+        start_date = datetime(now.year, now.month, now.day, 0, 0, 0, tzinfo=ist_tz) - timedelta(days=29)
         title = "Monthly Smile Champions"
 
     from_date_str = start_date.strftime("%Y-%m-%d")

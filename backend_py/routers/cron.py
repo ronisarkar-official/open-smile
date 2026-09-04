@@ -58,7 +58,6 @@ async def run_cleanup_cron(
             "otp_codes": deleted_otp,
             "rate_limits": deleted_rate_limits,
             "explore_posts": deleted_explore,
-            "posts": deleted_posts,
             "image_hashes": deleted_hashes,
         }
     }
@@ -81,10 +80,11 @@ async def run_leaderboard_settlement(
 
     verify_cron_auth(request)
 
-    now = datetime.now(timezone.utc)
+    ist_tz = timezone(timedelta(hours=5, minutes=30))
+    now = datetime.now(ist_tz)
     yesterday = now - timedelta(days=1)
-    start_of_day = datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0, 0, tzinfo=timezone.utc)
-    end_of_day = datetime(yesterday.year, yesterday.month, yesterday.day, 23, 59, 59, 999999, tzinfo=timezone.utc)
+    start_of_day = datetime(yesterday.year, yesterday.month, yesterday.day, 0, 0, 0, tzinfo=ist_tz)
+    end_of_day = datetime(yesterday.year, yesterday.month, yesterday.day, 23, 59, 59, 999999, tzinfo=ist_tz)
     date_str = start_of_day.strftime("%Y-%m-%d")
 
     async with pool.acquire() as conn:
@@ -139,7 +139,7 @@ async def run_leaderboard_settlement(
             awarded = []
             for i, winner in enumerate(top_rows):
                 cfg = awards_config[i]
-                coins = random.randint(cfg["min"], cfg["max"])
+                coins = random.randint(int(cfg["min"]), int(cfg["max"]))
 
                 card_id = await conn.fetchval(
                     """

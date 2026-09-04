@@ -44,10 +44,17 @@ interface LeaderboardCardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 function formatRangeDate(date: string | Date) {
-	const parsed = date instanceof Date ? date : new Date(date);
+	if (!date) return '';
+	let parsed: Date;
+	if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+		parsed = new Date(`${date}T00:00:00+05:30`);
+	} else {
+		parsed = date instanceof Date ? date : new Date(date);
+	}
 	if (Number.isNaN(parsed.getTime())) return '';
 
 	return parsed.toLocaleDateString('en-US', {
+		timeZone: 'Asia/Kolkata',
 		month: 'short',
 		day: 'numeric',
 		year: 'numeric',
@@ -74,7 +81,7 @@ const TOURNAMENT_REWARDS: Record<
 	daily: {
 		label: 'Daily Podium Rewards',
 		desc: 'Top 3 win Mystery Scratch Cards',
-		resetLabel: 'Resets 12:00 AM UTC',
+		resetLabel: 'Resets 12:00 AM IST',
 		cards: [
 			{
 				rank: '1st',
@@ -108,7 +115,7 @@ const TOURNAMENT_REWARDS: Record<
 	weekly: {
 		label: 'Weekly Tournament Stakes',
 		desc: 'Top 3 win Weekly Mega Scratch Cards',
-		resetLabel: 'Resets Sunday Midnight UTC',
+		resetLabel: 'Resets Sunday Midnight IST',
 		cards: [
 			{
 				rank: '1st',
@@ -142,7 +149,7 @@ const TOURNAMENT_REWARDS: Record<
 	monthly: {
 		label: 'Monthly Legends League',
 		desc: 'Top 3 win Legend Scratch Cards',
-		resetLabel: 'Resets Month-End UTC',
+		resetLabel: 'Resets Month-End IST',
 		cards: [
 			{
 				rank: '1st',
@@ -398,7 +405,7 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 
 									<p className="text-xs sm:text-sm font-black font-title text-foreground">
 										{isRushHour
-											? 'Points lock at UTC midnight — podiums win instant Scratch Cards!'
+											? 'Points lock at IST midnight — podiums win instant Scratch Cards!'
 											: currentReward.desc + ' — scratch to reveal your coins!'}
 									</p>
 								</div>
@@ -456,7 +463,7 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 							<div className="overflow-hidden rounded-lg border-[length:var(--border-width)] border-border bg-card shadow-brutal-sm">
 								<div className="border-b-[length:var(--border-width)] border-border bg-muted/60 px-4 py-2.5 font-mono text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center justify-between">
 									<span>Archived Winners Podium</span>
-									<span>{yesterdayPodium[0]?.periodDate || 'Recent'}</span>
+									<span>{yesterdayPodium[0]?.periodDate ? formatRangeDate(yesterdayPodium[0].periodDate) : 'Recent'}</span>
 								</div>
 								<div className="divide-y divide-border/60">
 									{yesterdayPodium.map((winner: any) => {
