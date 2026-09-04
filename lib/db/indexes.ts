@@ -122,6 +122,7 @@ export function ensureIndexes(): Promise<void> {
 
 					ALTER TABLE vouchers_catalog ADD COLUMN IF NOT EXISTS voucher_type TEXT DEFAULT 'gift_card';
 					ALTER TABLE vouchers_catalog ADD COLUMN IF NOT EXISTS value_formatted TEXT;
+					ALTER TABLE vouchers_catalog ADD COLUMN IF NOT EXISTS details TEXT;
 
 					ALTER TABLE smile_captures ADD COLUMN IF NOT EXISTS flagged BOOLEAN DEFAULT FALSE;
 					ALTER TABLE smile_captures ADD COLUMN IF NOT EXISTS flag_reason TEXT;

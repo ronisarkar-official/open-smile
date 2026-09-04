@@ -15,7 +15,7 @@ const cspParts = [
 	`default-src 'self'`,
 	`script-src ${scriptSrc.join(' ')} 'wasm-unsafe-eval'`,
 	`style-src 'self' 'unsafe-inline'`,
-	`img-src 'self' data: blob: https://ik.imagekit.io https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://xubohuah.github.io https://images.unsplash.com https://i.pravatar.cc`,
+	`img-src 'self' data: blob: https://ik.imagekit.io https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://xubohuah.github.io https://images.unsplash.com https://i.pravatar.cc https://cdn.simpleicons.org https://www.google.com`,
 	`font-src 'self' data:`,
 	`connect-src ${connectSrc.join(' ')}`,
 	`media-src 'self' blob: data:`,
@@ -73,6 +73,14 @@ const nextConfig: NextConfig = {
 			{
 				protocol: 'https',
 				hostname: 'i.pravatar.cc',
+			},
+			{
+				protocol: 'https',
+				hostname: 'cdn.simpleicons.org',
+			},
+			{
+				protocol: 'https',
+				hostname: 'www.google.com',
 			},
 		],
 	},

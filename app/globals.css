@@ -354,6 +354,30 @@
     border-radius: var(--radius);
   }
 
+  .brutal-switch {
+    border: var(--border-width-lg, 1px) solid var(--outline);
+    border-radius: 4px;
+    min-height: 0;
+    box-shadow: none;
+    transition-property: background-color, border-color, box-shadow;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+
+  .brutal-switch-thumb {
+    border: var(--border-width-lg, 1px) solid var(--outline);
+    border-radius: 4px;
+    box-shadow: none;
+    background-color: #ffffff;
+    transition-property: transform;
+    transition-duration: 150ms;
+    transition-timing-function: ease-out;
+  }
+
+  .dark .brutal-switch-thumb {
+    background-color: var(--card);
+  }
+
   .brutal-lift {
     transition-property: background-color, box-shadow, transform;
     transition-duration: 200ms;

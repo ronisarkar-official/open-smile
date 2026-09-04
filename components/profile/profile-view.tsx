@@ -283,8 +283,10 @@ export function ProfileView({ initialData }: ProfileViewProps) {
 									<Gift className="size-5 text-secondary" strokeWidth={2.5} />
 									<h2 className="font-title text-base font-black">Invite & Earn Coins</h2>
 								</div>
-								<span className="font-mono text-[10px] font-black uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded-md border-[length:var(--border-width)] border-black">
-									+50 🪙 Per Friend
+								<span className="font-mono text-[10px] font-black uppercase bg-primary text-primary-foreground px-2 py-0.5 rounded-md border-[length:var(--border-width)] border-black inline-flex items-center gap-1">
+									<span>+50</span>
+									<CoinIcon size={12} />
+									<span>Per Friend</span>
 								</span>
 							</div>
 
@@ -316,8 +318,9 @@ export function ProfileView({ initialData }: ProfileViewProps) {
 									<div className="text-[10px] font-bold text-muted-foreground uppercase">Friends Joined</div>
 								</div>
 								<div className="border-[length:var(--border-width)] border-black rounded-lg bg-card p-2 text-center">
-									<div className="font-display font-black text-lg tabular-nums text-primary">
-										{data.referral.coinsEarned} 🪙
+									<div className="font-display font-black text-lg tabular-nums text-primary flex items-center justify-center gap-1.5">
+										<span>{data.referral.coinsEarned}</span>
+										<CoinIcon size={16} />
 									</div>
 									<div className="text-[10px] font-bold text-muted-foreground uppercase">Bonus Coins</div>
 								</div>
@@ -360,8 +363,9 @@ export function ProfileView({ initialData }: ProfileViewProps) {
 													</p>
 												</div>
 											</div>
-											<div className="font-mono text-xs font-black text-success">
-												+{cap.coins} 🪙
+											<div className="font-mono text-xs font-black text-success flex items-center gap-1">
+												<span>+{cap.coins}</span>
+												<CoinIcon size={12} />
 											</div>
 										</div>
 									))}

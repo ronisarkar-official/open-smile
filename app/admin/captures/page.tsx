@@ -9,12 +9,12 @@ import {
 	CheckCircle2,
 	AlertTriangle,
 	Flag,
-	Coins,
 	Filter,
 	X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CoinIcon } from "@/components/ui/coin-icon";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from "@/components/ui/avatar";
@@ -212,7 +212,10 @@ export default function AdminCapturesPage() {
 										</td>
 
 										<td className="p-3.5 font-bold text-foreground">
-											+{c.coins_awarded} 🪙
+											<div className="flex items-center gap-1">
+												<span>+{c.coins_awarded}</span>
+												<CoinIcon size={14} />
+											</div>
 										</td>
 
 										<td className="p-3.5 text-muted-foreground">

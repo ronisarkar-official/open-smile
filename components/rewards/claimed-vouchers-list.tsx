@@ -13,6 +13,7 @@ import {
 import { CoinIcon } from '@/components/ui/coin-icon';
 import { Button } from '@/components/ui/button';
 import type { ClaimedVoucher } from './voucher-data';
+import { BrandLogoImage } from '@/lib/brand-logos';
 
 interface ClaimedVouchersListProps {
   claimedVouchers: ClaimedVoucher[];
@@ -93,12 +94,10 @@ export function ClaimedVouchersList({
               <div>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 sm:gap-3">
-                    <div
-                      className="flex size-9 sm:size-11 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg font-display font-black text-xs sm:text-sm text-white shrink-0 shadow-brutal-xs sm:shadow-brutal-sm"
-                      style={{ backgroundColor: item.logoBg }}
-                    >
-                      {item.brandName.slice(0, 3).toUpperCase()}
-                    </div>
+                    <BrandLogoImage
+                      brandName={item.brandName}
+                      size={40}
+                    />
                     <div>
                       <div className="flex items-center gap-1.5 sm:gap-2">
                         <h3 className="font-title text-sm sm:text-base font-black">{item.brandName}</h3>

@@ -19,6 +19,7 @@ class VoucherItem(BaseModel):
     voucherType: Optional[str] = "gift_card"
     remainingInventory: Optional[int] = None
     imageUrl: Optional[str] = None
+    details: Optional[str] = None
 
 class ClaimVoucherRequest(BaseModel):
     voucher_id: str

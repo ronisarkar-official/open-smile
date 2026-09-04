@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from "@/components/ui/avatar";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { CoinIcon } from "@/components/ui/coin-icon";
 
 interface AdminScratchCardItem {
 	id: string;
@@ -395,7 +396,10 @@ export default function AdminUsersPage() {
 										</td>
 
 										<td className="p-3.5 font-bold text-foreground">
-											{Number(u.coin_balance || 0).toLocaleString()} 🪙
+											<div className="flex items-center gap-1">
+												<span>{Number(u.coin_balance || 0).toLocaleString()}</span>
+												<CoinIcon size={14} />
+											</div>
 										</td>
 
 										<td className="p-3.5">
@@ -553,8 +557,9 @@ export default function AdminUsersPage() {
 								<div className="grid grid-cols-2 gap-3">
 									<div className="border border-black rounded-lg p-3 bg-muted/40 font-mono text-xs">
 										<div className="text-[10px] font-black uppercase text-muted-foreground">Coin Balance</div>
-										<div className="text-xl font-black text-foreground mt-0.5">
-											{Number(userDetail.balance || 0).toLocaleString()} 🪙
+										<div className="text-xl font-black text-foreground mt-0.5 flex items-center gap-1.5">
+											<span>{Number(userDetail.balance || 0).toLocaleString()}</span>
+											<CoinIcon size={18} />
 										</div>
 									</div>
 									<div className="border border-black rounded-lg p-3 bg-muted/40 font-mono text-xs">
@@ -613,11 +618,12 @@ export default function AdminUsersPage() {
 													<span className="truncate max-w-[240px]">{l.reason}</span>
 													<span
 														className={cn(
-															"font-black",
+															"font-black inline-flex items-center gap-1",
 															l.coins >= 0 ? "text-success" : "text-destructive"
 														)}
 													>
-														{l.coins >= 0 ? `+${l.coins}` : l.coins} 🪙
+														<span>{l.coins >= 0 ? `+${l.coins}` : l.coins}</span>
+														<CoinIcon size={12} />
 													</span>
 												</div>
 											))}
@@ -649,8 +655,9 @@ export default function AdminUsersPage() {
 															</div>
 														</div>
 														<div className="flex items-center gap-2 shrink-0">
-															<span className="font-black text-foreground">
-																{c.coins} 🪙
+															<span className="font-black text-foreground flex items-center gap-1">
+																<span>{c.coins}</span>
+																<CoinIcon size={12} />
 															</span>
 															{c.is_scratched ? (
 																<span className="border border-success/40 rounded-xs bg-success/15 px-1.5 py-0.5 text-[9px] font-black text-success uppercase">
@@ -831,8 +838,9 @@ export default function AdminUsersPage() {
 										</div>
 									</div>
 									<div className="text-right shrink-0">
-										<span className="inline-block border border-black rounded-xs bg-white px-2 py-0.5 font-mono text-xs font-black text-black shadow-brutal-xs">
-											{scratchCoins ? `${scratchCoins} 🪙` : "??? 🪙"}
+										<span className="inline-flex items-center gap-1 border border-black rounded-xs bg-white px-2 py-0.5 font-mono text-xs font-black text-black shadow-brutal-xs">
+											<span>{scratchCoins || "???"}</span>
+											<CoinIcon size={13} />
 										</span>
 									</div>
 								</div>

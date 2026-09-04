@@ -9,6 +9,7 @@ import {
   Check,
   Copy,
   ExternalLink,
+  FileText,
   Gift,
   Info,
   Lock,
@@ -16,11 +17,13 @@ import {
   UserPlus,
   X,
 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { CoinIcon } from '@/components/ui/coin-icon';
 import { Button } from '@/components/ui/button';
 import { useSystemSettings } from '@/hooks/use-system-settings';
 import { useToast } from '@/hooks/use-toast';
 import type { VoucherItem, ClaimedVoucher } from './voucher-data';
+import { BrandLogoImage } from '@/lib/brand-logos';
 
 interface VoucherClaimModalProps {
   voucher: VoucherItem | null;
@@ -65,6 +68,43 @@ function getBrandUrl(brandId: string): string {
     default:
       return 'https://www.amazon.in';
   }
+}
+
+function CopyableField({
+  label,
+  value,
+  copied,
+  onCopy,
+}: {
+  label: string;
+  value: string;
+  copied: boolean;
+  onCopy: () => void;
+}) {
+  return (
+    <div className="brutal-border-b bg-card p-3">
+      <p className="font-mono text-[10px] font-black uppercase text-muted-foreground tracking-wider">
+        {label}
+      </p>
+      <div className="mt-1.5 flex items-center justify-between gap-2">
+        <span className="font-mono text-base font-black tracking-wider select-all text-foreground break-all sm:text-lg">
+          {value}
+        </span>
+        <button
+          onClick={onCopy}
+          className="shrink-0 inline-flex items-center gap-1 brutal-badge bg-muted px-2.5 py-1.5 font-mono text-[11px] font-bold min-h-0 transition-colors hover:bg-primary/20 active:scale-[0.96]"
+          aria-label={`Copy ${label}`}
+        >
+          {copied ? (
+            <Check className="size-3.5 text-emerald-600" strokeWidth={3} />
+          ) : (
+            <Copy className="size-3.5" />
+          )}
+          <span>{copied ? 'Copied' : 'Copy'}</span>
+        </button>
+      </div>
+    </div>
+  );
 }
 
 export function VoucherClaimModal({
@@ -220,116 +260,78 @@ export function VoucherClaimModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className="relative w-full max-w-lg border-[length:var(--border-width)] border-black rounded-xl bg-card p-5 sm:p-7 shadow-brutal-xl max-h-[90vh] overflow-y-auto"
+        className="brutal-dialog relative w-full max-w-md bg-card p-5 sm:p-6 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute right-4 top-4 flex size-8 items-center justify-center border-[length:var(--border-width)] border-black rounded-md bg-muted text-foreground transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+          className="absolute right-3 top-3 flex size-8 items-center justify-center brutal-badge bg-muted text-foreground min-h-0 transition-transform active:scale-[0.96] cursor-pointer"
           aria-label="Close dialog"
         >
           <X className="size-4" strokeWidth={3} />
         </button>
 
         {claimedData ? (
-          <div className="space-y-5">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 border-[length:var(--border-width)] border-black rounded-md bg-emerald-400 px-2.5 py-0.5 font-mono text-[11px] font-black uppercase text-black">
-                <Sparkles className="size-3.5" strokeWidth={2.5} />
-                Voucher Claimed!
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <BrandLogoImage
+                brandName={claimedData.brandName}
+                size={36}
+              />
+              <div>
+                <h2 id="modal-title" className="font-display text-xl font-black tracking-tight sm:text-2xl">
+                  {claimedData.brandName} {claimedData.valueFormatted}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Claimed · Valid for 12 months
+                </p>
+              </div>
+            </div>
+
+            <div className="brutal-border rounded-lg overflow-hidden">
+              <CopyableField
+                label="Voucher Code"
+                value={claimedData.code}
+                copied={copiedCode}
+                onCopy={() => copyToClipboard(claimedData.code, false)}
+              />
+
+              {claimedData.pin && (
+                <CopyableField
+                  label="Security PIN"
+                  value={claimedData.pin}
+                  copied={copiedPin}
+                  onCopy={() => copyToClipboard(claimedData.pin, true)}
+                />
+              )}
+            </div>
+
+            <div className="flex items-center justify-between font-mono text-[11px] text-muted-foreground">
+              <span>Expires: {claimedData.expiresAt}</span>
+              <span className="font-bold text-foreground tabular-nums flex items-center gap-1">
+                <span>-{claimedData.coinsSpent}</span>
+                <CoinIcon className="size-3.5" />
               </span>
             </div>
 
-            <div>
-              <h2 id="modal-title" className="font-display text-2xl font-black tracking-tight sm:text-3xl">
-                Here is your {claimedData.brandName} Voucher Code
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Your code has been issued and stored in your wallet. Valid for 12 months.
-              </p>
-            </div>
+            {voucher.instructions.length > 0 && (
+              <details className="group brutal-border rounded-lg bg-muted/40 text-xs">
+                <summary className="flex cursor-pointer items-center gap-1.5 px-3 py-2.5 font-title font-black uppercase tracking-wider text-[11px] select-none">
+                  <Info className="size-3.5 text-primary" />
+                  How to Redeem
+                </summary>
+                <ul className="list-disc list-inside px-3 pb-3 space-y-1 text-muted-foreground font-medium text-[11px] leading-relaxed">
+                  {voucher.instructions.map((ins, idx) => (
+                    <li key={idx}>{ins}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
 
-            <div className="border-[length:var(--border-width)] border-black rounded-xl bg-muted p-4 sm:p-5 shadow-brutal space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className="flex size-9 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg font-display font-black text-xs text-white"
-                    style={{ backgroundColor: claimedData.logoBg }}
-                  >
-                    {claimedData.brandName.slice(0, 3).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="font-title text-sm font-black">{claimedData.brandName}</p>
-                    <p className="font-mono text-[11px] font-bold text-muted-foreground">{claimedData.valueFormatted} Voucher</p>
-                  </div>
-                </div>
-                <span className="border-[length:var(--border-width)] border-black rounded-md bg-primary px-2 py-0.5 font-mono text-xs font-black">
-                  {claimedData.valueFormatted}
-                </span>
-              </div>
-
-              <div className="border-[length:var(--border-width)] border-black rounded-lg bg-card p-3">
-                <p className="font-mono text-[10px] font-black uppercase text-muted-foreground tracking-wider">
-                  Voucher / Gift Card Code
-                </p>
-                <div className="mt-1 flex items-center justify-between gap-2">
-                  <span className="font-mono text-base sm:text-lg font-black tracking-wider select-all text-foreground break-all">
-                    {claimedData.code}
-                  </span>
-                  <Button
-                    size="sm"
-                    onClick={() => copyToClipboard(claimedData.code, false)}
-                    className="shrink-0 border-[length:var(--border-width)] border-black rounded-md bg-primary text-primary-foreground font-mono text-xs font-bold gap-1.5 h-8 px-3 shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] active:shadow-none"
-                  >
-                    {copiedCode ? <Check className="size-3.5" strokeWidth={3} /> : <Copy className="size-3.5" />}
-                    <span>{copiedCode ? 'Copied!' : 'Copy'}</span>
-                  </Button>
-                </div>
-              </div>
-
-              {claimedData.pin && (
-                <div className="flex items-center justify-between border-[length:var(--border-width)] border-black rounded-lg bg-card px-3 py-2">
-                  <div>
-                    <span className="font-mono text-[10px] font-black uppercase text-muted-foreground">Security PIN: </span>
-                    <span className="font-mono text-sm font-black ml-1">{claimedData.pin}</span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => copyToClipboard(claimedData.pin, true)}
-                    className="border-[length:var(--border-width)] border-black rounded-md font-mono text-[11px] font-bold h-7 px-2.5"
-                  >
-                    {copiedPin ? 'Copied' : 'Copy PIN'}
-                  </Button>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between font-mono text-[11px] text-muted-foreground border-t border-black/15 pt-2">
-                <span>Valid until: {claimedData.expiresAt}</span>
-                <span className="font-bold text-foreground flex items-center gap-1">
-                  <span>-{claimedData.coinsSpent}</span>
-                  <CoinIcon className="size-3.5" />
-                  <span>debited</span>
-                </span>
-              </div>
-            </div>
-
-            <div className="border-[length:var(--border-width)] border-black rounded-lg bg-card p-3.5 text-xs space-y-2">
-              <p className="font-title font-black uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-                <Info className="size-3.5 text-primary" />
-                How to Redeem:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-muted-foreground font-medium text-[11px] leading-relaxed">
-                {voucher.instructions.map((ins, idx) => (
-                  <li key={idx}>{ins}</li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+            <div className="flex flex-col sm:flex-row gap-2 pt-1">
               <Button
                 asChild
-                className="flex-1 border-[length:var(--border-width)] border-black rounded-lg bg-primary text-primary-foreground font-title font-black text-xs uppercase tracking-wider h-11 shadow-brutal active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                className="flex-1"
               >
                 <a href={claimedData.websiteUrl} target="_blank" rel="noopener noreferrer" className="gap-2">
                   <span>Open {claimedData.brandName}</span>
@@ -343,102 +345,122 @@ export function VoucherClaimModal({
                   onClose();
                   onNavigateToTab?.('my-vouchers');
                 }}
-                className="border-[length:var(--border-width)] border-black rounded-lg bg-card font-mono text-xs font-bold uppercase tracking-wider h-11"
               >
-                View in My Vouchers
+                My Vouchers
               </Button>
             </div>
           </div>
         ) : hasEnoughCoins ? (
-          <div className="space-y-5">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 border-[length:var(--border-width)] border-black rounded-md bg-primary px-2.5 py-0.5 font-mono text-[11px] font-black uppercase text-primary-foreground">
-                <Gift className="size-3.5" strokeWidth={2.5} />
-                Redeem Voucher
-              </span>
-            </div>
-
-            <div>
-              <h2 id="modal-title" className="font-display text-2xl font-black tracking-tight sm:text-3xl">
-                Claim {voucher.valueFormatted} {voucher.brandName} Voucher
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                {voucher.description}
-              </p>
-            </div>
-
-            <div className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-4 sm:p-5 shadow-brutal space-y-3.5">
-              <div className="flex items-center justify-between border-b-[length:var(--border-width)] border-black/10 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className="flex size-10 items-center justify-center border-[length:var(--border-width)] border-black rounded-lg font-display font-black text-xs text-white"
-                    style={{ backgroundColor: voucher.logoBg }}
-                  >
-                    {voucher.brandName.slice(0, 3).toUpperCase()}
-                  </div>
-                  <div>
-                    <p className="font-title text-base font-black">{voucher.brandName}</p>
-                    <p className="font-mono text-xs font-bold text-muted-foreground">{voucher.title}</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="border-[length:var(--border-width)] border-black rounded-md bg-primary px-2.5 py-1 font-mono text-sm font-black">
-                    {voucher.valueFormatted}
-                  </span>
-                </div>
-              </div>
-
-              <div className="space-y-2 font-mono text-xs">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Current Balance:</span>
-                  <span className="font-black text-foreground tabular-nums flex items-center gap-1">
-                    <span>{userCoins}</span>
-                    <CoinIcon className="size-3.5" />
-                  </span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Voucher Cost:</span>
-                  <span className="font-black text-red-500 tabular-nums flex items-center gap-1">
-                    <span>-{voucher.coinsCost}</span>
-                    <CoinIcon className="size-3.5" />
-                  </span>
-                </div>
-                <div className="flex justify-between border-t-[length:var(--border-width)] border-black pt-2 font-black text-sm">
-                  <span>Balance After Claim:</span>
-                  <span className="tabular-nums text-foreground flex items-center gap-1">
-                    <span>{remainingCoinsAfter}</span>
-                    <CoinIcon className="size-4" />
-                  </span>
-                </div>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <BrandLogoImage
+                brandName={voucher.brandName}
+                imageUrl={voucher.imageUrl}
+                size={40}
+              />
+              <div>
+                <h2 id="modal-title" className="font-display text-xl font-black tracking-tight sm:text-2xl">
+                  {voucher.brandName} {voucher.valueFormatted}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  {voucher.description}
+                </p>
               </div>
             </div>
 
-            <div className="border-[length:var(--border-width)] border-black rounded-lg bg-muted/60 p-3 text-xs space-y-1.5">
-              <p className="font-mono text-[11px] font-black uppercase text-foreground">Terms & Delivery:</p>
-              <ul className="list-disc list-inside text-[11px] text-muted-foreground space-y-0.5">
-                <li>Instant digital voucher code generation.</li>
-                <li>Valid for 12 months from issuance.</li>
-                <li>Saved permanently in your Open Smile wallet.</li>
-              </ul>
+            <div className="brutal-surface bg-muted/40 p-3.5 sm:p-4 space-y-2.5">
+              <div className="flex items-center justify-between border-b-[length:var(--border-width)] border-border/20 pb-2">
+                <div className="flex items-center gap-1.5 font-mono text-xs font-black uppercase text-foreground">
+                  <FileText className="size-3.5 text-primary" />
+                  Offer Details
+                </div>
+                <span className="font-mono text-[10px] font-bold text-muted-foreground uppercase px-2 py-0.5 rounded bg-background/80 border border-border/30">
+                  {voucher.category}
+                </span>
+              </div>
+
+              <div className="max-h-52 overflow-y-auto pr-1 text-xs text-foreground/90 space-y-2">
+                <ReactMarkdown
+                  components={{
+                    h1: ({ children }) => (
+                      <h3 className="font-title font-black text-xs uppercase tracking-wide text-foreground mt-2.5 mb-1 first:mt-0">
+                        {children}
+                      </h3>
+                    ),
+                    h2: ({ children }) => (
+                      <h3 className="font-title font-black text-xs uppercase tracking-wide text-foreground mt-2.5 mb-1 first:mt-0">
+                        {children}
+                      </h3>
+                    ),
+                    h3: ({ children }) => (
+                      <h4 className="font-title font-bold text-xs uppercase tracking-wide text-primary mt-2 mb-1 first:mt-0">
+                        {children}
+                      </h4>
+                    ),
+                    p: ({ children }) => (
+                      <p className="text-xs text-muted-foreground leading-relaxed mb-1.5 last:mb-0">
+                        {children}
+                      </p>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="list-disc list-outside pl-4 space-y-1 text-xs text-muted-foreground my-1.5">
+                        {children}
+                      </ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="list-decimal list-outside pl-4 space-y-1 text-xs text-muted-foreground my-1.5">
+                        {children}
+                      </ol>
+                    ),
+                    li: ({ children }) => (
+                      <li className="leading-relaxed">{children}</li>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-bold text-foreground">
+                        {children}
+                      </strong>
+                    ),
+                    a: ({ href, children }) => (
+                      <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary underline underline-offset-2 hover:opacity-80"
+                      >
+                        {children}
+                      </a>
+                    ),
+                    code: ({ children }) => (
+                      <code className="font-mono text-[11px] bg-background/80 px-1 py-0.5 rounded border border-border/40 text-foreground">
+                        {children}
+                      </code>
+                    ),
+                  }}
+                >
+                  {voucher.details?.trim() ||
+                    `### Offer Details\n- Redeem this voucher for **${voucher.valueFormatted}** value.\n- Applicable on ${voucher.brandName} purchases and eligible items.\n- Valid for 12 months from issuance.\n\n### How to Redeem\n1. Click Redeem to obtain secret code and security PIN.\n2. Apply the voucher code during checkout.`}
+                </ReactMarkdown>
+              </div>
             </div>
+
+            
 
             {isRedemptionBlocked && (
-              <div className="p-3 bg-destructive/15 border border-destructive rounded-lg font-mono text-xs font-bold text-destructive flex items-center gap-2">
+              <div className="p-3 bg-destructive/15 brutal-border border-destructive rounded-lg font-mono text-xs font-bold text-destructive flex items-center gap-2">
                 <Lock className="size-4 shrink-0" />
                 <span>
                   {isMaintenance
-                    ? "Platform maintenance active: Voucher claims are temporarily suspended."
-                    : "Voucher marketplace is currently closed by administrator."}
+                    ? "Platform maintenance — claims temporarily paused."
+                    : "Marketplace currently closed."}
                 </span>
               </div>
             )}
 
-            <div className="flex flex-col-reverse sm:flex-row gap-2.5 pt-2">
+            <div className="flex flex-col-reverse sm:flex-row gap-2 pt-1">
               <Button
                 variant="outline"
                 onClick={onClose}
                 disabled={isSubmitting}
-                className="border-[length:var(--border-width)] border-black rounded-lg bg-card font-mono text-xs font-bold uppercase tracking-wider h-11"
               >
                 Cancel
               </Button>
@@ -446,107 +468,104 @@ export function VoucherClaimModal({
               <Button
                 onClick={handleClaim}
                 disabled={isSubmitting || isRedemptionBlocked}
-                className="flex-1 border-[length:var(--border-width)] border-black rounded-lg bg-primary text-primary-foreground font-title font-black text-xs uppercase tracking-wider h-11 shadow-brutal active:translate-x-[2px] active:translate-y-[2px] active:shadow-none gap-2 disabled:opacity-50"
+                className="flex-1 gap-2"
               >
                 <CoinIcon className="size-4" />
                 <span>
                   {isSubmitting
                     ? 'Issuing Code...'
                     : isMaintenance
-                    ? 'Claims Paused (Maintenance)'
+                    ? 'Claims Paused'
                     : isMarketplaceDisabled
                     ? 'Marketplace Closed'
-                    : `Confirm & Redeem (${voucher.coinsCost})`}
+                    : `Redeem for ${voucher.coinsCost} Coins`}
                 </span>
               </Button>
             </div>
           </div>
         ) : (
-          <div className="space-y-5">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1 border-[length:var(--border-width)] border-black rounded-md bg-amber-400 px-2.5 py-0.5 font-mono text-[11px] font-black uppercase text-black">
-                <Lock className="size-3.5" strokeWidth={2.5} />
-                Coins Needed
-              </span>
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <BrandLogoImage
+                brandName={voucher.brandName}
+                imageUrl={voucher.imageUrl}
+                size={40}
+              />
+              <div>
+                <h2 id="modal-title" className="font-display text-xl font-black tracking-tight sm:text-2xl">
+                  {voucher.brandName} {voucher.valueFormatted}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  You need <strong className="text-foreground">{coinsNeeded} more coins</strong> to claim this voucher.
+                </p>
+              </div>
             </div>
 
-            <div>
-              <h2 id="modal-title" className="font-display text-2xl font-black tracking-tight sm:text-3xl">
-                {voucher.valueFormatted} {voucher.brandName} Voucher
-              </h2>
-              <p className="mt-1 text-xs text-muted-foreground">
-                You need <strong className="text-foreground">{coinsNeeded} more coins</strong> to unlock this {voucher.valueFormatted} voucher.
-              </p>
-            </div>
-
-            <div className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-4 sm:p-5 shadow-brutal space-y-3">
+            <div className="brutal-surface bg-muted/40 p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="font-mono text-xs font-bold text-muted-foreground">Progress towards voucher</span>
+                <span className="font-mono text-xs font-bold text-muted-foreground">Progress</span>
                 <span className="font-mono text-xs font-black tabular-nums flex items-center gap-1">
                   <span>{userCoins} / {voucher.coinsCost}</span>
                   <CoinIcon className="size-3.5" />
                 </span>
               </div>
 
-              <div className="relative h-4 w-full border-[length:var(--border-width)] border-black rounded-md bg-muted">
+              <div className="relative h-3.5 w-full brutal-border rounded-sm bg-card overflow-hidden">
                 <div
-                  className="absolute inset-y-0 left-0 bg-primary border-r-[length:var(--border-width)] border-black rounded-l-md transition-all duration-300"
+                  className="absolute inset-y-0 left-0 bg-primary transition-[width] duration-300"
                   style={{ width: `${Math.min((userCoins / voucher.coinsCost) * 100, 100)}%` }}
                 />
               </div>
 
-              <p className="font-mono text-[11px] text-muted-foreground">
-                {(userCoins / voucher.coinsCost * 100).toFixed(0)}% unlocked. Keep smiling every day to earn bonus coins!
+              <p className="font-mono text-[11px] text-muted-foreground tabular-nums">
+                {(userCoins / voucher.coinsCost * 100).toFixed(0)}% there — keep smiling!
               </p>
             </div>
 
-            <div className="border-[length:var(--border-width)] border-black rounded-xl bg-primary/15 p-4 space-y-3">
-              <p className="font-title font-black text-xs uppercase tracking-wider flex items-center gap-1.5">
-                <Sparkles className="size-4 text-primary" />
-                Quick Ways to Earn {coinsNeeded} Coins:
+            <div className="space-y-1.5">
+              <p className="font-title font-black text-xs uppercase tracking-wider flex items-center gap-1.5 px-0.5">
+                <Sparkles className="size-3.5 text-primary" />
+                Earn More Coins
               </p>
 
-              <div className="space-y-2">
-                <Link
-                  href="/capture"
-                  onClick={onClose}
-                  className="flex items-center justify-between border-[length:var(--border-width)] border-black rounded-lg bg-card p-2.5 transition-transform hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  <div className="flex items-center gap-2">
-                    <Camera className="size-4 text-primary" />
-                    <div>
-                      <p className="font-mono text-xs font-black">Daily Smile Check</p>
-                      <p className="text-[10px] text-muted-foreground">Up to +50 coins per check + streak bonus</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="size-4" />
-                </Link>
-
-                <Link
-                  href="/refer"
-                  onClick={onClose}
-                  className="flex items-center justify-between border-[length:var(--border-width)] border-black rounded-lg bg-card p-2.5 transition-transform hover:-translate-y-0.5 active:translate-y-0"
-                >
-                  <div className="flex items-center gap-2">
-                    <UserPlus className="size-4 text-accent-foreground" />
-                    <div>
-                      <p className="font-mono text-xs font-black">Invite Friends</p>
-                      <p className="text-[10px] text-muted-foreground">Earn +200 coins per invited friend</p>
-                    </div>
-                  </div>
-                  <ArrowRight className="size-4" />
-                </Link>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <Button
+              <Link
+                href="/capture"
                 onClick={onClose}
-                className="w-full border-[length:var(--border-width)] border-black rounded-lg bg-card text-foreground font-mono text-xs font-bold uppercase tracking-wider h-10"
+                className="flex items-center justify-between brutal-surface bg-card p-3 brutal-lift"
               >
-                Close & Keep Exploring
-              </Button>
+                <div className="flex items-center gap-2.5">
+                  <Camera className="size-4 text-primary" />
+                  <div>
+                    <p className="font-mono text-xs font-black">Daily Smile Check</p>
+                    <p className="text-[10px] text-muted-foreground">Up to +50 coins + streak bonus</p>
+                  </div>
+                </div>
+                <ArrowRight className="size-4 text-muted-foreground" />
+              </Link>
+
+              <Link
+                href="/refer"
+                onClick={onClose}
+                className="flex items-center justify-between brutal-surface bg-card p-3 brutal-lift"
+              >
+                <div className="flex items-center gap-2.5">
+                  <UserPlus className="size-4 text-accent-foreground" />
+                  <div>
+                    <p className="font-mono text-xs font-black">Invite Friends</p>
+                    <p className="text-[10px] text-muted-foreground">+200 coins per referral</p>
+                  </div>
+                </div>
+                <ArrowRight className="size-4 text-muted-foreground" />
+              </Link>
             </div>
+
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="w-full"
+            >
+              Close
+            </Button>
           </div>
         )}
       </div>

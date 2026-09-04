@@ -2094,7 +2094,7 @@ export async function getAdminVouchers() {
 	let catalogRows = [];
 	try {
 		const catalogRes = await pool.query(
-			`SELECT id, brand_name as "brandName", title, description, category, image_url as "imageUrl",
+			`SELECT id, brand_name as "brandName", title, description, details, category, image_url as "imageUrl",
 			        numeric_value as "numericValue", coins_cost as "coinsCost", highlight_tag as "highlightTag",
 			        is_active as "isActive",
 			        COALESCE(voucher_type, 'gift_card') as "voucherType",
@@ -2105,7 +2105,22 @@ export async function getAdminVouchers() {
 		);
 		catalogRows = catalogRes.rows;
 	} catch (err) {
-		console.error('Failed to query vouchers_catalog:', err);
+		console.warn('Failed to query vouchers_catalog with details, falling back:', err);
+		try {
+			const fallbackRes = await pool.query(
+				`SELECT id, brand_name as "brandName", title, description, category, image_url as "imageUrl",
+				        numeric_value as "numericValue", coins_cost as "coinsCost", highlight_tag as "highlightTag",
+				        is_active as "isActive",
+				        COALESCE(voucher_type, 'gift_card') as "voucherType",
+				        COALESCE(value_formatted, '₹' || numeric_value::text) as "valueFormatted",
+				        created_at as "createdAt"
+				 FROM vouchers_catalog
+				 ORDER BY created_at DESC`,
+			);
+			catalogRows = fallbackRes.rows.map((r: any) => ({ ...r, details: null }));
+		} catch (fallbackErr) {
+			console.error('Failed fallback query vouchers_catalog:', fallbackErr);
+		}
 	}
 
 	return {
@@ -2122,6 +2137,7 @@ export async function createAdminVoucher(params: {
 	brandName: string;
 	title: string;
 	description?: string;
+	details?: string;
 	category?: string;
 	imageUrl?: string;
 	voucherType?: string;
@@ -2140,12 +2156,13 @@ export async function createAdminVoucher(params: {
 	const id = `${cleanBrand}-${params.numericValue || 'rew'}-${Date.now().toString(36).slice(-4)}`;
 
 	await pool.query(
-		`INSERT INTO vouchers_catalog (id, brand_name, title, description, category, image_url, numeric_value, coins_cost, highlight_tag, is_active, voucher_type, value_formatted, created_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, $10, $11, NOW())
+		`INSERT INTO vouchers_catalog (id, brand_name, title, description, details, category, image_url, numeric_value, coins_cost, highlight_tag, is_active, voucher_type, value_formatted, created_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true, $11, $12, NOW())
 		 ON CONFLICT (id) DO UPDATE SET
 		 	brand_name = EXCLUDED.brand_name,
 		 	title = EXCLUDED.title,
 		 	description = EXCLUDED.description,
+		 	details = EXCLUDED.details,
 		 	category = EXCLUDED.category,
 		 	image_url = EXCLUDED.image_url,
 		 	numeric_value = EXCLUDED.numeric_value,
@@ -2158,6 +2175,7 @@ export async function createAdminVoucher(params: {
 			params.brandName,
 			params.title,
 			params.description || `Redeem ${params.title} with smile coins.`,
+			params.details || null,
 			params.category || 'ecommerce',
 			params.imageUrl || null,
 			params.numericValue,
@@ -2212,6 +2230,7 @@ export async function updateAdminVoucher(params: {
 	brandName: string;
 	title: string;
 	description?: string;
+	details?: string | null;
 	category?: string;
 	imageUrl?: string | null;
 	voucherType?: string;
@@ -2231,16 +2250,17 @@ export async function updateAdminVoucher(params: {
 			 SET brand_name = $2,
 			     title = $3,
 			     description = $4,
-			     category = $5,
-			     image_url = $6,
-			     numeric_value = $7,
-			     coins_cost = $8,
-			     highlight_tag = $9,
-			     is_active = COALESCE($10, is_active),
-			     voucher_type = COALESCE($11, voucher_type),
-			     value_formatted = COALESCE($12, value_formatted)
+			     details = $5,
+			     category = $6,
+			     image_url = $7,
+			     numeric_value = $8,
+			     coins_cost = $9,
+			     highlight_tag = $10,
+			     is_active = COALESCE($11, is_active),
+			     voucher_type = COALESCE($12, voucher_type),
+			     value_formatted = COALESCE($13, value_formatted)
 			 WHERE id = $1
-			 RETURNING id, brand_name as "brandName", title, description, category, image_url as "imageUrl",
+			 RETURNING id, brand_name as "brandName", title, description, details, category, image_url as "imageUrl",
 			           numeric_value as "numericValue", coins_cost as "coinsCost", highlight_tag as "highlightTag",
 			           is_active as "isActive", voucher_type as "voucherType", value_formatted as "valueFormatted"`,
 			[
@@ -2248,6 +2268,7 @@ export async function updateAdminVoucher(params: {
 				params.brandName,
 				params.title,
 				params.description !== undefined ? params.description : null,
+				params.details !== undefined ? params.details : null,
 				params.category || 'ecommerce',
 				params.imageUrl !== undefined ? params.imageUrl : null,
 				params.numericValue,

@@ -25,10 +25,12 @@ export function getPool(): Pool {
 		);
 	}
 
+	const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+
 	_pool = new Pool({
 		connectionString: DATABASE_URL,
-		max: 20,
-		idleTimeoutMillis: 30000,
+		max: isServerless ? 2 : 20,
+		idleTimeoutMillis: isServerless ? 5000 : 30000,
 		connectionTimeoutMillis: 8000,
 	});
 

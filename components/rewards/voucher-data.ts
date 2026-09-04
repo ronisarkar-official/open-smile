@@ -25,6 +25,7 @@ export interface VoucherItem {
   originalCoinsCost?: number;
   highlightTag?: string;
   description: string;
+  details?: string;
   instructions: string[];
   terms?: string[];
   isPopular?: boolean;

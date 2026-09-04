@@ -101,12 +101,6 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body className="flex min-h-full flex-col">
-        <a
-          href="#main-content"
-          className="sr-only fixed left-4 top-4 z-500 bg-primary px-4 py-2 font-bold text-primary-foreground focus:not-sr-only focus:brutal-surface"
-        >
-          Skip to content
-        </a>
         <ThemeProvider defaultTheme="light" storageKey="app-theme">
           <SessionProvider>
             <ToastProvider>

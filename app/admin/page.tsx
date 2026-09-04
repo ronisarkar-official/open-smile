@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from '@/components/ui/avatar';
+import { CoinIcon } from '@/components/ui/coin-icon';
 
 export default function AdminDashboardPage() {
 	const { toast } = useToast();
@@ -145,15 +146,17 @@ export default function AdminDashboardPage() {
 							Coins Minted
 						</span>
 						<div className="size-8 rounded-md border border-black bg-black text-white flex items-center justify-center">
-							<Coins className="size-4" />
+							<CoinIcon size={18} />
 						</div>
 					</div>
 					<div className="mt-4">
-						<div className="text-3xl font-black font-title text-secondary-foreground">
-							{loading ?
-								'...'
-							:	(stats?.totalCoinsMinted ?? 0).toLocaleString()}{' '}
-							🪙
+						<div className="text-3xl font-black font-title text-secondary-foreground flex items-center gap-2">
+							<span>
+								{loading ?
+									'...'
+								:	(stats?.totalCoinsMinted ?? 0).toLocaleString()}
+							</span>
+							<CoinIcon size={26} />
 						</div>
 						<div className="mt-1 font-mono text-[11px] font-bold text-secondary-foreground/80">
 							{stats?.totalCoinsSpent ?? 0} coins redeemed
@@ -303,8 +306,9 @@ export default function AdminDashboardPage() {
 											<span className="border border-destructive/40 rounded-xs bg-destructive/15 px-1.5 py-0.5 font-mono text-[9px] font-black text-destructive">
 												FLAGGED
 											</span>
-										:	<span className="border border-success/40 rounded-xs bg-success/15 px-1.5 py-0.5 font-mono text-[9px] font-black text-success">
-												+{cap.coins_awarded} 🪙
+										:	<span className="border border-success/40 rounded-xs bg-success/15 px-1.5 py-0.5 font-mono text-[9px] font-black text-success inline-flex items-center gap-1">
+												<span>+{cap.coins_awarded}</span>
+												<CoinIcon size={11} />
 											</span>
 										}
 										<span className="font-mono text-[10px] text-muted-foreground hidden sm:inline">

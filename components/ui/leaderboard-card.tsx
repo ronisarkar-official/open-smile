@@ -21,6 +21,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '@/components/ui/select';
+import { CoinIcon } from '@/components/ui/coin-icon';
 
 interface LeaderboardRunOption {
 	id: string;
@@ -436,9 +437,9 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 											<div className="font-title font-black text-xs sm:text-sm text-foreground leading-tight truncate">
 												{card.name}
 											</div>
-											<div className="mt-0.5 flex items-center gap-0.5 font-mono text-[11px] sm:text-xs font-black text-foreground">
+											<div className="mt-0.5 flex items-center gap-1 font-mono text-[11px] sm:text-xs font-black text-foreground">
 												<span>{card.range}</span>
-												<span className="text-[10px]">🪙</span>
+												<CoinIcon size={12} />
 											</div>
 										</div>
 									</div>
