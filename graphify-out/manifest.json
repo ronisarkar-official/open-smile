@@ -318,9 +318,9 @@
     "semantic_hash": "b45e3fa4fb4a668c0881e1cae4bc9155"
   },
   "components/capture/auth-gate-overlay.tsx": {
-    "mtime": 1788353511.7979047,
-    "seen": 1788353562.2155123,
-    "ast_hash": "8f641187626a1db80ec2a06704d89700",
+    "mtime": 1788630873.7334843,
+    "seen": 1788630898.054293,
+    "ast_hash": "3b08025c9005426f18d7bdfea6f50e3a",
     "semantic_hash": ""
   },
   "components/capture/capture-celebration-overlay.tsx": {
@@ -330,16 +330,16 @@
     "semantic_hash": "268853c4e72a5a7a0cda0e588c414a60"
   },
   "components/capture/capture-flow.tsx": {
-    "mtime": 1788535920.4331656,
-    "seen": 1788535974.137059,
-    "ast_hash": "532bd4e788236585c118b4f98747f057",
+    "mtime": 1788605062.0461166,
+    "seen": 1788605114.1126285,
+    "ast_hash": "80a8427a69a00dbdf9d14a88bfe5ab44",
     "semantic_hash": ""
   },
   "components/capture/neubrutalist-photo-card.tsx": {
-    "mtime": 1788153615.7925777,
-    "seen": 1788153908.584117,
-    "ast_hash": "4ecc9cbdc6e467036f509dfd8504aee2",
-    "semantic_hash": "4ecc9cbdc6e467036f509dfd8504aee2"
+    "mtime": 1788606318.3995988,
+    "seen": 1788606444.7705688,
+    "ast_hash": "9929ef76b86fd1ffbe4b205159bc5f2b",
+    "semantic_hash": ""
   },
   "components/capture/score-reveal.tsx": {
     "mtime": 1787738759.2071168,
@@ -348,9 +348,9 @@
     "semantic_hash": "b45c38f35895cfc8bfe13a29e6ad22e6"
   },
   "components/capture/smile-result-screen.tsx": {
-    "mtime": 1788346099.6800895,
-    "seen": 1788346207.08907,
-    "ast_hash": "e54b845173ddca8ebf9e9965807221d6",
+    "mtime": 1788606368.5520976,
+    "seen": 1788606444.7705746,
+    "ast_hash": "d4ca8f3564dde8c773dca52f47f27b76",
     "semantic_hash": ""
   },
   "components/capture/webcam-view.tsx": {
@@ -402,10 +402,10 @@
     "semantic_hash": "c5146dfa752e58494b47a9c12d8f3d98"
   },
   "components/landing/hero.tsx": {
-    "mtime": 1788085744.1002705,
-    "seen": 1788153908.5841298,
-    "ast_hash": "8fa70b7ad1e093eeea542999c5f84716",
-    "semantic_hash": "8fa70b7ad1e093eeea542999c5f84716"
+    "mtime": 1788615690.2208655,
+    "seen": 1788629885.9009147,
+    "ast_hash": "50111f16e13148dffe85194deb95a7d4",
+    "semantic_hash": ""
   },
   "components/landing/how-it-works.tsx": {
     "mtime": 1787987412.1884081,
@@ -1404,9 +1404,9 @@
     "semantic_hash": ""
   },
   "app/admin/settings/page.tsx": {
-    "mtime": 1788592206.9737887,
-    "seen": 1788592440.8237321,
-    "ast_hash": "cf7560639ce5d4b8258a262bb1056dac",
+    "mtime": 1788629801.328574,
+    "seen": 1788629885.9006276,
+    "ast_hash": "190ad2a3a07bd9c6089f53f5f781f57f",
     "semantic_hash": ""
   },
   "app/admin/users/page.tsx": {
@@ -1530,15 +1530,15 @@
     "semantic_hash": ""
   },
   "components/admin/admin-header.tsx": {
-    "mtime": 1788515887.3359559,
-    "seen": 1788517403.8203177,
+    "mtime": 1788630130.1916432,
+    "seen": 1788630177.0658386,
     "ast_hash": "3cba05c1538638f19d0244487c1701a4",
     "semantic_hash": ""
   },
   "components/admin/admin-sidebar.tsx": {
-    "mtime": 1788592283.6392615,
-    "seen": 1788592440.8238373,
-    "ast_hash": "d422068c70160d004484650bc3159549",
+    "mtime": 1788630121.6819706,
+    "seen": 1788630177.0658417,
+    "ast_hash": "76f2681ea9415b73c98727fa97ead866",
     "semantic_hash": ""
   },
   "app/api/settings/public/route.ts": {
@@ -2016,9 +2016,9 @@
     "semantic_hash": ""
   },
   "components/admin/admin-ai-settings-card.tsx": {
-    "mtime": 1788592403.076834,
-    "seen": 1788592440.8238347,
-    "ast_hash": "31f82689f461ccc3aa6a91ad6b0c4897",
+    "mtime": 1788629786.7943108,
+    "seen": 1788629885.9008179,
+    "ast_hash": "4b5d10f28b4e33feb38ac9d250942a40",
     "semantic_hash": ""
   },
   "lib/ai/client.ts": {
@@ -2037,6 +2037,72 @@
     "mtime": 1788603099.1078537,
     "seen": 1788603278.1638594,
     "ast_hash": "234895f282c7eab7a5fdbe822861661c",
+    "semantic_hash": ""
+  },
+  "components/capture/share-explore-modal.tsx": {
+    "mtime": 1788603942.668778,
+    "seen": 1788604068.6304402,
+    "ast_hash": "42e6535552ac4ce89e64a9d8737b7c4f",
+    "semantic_hash": ""
+  },
+  "components/capture/social-share-modal.tsx": {
+    "mtime": 1788606356.524374,
+    "seen": 1788606444.7705758,
+    "ast_hash": "5b9e91159837f8d104b247f1cd37f19d",
+    "semantic_hash": ""
+  },
+  "app/admin/ai/page.tsx": {
+    "mtime": 1788629805.6718395,
+    "seen": 1788629885.9006093,
+    "ast_hash": "8e760d763c187fb8a1cf9c5af0302548",
+    "semantic_hash": ""
+  },
+  "public/hero-preview-2-poster.webp": {
+    "mtime": 1788615500.8063264,
+    "seen": 1788629885.9011893,
+    "ast_hash": "fca3793aa6b829fd824ff530b46d60c9",
+    "semantic_hash": ""
+  },
+  "public/hero-preview-poster.webp": {
+    "mtime": 1788614259.269159,
+    "seen": 1788629885.9011915,
+    "ast_hash": "91c7fb1a98a8e6d0b7abe08134494af3",
+    "semantic_hash": ""
+  },
+  "public/A_vibrant_high_energy_D_Neub.mp4": {
+    "mtime": 1788614888.0221803,
+    "seen": 1788629885.9012082,
+    "ast_hash": "6970b1a4c8e030c4fb5e4bccdbd046c9",
+    "semantic_hash": ""
+  },
+  "public/High_quality_eye_catching_cam.mp4": {
+    "mtime": 1788613821.888114,
+    "seen": 1788629885.9012094,
+    "ast_hash": "d2e07f815079cde108b0446e3aebb02b",
+    "semantic_hash": ""
+  },
+  "public/hero-preview-2.mp4": {
+    "mtime": 1788615502.111315,
+    "seen": 1788629885.9012105,
+    "ast_hash": "cd3baec847c6d10137c9bc0c59930c11",
+    "semantic_hash": ""
+  },
+  "public/hero-preview-2.webm": {
+    "mtime": 1788615517.4055364,
+    "seen": 1788629885.9012122,
+    "ast_hash": "c2a904a2f1303745f772b8ff1e0ac606",
+    "semantic_hash": ""
+  },
+  "public/hero-preview.mp4": {
+    "mtime": 1788614264.6030893,
+    "seen": 1788629885.9012134,
+    "ast_hash": "0274f5d1fcf4c37485378d515d6ff2d3",
+    "semantic_hash": ""
+  },
+  "public/hero-preview.webm": {
+    "mtime": 1788614281.6685314,
+    "seen": 1788629885.9012148,
+    "ast_hash": "38ccba3beb184bf754723addd981b165",
     "semantic_hash": ""
   }
 }

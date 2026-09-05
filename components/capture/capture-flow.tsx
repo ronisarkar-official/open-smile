@@ -35,6 +35,7 @@ import { convertToWebP, dataUrlToWebP } from '@/lib/convert-to-webp';
 import { AnimatedNumberCountdown } from '@/components/capture/animated-number-countdown';
 import { LivenessDetector, type LivenessState } from '@/lib/anti-spoofing';
 import { generatePHash } from '@/lib/phash';
+import { cn } from '@/lib/utils';
 
 const getNextIndianMidnight = () => {
 	const now = new Date();
@@ -669,7 +670,7 @@ export function CaptureFlow({
 		setPhase('IDLE');
 	};
 
-	const handleShareToExplore = async () => {
+	const handleShareToExplore = async (customCaption?: string) => {
 		if (!isLoggedIn) {
 			setShowAuthGate(true);
 			return;
@@ -717,13 +718,15 @@ export function CaptureFlow({
 				}
 			}
 
+			const postCaption = customCaption?.trim() || 'Live smile captured with Open Smile! 😊';
+
 			let res = await fetch('/api/v1/explore/post', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
 					image_url: finalImageUrl,
 					smile_score: smileScore,
-					caption: 'Live smile captured with Open Smile! 😊',
+					caption: postCaption,
 				}),
 			});
 
@@ -734,7 +737,7 @@ export function CaptureFlow({
 					body: JSON.stringify({
 						image_url: finalImageUrl,
 						smile_score: smileScore,
-						caption: 'Live smile captured with Open Smile! 😊',
+						caption: postCaption,
 					}),
 				});
 			}
@@ -744,6 +747,10 @@ export function CaptureFlow({
 				setIsSharedToExplore(true);
 				setShareMessage(resData.message || '🎉 Shared to Explore feed! (+5 bonus coins)');
 				emitCoinBalanceUpdate();
+				toast({
+					title: 'Shared to Community Feed! 🚀',
+					description: resData.message || 'Your smile is live for the next 24 hours!',
+				});
 			} else {
 				setShareMessage('Could not share right now. Please try again.');
 			}
@@ -842,7 +849,7 @@ export function CaptureFlow({
 	return (
 		<main
 			id="main-content"
-			className="mx-auto w-full max-w-[1280px] px-2 pb-12 pt-6 sm:px-4 sm:pt-10">
+			className="mx-auto w-full max-w-[1280px] px-2 pb-12 pt-3 sm:px-4 sm:pt-6">
 			<CaptureCelebrationOverlay
 				isActive={phase === 'CELEBRATING'}
 				onAnimationComplete={handleCelebrationComplete}
@@ -872,7 +879,7 @@ export function CaptureFlow({
 				</div>
 			)}
 
-			<section className="mt-8">
+			<section className={cn("mt-6 sm:mt-8", (phase === 'SCORED' || phase === 'DONE' || phase === 'SCRATCH_CARD') && "mt-1 sm:mt-4")}>
 				{phase === 'IDLE' && (
 					<div className="mx-auto w-full max-w-xl">
 						<motion.div
@@ -1079,6 +1086,7 @@ export function CaptureFlow({
 							isSharedToExplore={isSharedToExplore}
 							shareMessage={shareMessage}
 							isQuotaFinished={isQuotaFinished}
+							userName={session?.user?.name || undefined}
 							onRevealReward={handleRevealReward}
 							onRetake={handleCaptureAgain}
 							onShareToExplore={handleShareToExplore}

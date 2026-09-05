@@ -15,7 +15,6 @@ import {
 	Shield,
 	Bell,
 	Mail,
-	Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,20 +26,12 @@ const NAV_ITEMS = [
 	{ href: "/admin/vouchers", label: "Vouchers & Stock", icon: Gift },
 	{ href: "/admin/captures", label: "Captures & Anti-Cheat", icon: Camera },
 	{ href: "/admin/explore", label: "Explore Feed", icon: Compass },
-	{ href: "/admin/settings?tab=ai", label: "AI Engine", icon: Sparkles },
 	{ href: "/admin/settings", label: "System Settings", icon: SlidersHorizontal },
 	{ href: "/admin/logs", label: "Audit Logs", icon: ScrollText },
 ];
 
 export function AdminSidebar({ className }: { className?: string }) {
 	const pathname = usePathname();
-	const [currentSearch, setCurrentSearch] = React.useState("");
-
-	React.useEffect(() => {
-		if (typeof window !== "undefined") {
-			setCurrentSearch(window.location.search);
-		}
-	}, [pathname]);
 
 	return (
 		<aside
@@ -67,14 +58,7 @@ export function AdminSidebar({ className }: { className?: string }) {
 				<nav className="space-y-1.5">
 					{NAV_ITEMS.map((item) => {
 						const Icon = item.icon;
-						const isAiTab = currentSearch.includes("tab=ai");
-						const isItemAi = item.href.includes("tab=ai");
-
-						const isActive = isItemAi
-							? pathname === "/admin/settings" && isAiTab
-							: item.href === "/admin/settings"
-							? pathname === "/admin/settings" && !isAiTab
-							: item.exact
+						const isActive = item.exact
 							? pathname === item.href
 							: pathname.startsWith(item.href);
 

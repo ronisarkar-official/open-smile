@@ -6,7 +6,6 @@ import {
 	Bot,
 	KeyRound,
 	Globe,
-	Sliders,
 	Check,
 	RotateCw,
 	Eye,
@@ -14,7 +13,6 @@ import {
 	Activity,
 	CheckCircle2,
 	XCircle,
-	ExternalLink,
 	Zap,
 	HelpCircle,
 } from 'lucide-react';
@@ -213,167 +211,184 @@ export function AdminAiSettingsCard({
 	const modelSuggestions = POPULAR_MODELS[provider] || POPULAR_MODELS.custom;
 
 	return (
-		<div className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-4 sm:p-6 shadow-brutal space-y-6">
-			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b-[length:var(--border-width)] border-black/15 pb-4">
-				<div className="flex items-center gap-3">
-					<div className="size-10 rounded-lg border-[length:var(--border-width)] border-black bg-accent text-accent-foreground flex items-center justify-center shadow-brutal-xs">
-						<Sparkles className="size-5" />
+		<div className="border-[length:var(--border-width)] border-black rounded-xl bg-card p-3 sm:p-4 shadow-brutal space-y-3">
+			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 border-b-[length:var(--border-width)] border-black/15 pb-2.5">
+				<div className="flex items-center gap-2.5 min-w-0">
+					<div className="size-8 rounded-lg border-[length:var(--border-width)] border-black bg-accent text-accent-foreground flex items-center justify-center shadow-brutal-xs shrink-0">
+						<Sparkles className="size-4" />
 					</div>
-					<div>
+					<div className="min-w-0">
 						<div className="flex items-center gap-2">
-							<h2 className="font-title font-black text-lg sm:text-xl text-foreground">
-								AI Engine & Custom Provider Settings
+							<h2 className="font-title font-black text-sm sm:text-base text-foreground truncate">
+								AI Engine & Model Gateway
 							</h2>
-							<span className="font-mono text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded border border-black bg-primary text-primary-foreground shadow-brutal-xs">
-								Live
+							<span className={cn(
+								"font-mono text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border border-black shadow-brutal-xs",
+								enabled ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
+							)}>
+								{enabled ? "ACTIVE" : "STANDBY"}
 							</span>
 						</div>
-						<p className="font-mono text-xs text-muted-foreground mt-0.5">
-							Configure OpenAI, Groq, OpenRouter, Google Gemini, Ollama, or any custom LLM endpoint
+						<p className="font-mono text-[11px] text-muted-foreground truncate">
+							Configure OpenAI, Groq, OpenRouter, Google Gemini, Ollama, or custom endpoint
 						</p>
 					</div>
 				</div>
 
-				<div className="flex items-center gap-3 bg-muted/30 border border-black/20 p-2 rounded-lg">
-					<Label htmlFor="ai-master-toggle" className="font-mono text-xs font-bold uppercase tracking-wider cursor-pointer">
-						Enable AI Services
+				<div className="flex items-center gap-2 self-start sm:self-auto bg-muted/20 border border-black/20 px-2 py-1 rounded-lg">
+					<Label htmlFor="ai-master-toggle" className="font-mono text-[11px] font-bold uppercase tracking-wider cursor-pointer">
+						AI Services
 					</Label>
 					<Switch
 						id="ai-master-toggle"
 						checked={enabled}
 						onCheckedChange={setEnabled}
+						className="scale-90"
 					/>
 				</div>
 			</div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-				<div className="lg:col-span-8 space-y-5">
-					<div className="space-y-2">
-						<Label className="font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-							<Bot className="size-3.5" />
-							<span>Select AI Provider / Protocol</span>
-						</Label>
-						<div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-							{(Object.keys(AI_PROVIDER_PRESETS) as AIProvider[]).map((key) => {
-								const preset = AI_PROVIDER_PRESETS[key];
-								const isSelected = provider === key;
-								return (
-									<button
-										key={key}
-										type="button"
-										onClick={() => handleProviderChange(key)}
-										className={cn(
-											'border-[length:var(--border-width)] rounded-lg p-2.5 font-mono text-left transition-all cursor-pointer flex flex-col justify-between',
-											isSelected
-												? 'border-black bg-accent text-black shadow-brutal-xs translate-x-0.5 -translate-y-0.5'
-												: 'border-black/20 bg-background text-foreground hover:border-black',
-										)}
-									>
-										<div className="font-black text-xs uppercase truncate">{preset.name}</div>
-										<div className="text-[10px] text-muted-foreground truncate mt-0.5">
-											{preset.defaultModel}
-										</div>
-									</button>
-								);
-							})}
-						</div>
-						<p className="font-mono text-[11px] text-muted-foreground mt-1">
-							{activePreset.description}
-						</p>
-					</div>
+			<div className="space-y-1.5">
+				<div className="flex items-center justify-between gap-2">
+					<Label className="font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5">
+						<Bot className="size-3 text-primary" />
+						<span>Provider / Protocol</span>
+					</Label>
+					<span className="font-mono text-[10px] text-muted-foreground truncate hidden sm:inline">
+						{activePreset.description}
+					</span>
+				</div>
 
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-						<div className="space-y-2">
-							<Label className="font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-								<Globe className="size-3.5" />
-								<span>API Base URL (Endpoint)</span>
-							</Label>
+				<div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1.5">
+					{(Object.keys(AI_PROVIDER_PRESETS) as AIProvider[]).map((key) => {
+						const preset = AI_PROVIDER_PRESETS[key];
+						const isSelected = provider === key;
+						return (
+							<button
+								key={key}
+								type="button"
+								onClick={() => handleProviderChange(key)}
+								className={cn(
+									'border rounded-md px-2 py-1.5 font-mono text-left transition-all active:scale-[0.96] flex flex-col justify-between cursor-pointer',
+									isSelected
+										? 'border-black bg-accent text-black shadow-brutal-xs font-black'
+										: 'border-black/20 bg-background text-foreground/85 hover:border-black hover:bg-muted/40',
+								)}
+							>
+								<div className="text-[10px] font-black uppercase truncate leading-tight">
+									{preset.name.replace(' (OpenAI-Compatible)', '').replace(' (Local AI)', '')}
+								</div>
+								<div className="text-[8px] text-muted-foreground truncate leading-none mt-0.5">
+									{preset.defaultModel.split('/').pop()}
+								</div>
+							</button>
+						);
+					})}
+				</div>
+			</div>
+
+			<div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+				<div className="lg:col-span-8 space-y-2.5">
+					<div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+						<div className="space-y-1">
+							<div className="flex items-center justify-between">
+								<Label className="font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+									<Globe className="size-3 text-muted-foreground" />
+									<span>Base URL</span>
+								</Label>
+								<span className="font-mono text-[9px] text-muted-foreground truncate">
+									append /chat/completions
+								</span>
+							</div>
 							<Input
 								value={baseUrl}
 								onChange={(e) => setBaseUrl(e.target.value)}
 								placeholder="https://api.openai.com/v1"
-								className="border-[length:var(--border-width)] border-black font-mono text-xs bg-background"
+								className="border-[length:var(--border-width)] border-black font-mono text-xs bg-background h-8 rounded-md"
 							/>
-							<span className="font-mono text-[10px] text-muted-foreground block">
-								OpenAI-compatible root endpoint (will append /chat/completions)
-							</span>
 						</div>
 
-						<div className="space-y-2">
-							<Label className="font-mono text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-								<KeyRound className="size-3.5" />
-								<span>API Key / Token</span>
-							</Label>
+						<div className="space-y-1">
+							<div className="flex items-center justify-between">
+								<Label className="font-mono text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+									<KeyRound className="size-3 text-muted-foreground" />
+									<span>API Key / Secret</span>
+								</Label>
+								<span className="font-mono text-[9px] text-muted-foreground truncate">
+									{apiKey ? 'Custom key set' : 'Falls back to .env'}
+								</span>
+							</div>
 							<div className="relative">
 								<Input
 									type={showApiKey ? 'text' : 'password'}
 									value={apiKey}
 									onChange={(e) => setApiKey(e.target.value)}
 									placeholder={activePreset.placeholderKey}
-									className="border-[length:var(--border-width)] border-black font-mono text-xs bg-background pr-10"
+									className="border-[length:var(--border-width)] border-black font-mono text-xs bg-background pr-8 h-8 rounded-md"
 								/>
 								<button
 									type="button"
 									onClick={() => setShowApiKey(!showApiKey)}
-									className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-black cursor-pointer"
+									className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-black cursor-pointer"
 								>
-									{showApiKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+									{showApiKey ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
 								</button>
 							</div>
-							<span className="font-mono text-[10px] text-muted-foreground block">
-								{apiKey ? 'Custom key entered' : 'Leave empty to use GEMINI_API_KEY / OPENAI_API_KEY from .env.local'}
-							</span>
 						</div>
 					</div>
 
-					<div className="space-y-2">
-						<Label className="font-mono text-xs font-bold uppercase tracking-wider flex items-center justify-between">
-							<span>Model Identifier</span>
-							<span className="text-[10px] text-muted-foreground font-normal">Click chip to apply</span>
-						</Label>
+					<div className="space-y-1">
+						<div className="flex items-center justify-between">
+							<Label className="font-mono text-[10px] font-black uppercase tracking-wider">
+								Model Identifier
+							</Label>
+							<div className="flex items-center gap-1 overflow-x-auto scrollbar-none max-w-[60%]">
+								{modelSuggestions.map((m) => (
+									<button
+										key={m}
+										type="button"
+										onClick={() => setModel(m)}
+										className={cn(
+											'border border-black rounded px-1.5 py-0.5 font-mono text-[9px] font-bold cursor-pointer transition-all shrink-0 active:scale-[0.96]',
+											model === m ? 'bg-primary text-primary-foreground shadow-brutal-xs' : 'bg-muted/30 hover:bg-muted text-foreground',
+										)}
+									>
+										{m.split('/').pop()}
+									</button>
+								))}
+							</div>
+						</div>
 						<Input
 							value={model}
 							onChange={(e) => setModel(e.target.value)}
-							placeholder="e.g. gpt-4o-mini or llama-3.3-70b-versatile"
-							className="border-[length:var(--border-width)] border-black font-mono text-xs bg-background"
+							placeholder="e.g. gpt-4o-mini or gemini-2.5-flash"
+							className="border-[length:var(--border-width)] border-black font-mono text-xs bg-background h-8 rounded-md"
 						/>
-						<div className="flex flex-wrap gap-1.5 pt-1">
-							{modelSuggestions.map((m) => (
-								<button
-									key={m}
-									type="button"
-									onClick={() => setModel(m)}
-									className={cn(
-										'border border-black rounded px-2 py-0.5 font-mono text-[10px] font-bold cursor-pointer transition-all',
-										model === m ? 'bg-primary text-primary-foreground shadow-brutal-xs' : 'bg-muted/40 hover:bg-muted text-foreground',
-									)}
-								>
-									{m}
-								</button>
-							))}
-						</div>
 					</div>
 
-					<div className="space-y-2">
-						<Label className="font-mono text-xs font-bold uppercase tracking-wider">
-							System Brand Voice & AI Instructions
-						</Label>
+					<div className="space-y-1">
+						<div className="flex items-center justify-between">
+							<Label className="font-mono text-[10px] font-black uppercase tracking-wider">
+								System Brand Persona & Prompt
+							</Label>
+							<span className="font-mono text-[9px] text-muted-foreground">
+								Guides copy tone & notification voice
+							</span>
+						</div>
 						<textarea
 							value={systemPersona}
 							onChange={(e) => setSystemPersona(e.target.value)}
-							rows={3}
-							className="w-full border-[length:var(--border-width)] border-black rounded-lg p-3 font-mono text-xs bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-black resize-none"
+							rows={2}
+							className="w-full border-[length:var(--border-width)] border-black rounded-md p-2 font-mono text-xs bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-black resize-y min-h-[48px] leading-relaxed"
 							placeholder="Define the brand persona, tone of voice, and guidelines for AI generated copy..."
 						/>
 					</div>
 
-					<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-						<div className="space-y-2 border border-black/20 p-3 rounded-lg bg-muted/20">
-							<div className="flex items-center justify-between">
-								<Label className="font-mono text-xs font-bold uppercase tracking-wider">
-									Temperature
-								</Label>
-								<span className="font-mono text-xs font-black tabular-nums">{temperature}</span>
+					<div className="border border-black/20 p-2.5 rounded-lg bg-muted/15 grid grid-cols-1 sm:grid-cols-2 gap-3">
+						<div className="space-y-1">
+							<div className="flex items-center justify-between font-mono text-[10px]">
+								<span className="font-black uppercase text-foreground">Temperature</span>
+								<span className="font-black tabular-nums">{temperature}</span>
 							</div>
 							<input
 								type="range"
@@ -382,20 +397,18 @@ export function AdminAiSettingsCard({
 								step={0.05}
 								value={temperature}
 								onChange={(e) => setTemperature(parseFloat(e.target.value))}
-								className="w-full cursor-pointer accent-black"
+								className="w-full h-2 cursor-pointer accent-black"
 							/>
-							<div className="flex justify-between text-[10px] font-mono text-muted-foreground">
+							<div className="flex justify-between text-[8px] font-mono text-muted-foreground leading-none">
 								<span>Precise (0.0)</span>
 								<span>Creative (1.0)</span>
 							</div>
 						</div>
 
-						<div className="space-y-2 border border-black/20 p-3 rounded-lg bg-muted/20">
-							<div className="flex items-center justify-between">
-								<Label className="font-mono text-xs font-bold uppercase tracking-wider">
-									Max Token Limit
-								</Label>
-								<span className="font-mono text-xs font-black tabular-nums">{maxTokens} tokens</span>
+						<div className="space-y-1">
+							<div className="flex items-center justify-between font-mono text-[10px]">
+								<span className="font-black uppercase text-foreground">Max Tokens</span>
+								<span className="font-black tabular-nums">{maxTokens}</span>
 							</div>
 							<input
 								type="range"
@@ -404,118 +417,112 @@ export function AdminAiSettingsCard({
 								step={50}
 								value={maxTokens}
 								onChange={(e) => setMaxTokens(parseInt(e.target.value, 10))}
-								className="w-full cursor-pointer accent-black"
+								className="w-full h-2 cursor-pointer accent-black"
 							/>
-							<div className="flex justify-between text-[10px] font-mono text-muted-foreground">
-								<span>Short (200)</span>
-								<span>Extended (2500)</span>
+							<div className="flex justify-between text-[8px] font-mono text-muted-foreground leading-none">
+								<span>Compact (200)</span>
+								<span>Long (2500)</span>
 							</div>
 						</div>
 					</div>
 				</div>
 
-				<div className="lg:col-span-4 space-y-4">
-					<div className="border-[length:var(--border-width)] border-black rounded-xl p-4 bg-muted/30 space-y-3.5 shadow-brutal-xs">
-						<div className="flex items-center gap-2 border-b border-black/15 pb-2">
-							<Activity className="size-4 text-primary" />
-							<h3 className="font-mono text-xs font-black uppercase tracking-wider">
-								Provider Diagnostics
-							</h3>
-						</div>
-
-						<p className="font-sans text-xs text-muted-foreground">
-							Perform a zero-impact handshake test with your configured endpoint, API key, and model before saving.
-						</p>
-
-						<Button
-							type="button"
-							onClick={handleTestConnection}
-							disabled={isTesting}
-							variant="outline"
-							className="w-full border-[length:var(--border-width)] border-black bg-card hover:bg-muted font-mono text-xs font-bold uppercase shadow-brutal-xs brutal-lift flex items-center justify-center gap-2 py-2.5"
-						>
-							{isTesting ? (
-								<>
-									<RotateCw className="size-3.5 animate-spin text-primary" />
-									<span>Pinging Endpoint...</span>
-								</>
-							) : (
-								<>
-									<Zap className="size-3.5 text-primary" />
-									<span>Test AI Connection</span>
-								</>
-							)}
-						</Button>
-
-						{testResult && (
-							<div
-								className={cn(
-									'border-[length:var(--border-width)] border-black rounded-lg p-3 text-xs font-mono space-y-2 shadow-brutal-xs',
-									testResult.healthy ? 'bg-emerald-500/10 border-emerald-600' : 'bg-destructive/10 border-destructive',
-								)}
-							>
-								<div className="flex items-center justify-between font-black uppercase tracking-wider">
-									<span className="flex items-center gap-1.5">
-										{testResult.healthy ? (
-											<CheckCircle2 className="size-4 text-emerald-600" />
-										) : (
-											<XCircle className="size-4 text-destructive" />
-										)}
-										<span>{testResult.healthy ? 'Online & Ready' : 'Handshake Failed'}</span>
-									</span>
-									<span className="tabular-nums text-[10px]">
+				<div className="lg:col-span-4 flex flex-col gap-2">
+					<div className="border-[length:var(--border-width)] border-black rounded-lg p-2.5 bg-muted/20 space-y-2 shadow-brutal-xs flex-1 flex flex-col justify-between">
+						<div className="space-y-2">
+							<div className="flex items-center justify-between border-b border-black/15 pb-1.5">
+								<div className="flex items-center gap-1.5 font-mono text-[11px] font-black uppercase tracking-wider">
+									<Activity className="size-3 text-primary" />
+									<span>Diagnostics & Actions</span>
+								</div>
+								{testResult && (
+									<span className="font-mono text-[9px] font-bold tabular-nums">
 										{testResult.latencyMs}ms
 									</span>
-								</div>
-
-								{testResult.healthy && testResult.sampleResponse && (
-									<div className="text-[11px] bg-background/80 p-2 rounded border border-black/10 text-foreground">
-										<span className="text-muted-foreground block text-[9px] uppercase font-bold">Sample Reply:</span>
-										"{testResult.sampleResponse}"
-									</div>
-								)}
-
-								{!testResult.healthy && testResult.error && (
-									<div className="text-[11px] text-destructive break-words">
-										{testResult.error}
-									</div>
 								)}
 							</div>
-						)}
 
-						<div className="pt-2 border-t border-black/10">
-							<Button
-								type="button"
-								onClick={handleSave}
-								disabled={isSaving}
-								className="w-full py-3 border-[length:var(--border-width)] border-black bg-accent text-black hover:bg-accent/90 font-mono text-xs font-black uppercase tracking-wider shadow-brutal-xs brutal-lift flex items-center justify-center gap-2"
-							>
-								{isSaving ? (
-									<>
-										<RotateCw className="size-4 animate-spin text-black" />
-										<span>Saving Engine Config...</span>
-									</>
-								) : (
-									<>
-										<Check className="size-4" />
-										<span>Save AI Configuration</span>
-									</>
-								)}
-							</Button>
-						</div>
-					</div>
+							<div className="grid grid-cols-2 gap-2">
+								<Button
+									type="button"
+									onClick={handleSave}
+									disabled={isSaving}
+									className="h-8 border-[length:var(--border-width)] border-black bg-accent text-black hover:bg-accent/90 font-mono text-xs font-black uppercase tracking-wider shadow-brutal-xs brutal-lift active:scale-[0.96] flex items-center justify-center gap-1"
+								>
+									{isSaving ? (
+										<RotateCw className="size-3 animate-spin text-black" />
+									) : (
+										<Check className="size-3" />
+									)}
+									<span>Save</span>
+								</Button>
 
-					<div className="border border-black/20 rounded-xl p-3.5 bg-background text-[11px] font-mono space-y-2">
-						<div className="font-bold uppercase tracking-wider flex items-center gap-1.5 text-foreground">
-							<HelpCircle className="size-3.5 text-accent-foreground" />
-							<span>Setup Cheatsheet</span>
+								<Button
+									type="button"
+									onClick={handleTestConnection}
+									disabled={isTesting}
+									variant="outline"
+									className="h-8 border-[length:var(--border-width)] border-black bg-card hover:bg-muted font-mono text-xs font-bold uppercase shadow-brutal-xs brutal-lift active:scale-[0.96] flex items-center justify-center gap-1"
+								>
+									{isTesting ? (
+										<RotateCw className="size-3 animate-spin text-primary" />
+									) : (
+										<Zap className="size-3 text-primary" />
+									)}
+									<span>Test</span>
+								</Button>
+							</div>
+
+							{testResult ? (
+								<div
+									className={cn(
+										'border border-black rounded-md p-2 text-xs font-mono space-y-1 shadow-brutal-xs',
+										testResult.healthy ? 'bg-emerald-500/10 border-emerald-600' : 'bg-destructive/10 border-destructive',
+									)}
+								>
+									<div className="flex items-center justify-between font-black uppercase text-[10px]">
+										<span className="flex items-center gap-1">
+											{testResult.healthy ? (
+												<CheckCircle2 className="size-3 text-emerald-600" />
+											) : (
+												<XCircle className="size-3 text-destructive" />
+											)}
+											<span>{testResult.healthy ? 'Connected' : 'Failed'}</span>
+										</span>
+										<span className="tabular-nums text-[9px]">{testResult.model}</span>
+									</div>
+
+									{testResult.healthy && testResult.sampleResponse && (
+										<div className="text-[10px] bg-background/80 p-1.5 rounded border border-black/10 text-foreground line-clamp-3 leading-snug">
+											"{testResult.sampleResponse}"
+										</div>
+									)}
+
+									{!testResult.healthy && testResult.error && (
+										<div className="text-[10px] text-destructive break-words line-clamp-3">
+											{testResult.error}
+										</div>
+									)}
+								</div>
+							) : (
+								<div className="border border-dashed border-black/25 rounded-md p-2 text-center text-muted-foreground font-mono text-[10px]">
+									Click "Test" to verify credentials and response latency.
+								</div>
+							)}
 						</div>
-						<ul className="list-disc pl-4 space-y-1 text-muted-foreground">
-							<li><strong>Any Custom LLM:</strong> Set Base URL to your proxy or local server and choose model.</li>
-							<li><strong>Groq:</strong> Fast LPU inference with Llama 3.3.</li>
-							<li><strong>Google Gemini:</strong> Uses official OpenAI-compatible endpoint with your Gemini key.</li>
-							<li><strong>Ollama:</strong> Runs completely offline on localhost:11434 without an API key.</li>
-						</ul>
+
+						<div className="border border-black/15 rounded-md p-2 bg-background text-[10px] font-mono space-y-1">
+							<div className="font-bold uppercase tracking-wider flex items-center gap-1 text-foreground">
+								<HelpCircle className="size-3 text-accent-foreground" />
+								<span>Provider Cheatsheet</span>
+							</div>
+							<ul className="space-y-0.5 text-muted-foreground text-[9px] leading-tight">
+								<li>• <strong>Groq:</strong> Ultra-fast Llama 3.3 inference</li>
+								<li>• <strong>Gemini:</strong> OpenAI protocol + Gemini key</li>
+								<li>• <strong>Ollama:</strong> Localhost:11434 (no key needed)</li>
+								<li>• <strong>Custom:</strong> Any OpenAI-compatible proxy</li>
+							</ul>
+						</div>
 					</div>
 				</div>
 			</div>

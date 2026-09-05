@@ -981,23 +981,28 @@ export default function AdminSettingsPage() {
 		activeTab === "all" || activeTab === "danger" || (normalizedSearch.length > 0 && ("reset".includes(normalizedSearch) || "cleanup".includes(normalizedSearch) || "sweep".includes(normalizedSearch)));
 
 	return (
-		<div className="space-y-6 pb-20">
-			{/* Top Control Bar: Compact & Professional */}
-			<div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between border-b-[length:var(--border-width)] border-black/15 pb-4">
+		<div className="space-y-4 pb-12">
+			<div className="flex flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-between border-b-[length:var(--border-width)] border-black/15 pb-2.5">
 				<div>
 					<div className="flex items-center gap-2">
-						<SlidersHorizontal className="size-5 text-primary" />
-						<h1 className="text-2xl sm:text-3xl font-black font-title tracking-tight text-foreground">
-							System Settings
+						{activeTab === "ai" ? (
+							<Sparkles className="size-5 text-primary" />
+						) : (
+							<SlidersHorizontal className="size-5 text-primary" />
+						)}
+						<h1 className="text-xl sm:text-2xl font-black font-title tracking-tight text-foreground">
+							{activeTab === "ai" ? "AI Engine & Intelligence" : "System Settings"}
 						</h1>
 					</div>
 					<p className="font-mono text-xs text-muted-foreground mt-0.5">
-						Live toggles for platform modules, anti-cheat limits, reward economics, and data maintenance
+						{activeTab === "ai"
+							? "Global LLM protocols, API credentials, model routing, and brand persona"
+							: "Live toggles for platform modules, anti-cheat limits, reward economics, and data maintenance"}
 					</p>
 				</div>
 
 				<div className="flex flex-wrap items-center gap-2">
-					<div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-black bg-card font-mono text-[11px] font-bold shadow-brutal-xs">
+					<div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border border-black bg-card font-mono text-[11px] font-bold shadow-brutal-xs">
 						<span className="size-2 rounded-full bg-success animate-pulse" />
 						<span className="tabular-nums">{activeModulesCount}/{totalModulesCount}</span> Modules Online
 					</div>
@@ -1007,17 +1012,15 @@ export default function AdminSettingsPage() {
 						disabled={loading}
 						variant="outline"
 						size="sm"
-						className="border-[length:var(--border-width)] border-black bg-card hover:bg-muted font-mono text-xs font-bold uppercase shadow-brutal-xs brutal-lift active:scale-[0.96] transition-transform h-9 px-3"
+						className="border-[length:var(--border-width)] border-black bg-card hover:bg-muted font-mono text-xs font-bold uppercase shadow-brutal-xs brutal-lift active:scale-[0.96] transition-transform h-8 px-2.5"
 					>
-						<RefreshCw className={cn("size-3.5 mr-1.5", loading && "animate-spin")} />
+						<RefreshCw className={cn("size-3.5 mr-1", loading && "animate-spin")} />
 						Refresh
 					</Button>
 				</div>
 			</div>
 
-			{/* Filter & Segment Navigation */}
-			<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-				{/* Search Box */}
+			<div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
 				<div className="relative flex-1 max-w-md">
 					<Search className="size-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
 					<Input
@@ -1025,11 +1028,10 @@ export default function AdminSettingsPage() {
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
 						placeholder="Search settings (e.g. referral, streak, liveness)..."
-						className="pl-8 h-9 border-[length:var(--border-width)] border-black font-mono text-xs shadow-brutal-xs bg-card rounded-lg"
+						className="pl-8 h-8 border-[length:var(--border-width)] border-black font-mono text-xs shadow-brutal-xs bg-card rounded-lg"
 					/>
 				</div>
 
-				{/* Tabs Navigation */}
 				<div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
 					{(
 						[
@@ -1053,13 +1055,13 @@ export default function AdminSettingsPage() {
 									setSearchQuery("");
 								}}
 								className={cn(
-									"inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-mono text-xs font-bold uppercase transition-all whitespace-nowrap active:scale-[0.96]",
+									"inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-mono text-xs font-bold uppercase transition-all whitespace-nowrap active:scale-[0.96]",
 									isActive
 										? "bg-primary text-primary-foreground border-[length:var(--border-width)] border-black shadow-brutal-xs font-black"
 										: "bg-card hover:bg-muted text-foreground border border-black/20"
 								)}
 							>
-								<Icon className="size-3.5 shrink-0" />
+								<Icon className="size-3 shrink-0" />
 								<span>{tab.label}</span>
 							</button>
 						);

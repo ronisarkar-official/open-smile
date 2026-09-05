@@ -3,9 +3,11 @@
 import * as React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
-import { Sparkles, ArrowRight, Coins, Share2, Camera, Bot } from 'lucide-react';
+import { Sparkles, ArrowRight, Coins, Share2, Camera, Bot, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NeubrutalistPhotoCard } from '@/components/capture/neubrutalist-photo-card';
+import { ShareExploreModal } from '@/components/capture/share-explore-modal';
+import { SocialShareModal } from '@/components/capture/social-share-modal';
 import { cn } from '@/lib/utils';
 
 interface SmileResultScreenProps {
@@ -18,9 +20,10 @@ interface SmileResultScreenProps {
 	isSharedToExplore?: boolean;
 	shareMessage?: string | null;
 	isQuotaFinished?: boolean;
+	userName?: string;
 	onRevealReward: () => void;
 	onRetake: () => void;
-	onShareToExplore?: () => void;
+	onShareToExplore?: (title?: string) => void | Promise<void>;
 }
 
 interface AiReaction {
@@ -215,12 +218,15 @@ export function SmileResultScreen({
 	isSharedToExplore = false,
 	shareMessage,
 	isQuotaFinished = false,
+	userName,
 	onRevealReward,
 	onRetake,
 	onShareToExplore,
 }: SmileResultScreenProps) {
 	const [displayScore, setDisplayScore] = React.useState(0);
 	const [showConfetti, setShowConfetti] = React.useState(false);
+	const [isExploreModalOpen, setIsExploreModalOpen] = React.useState(false);
+	const [isSocialShareModalOpen, setIsSocialShareModalOpen] = React.useState(false);
 	const isHighScore = score >= 75;
 
 	React.useEffect(() => {
@@ -254,7 +260,7 @@ export function SmileResultScreen({
 			initial={{ opacity: 0, y: 20 }}
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-			className="relative w-full space-y-6">
+			className="relative w-full space-y-3.5 sm:space-y-6">
 			<AnimatePresence>{showConfetti && <ConfettiBurst />}</AnimatePresence>
 
 			<motion.h1
@@ -279,21 +285,21 @@ export function SmileResultScreen({
 					initial={{ opacity: 0, x: 20 }}
 					animate={{ opacity: 1, x: 0 }}
 					transition={{ delay: 0.2, duration: 0.4 }}
-					className="flex flex-col gap-4 border-[length:var(--border-width)] border-border rounded-xl bg-card p-6 shadow-brutal-xl">
+					className="flex flex-col gap-2.5 sm:gap-4 border-[length:var(--border-width)] border-border rounded-xl bg-card p-3.5 sm:p-5 md:p-6 shadow-brutal-md sm:shadow-brutal-xl">
 					<div>
-						<span className="font-mono text-xs font-black tracking-widest text-muted-foreground uppercase">
+						<span className="font-mono text-[10px] sm:text-xs font-black tracking-widest text-muted-foreground uppercase">
 							Smile Score
 						</span>
-						<div className="mt-2 flex items-baseline gap-2">
-							<span className="font-display text-7xl font-black tracking-tight text-foreground tabular-nums sm:text-8xl">
+						<div className="mt-1 sm:mt-2 flex items-baseline gap-1.5 sm:gap-2">
+							<span className="font-display text-5xl sm:text-7xl md:text-8xl font-black tracking-tight text-foreground tabular-nums leading-none">
 								{displayScore}
 							</span>
-							<span className="font-title text-2xl font-black text-muted-foreground sm:text-3xl">
+							<span className="font-title text-xl sm:text-2xl md:text-3xl font-black text-muted-foreground">
 								/ 100
 							</span>
 						</div>
 
-						<div className="mt-3 h-3 w-full overflow-hidden rounded-xs border-[length:var(--border-width-sm)] border-border bg-muted">
+						<div className="mt-2 sm:mt-3 h-2.5 sm:h-3 w-full overflow-hidden rounded-xs border-[length:var(--border-width-sm)] border-border bg-muted">
 							<motion.div
 								className={cn('h-full', getScoreBarColor(score))}
 								initial={{ width: 0 }}
@@ -303,8 +309,8 @@ export function SmileResultScreen({
 						</div>
 					</div>
 
-					<div className="inline-flex w-fit items-center gap-1.5 border-[length:var(--border-width-sm)] border-border bg-primary/15 rounded-lg px-3 py-1.5 font-mono text-xs font-black uppercase tracking-wide text-foreground shadow-brutal-xs">
-						<Sparkles className="size-3.5 text-primary" />
+					<div className="inline-flex w-fit items-center gap-1.5 border-[length:var(--border-width-sm)] border-border bg-primary/15 rounded-lg px-2.5 py-1 font-mono text-[11px] sm:text-xs font-black uppercase tracking-wide text-foreground shadow-brutal-xs">
+						<Sparkles className="size-3 sm:size-3.5 text-primary" />
 						{vibe}
 					</div>
 
@@ -312,43 +318,43 @@ export function SmileResultScreen({
 						initial={{ opacity: 0, y: 8, scale: 0.98 }}
 						animate={{ opacity: 1, y: 0, scale: 1 }}
 						transition={{ delay: 0.35, duration: 0.35 }}
-						className="relative flex flex-col gap-2 rounded-lg border-[length:var(--border-width-sm)] border-border bg-muted/60 p-3.5 shadow-brutal-xs sm:p-4">
+						className="relative flex flex-col gap-1.5 sm:gap-2 rounded-lg border-[length:var(--border-width-sm)] border-border bg-muted/60 p-2.5 sm:p-3.5 shadow-brutal-xs">
 						<div className="flex items-center justify-between gap-2">
-							<div className="flex items-center gap-1.5 font-mono text-[11px] font-black uppercase tracking-wider text-foreground">
-								<span className="flex size-5 items-center justify-center rounded-xs border-[length:var(--border-width-sm)] border-border bg-warning text-warning-foreground shadow-brutal-xs">
-									<Bot className="size-3.5" strokeWidth={2.5} />
+							<div className="flex items-center gap-1.5 font-mono text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-foreground">
+								<span className="flex size-4.5 sm:size-5 items-center justify-center rounded-xs border-[length:var(--border-width-sm)] border-border bg-warning text-warning-foreground shadow-brutal-xs">
+									<Bot className="size-3 sm:size-3.5" strokeWidth={2.5} />
 								</span>
 								<span>Smile AI Reaction</span>
 								<span className="inline-block size-1.5 rounded-full bg-success animate-pulse" />
 							</div>
-							<span className="rounded-xs border-[length:var(--border-width-sm)] border-border bg-card px-2 py-0.5 font-mono text-[10px] font-black uppercase tracking-wider text-muted-foreground shadow-brutal-xs">
+							<span className="rounded-xs border-[length:var(--border-width-sm)] border-border bg-card px-1.5 py-0.5 font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-muted-foreground shadow-brutal-xs">
 								{aiReaction.mood}
 							</span>
 						</div>
 
-						<p className="font-title text-base sm:text-lg font-black italic tracking-tight text-foreground leading-snug">
+						<p className="font-title text-sm sm:text-base font-black italic tracking-tight text-foreground leading-snug">
 							&ldquo;{aiReaction.comment}&rdquo;
 						</p>
 					</motion.div>
 
-					<div className="mt-2 flex flex-col gap-3">
+					<div className="mt-1 sm:mt-2 flex flex-col gap-2.5 sm:gap-3">
 						{!isRewardClaimed ?
 							<>
 								<Button
 									size="lg"
 									onClick={onRevealReward}
-									className="group h-auto w-full gap-2 border-[length:var(--border-width)] border-border bg-warning text-warning-foreground py-4 font-mono text-base font-black tracking-wider uppercase shadow-brutal brutal-lift hover:bg-warning/90">
+									className="group h-auto w-full gap-2 border-[length:var(--border-width)] border-border bg-warning text-warning-foreground py-2.5 sm:py-3.5 font-mono text-sm sm:text-base font-black tracking-wider uppercase shadow-brutal brutal-lift hover:bg-warning/90">
 									Reveal My Reward
-									<ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
+									<ArrowRight className="size-4 sm:size-5 transition-transform group-hover:translate-x-1" />
 								</Button>
-								<p className="text-center font-mono text-xs font-bold text-muted-foreground">
+								<p className="text-center font-mono text-[11px] sm:text-xs font-bold text-muted-foreground">
 									You earned a surprise scratch card
 								</p>
 							</>
-						:	<div className="flex items-center justify-between border-[length:var(--border-width-sm)] border-border rounded-lg bg-muted/60 p-3 shadow-brutal-xs">
-								<div className="flex items-center gap-2 font-mono text-xs font-bold text-foreground">
+						:	<div className="flex items-center justify-between border-[length:var(--border-width-sm)] border-border rounded-lg bg-muted/60 p-2.5 sm:p-3 shadow-brutal-xs">
+								<div className="flex items-center gap-2 font-mono text-[11px] sm:text-xs font-bold text-foreground">
 									<Coins
-										className="size-4 text-accent"
+										className="size-3.5 sm:size-4 text-accent"
 										strokeWidth={2.5}
 									/>
 									<span>
@@ -366,43 +372,58 @@ export function SmileResultScreen({
 						}
 
 						{shareMessage && (
-							<div className="rounded-md border-[length:var(--border-width-sm)] border-black bg-accent/30 px-3 py-2 text-center font-mono text-xs font-bold shadow-brutal-xs">
+							<div className="rounded-md border-[length:var(--border-width-sm)] border-black bg-accent/30 px-2.5 py-1.5 text-center font-mono text-xs font-bold shadow-brutal-xs">
 								{shareMessage}
 							</div>
 						)}
 
-						<div className="flex w-full flex-col gap-2.5 sm:flex-row">
-							<Button
-								variant="outline"
-								size="lg"
-								disabled={isSharingToExplore || isSharedToExplore}
-								className={cn(
-									"flex-1 gap-2 border-[length:var(--border-width)] border-border font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-sm brutal-lift cursor-pointer",
-									isSharedToExplore && "bg-success text-success-foreground hover:bg-success"
-								)}
-								onClick={onShareToExplore}>
-								<Share2 className="size-4" />
-								{isSharingToExplore
-									? 'Sharing...'
-									: isSharedToExplore
-									? '✓ Shared to Explore'
-									: 'Share to Explore'}
-							</Button>
+						<div className="flex w-full flex-col gap-2">
+							<div className="grid grid-cols-2 gap-2">
+								<Button
+									variant="outline"
+									disabled={isSharingToExplore || isSharedToExplore}
+									className={cn(
+										"h-9 sm:h-10 px-2 sm:px-3 gap-1.5 border-[length:var(--border-width)] border-border font-mono text-[11px] sm:text-xs font-bold uppercase tracking-normal sm:tracking-wider shadow-brutal-xs brutal-lift cursor-pointer",
+										isSharedToExplore && "bg-success text-success-foreground hover:bg-success"
+									)}
+									onClick={() => {
+										if (!isSharedToExplore && !isSharingToExplore) {
+											setIsExploreModalOpen(true);
+										}
+									}}>
+									<Send className="size-3.5 shrink-0" />
+									<span className="truncate">
+										{isSharingToExplore
+											? 'Sharing...'
+											: isSharedToExplore
+											? '✓ Shared'
+											: 'Explore Feed'}
+									</span>
+								</Button>
+
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => setIsSocialShareModalOpen(true)}
+									className="h-9 sm:h-10 px-2 sm:px-3 gap-1.5 border-[length:var(--border-width)] border-border bg-accent/35 hover:bg-accent text-foreground font-mono text-[11px] sm:text-xs font-black uppercase tracking-normal sm:tracking-wider shadow-brutal-xs brutal-lift cursor-pointer">
+									<Share2 className="size-3.5 shrink-0 text-primary" strokeWidth={2.5} />
+									<span className="truncate">Social Share</span>
+								</Button>
+							</div>
+
 							{!isQuotaFinished ? (
 								<Button
 									variant="default"
-									size="lg"
 									onClick={onRetake}
-									className="flex-1 gap-2 border-[length:var(--border-width)] border-border bg-warning text-warning-foreground font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-sm brutal-lift hover:bg-warning/90">
+									className="h-9 sm:h-10 w-full gap-2 border-[length:var(--border-width)] border-border bg-warning text-warning-foreground font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-xs brutal-lift hover:bg-warning/90">
 									<Camera className="size-4" />
 									Capture Again
 								</Button>
 							) : (
-								<Link href="/dashboard" className="flex-1">
+								<Link href="/dashboard" className="w-full">
 									<Button
 										variant="default"
-										size="lg"
-										className="w-full gap-2 border-[length:var(--border-width)] border-border bg-primary text-primary-foreground font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-sm brutal-lift">
+										className="h-9 sm:h-10 w-full gap-2 border-[length:var(--border-width)] border-border bg-primary text-primary-foreground font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-xs brutal-lift">
 										Return to Dashboard
 									</Button>
 								</Link>
@@ -415,6 +436,28 @@ export function SmileResultScreen({
 					</div>
 				</motion.div>
 			</div>
+
+			<ShareExploreModal
+				isOpen={isExploreModalOpen}
+				onClose={() => setIsExploreModalOpen(false)}
+				imageSrc={imageSrc}
+				score={score}
+				isSharing={isSharingToExplore}
+				onShare={async (customTitle) => {
+					if (onShareToExplore) {
+						await onShareToExplore(customTitle);
+						setIsExploreModalOpen(false);
+					}
+				}}
+			/>
+
+			<SocialShareModal
+				isOpen={isSocialShareModalOpen}
+				onClose={() => setIsSocialShareModalOpen(false)}
+				imageSrc={imageSrc}
+				score={score}
+				userName={userName}
+			/>
 		</motion.div>
 	);
 }

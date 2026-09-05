@@ -4,7 +4,6 @@ import {
   ArrowUpRight,
   Coins,
   ShieldCheck,
-  Smile,
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,15 +20,27 @@ export function HeroPreviewCard() {
           </div>
           <span className="font-mono text-xs font-bold">LIVE</span>
         </div>
-        <div className="relative col-span-2 flex min-h-52 flex-col items-center justify-center overflow-hidden border-[length:var(--border-width)] border-black rounded-lg bg-primary p-6 text-primary-foreground sm:min-h-64">
-          <div className="absolute left-5 top-5 h-5 w-5 border-[length:var(--border-width)] border-black rounded-xs bg-secondary" />
-          <div className="absolute bottom-5 right-5 h-7 w-7 border-[length:var(--border-width)] border-black rounded-xs bg-accent" />
-          <Smile strokeWidth={2.5} className="size-28 sm:size-36" aria-hidden="true" />
-          <p className="mt-3 font-mono text-xs font-bold tracking-wider uppercase">Genuine smile detected</p>
+        <div className="relative col-span-2 flex min-h-56 items-center justify-center overflow-hidden border-[length:var(--border-width)] border-black rounded-lg bg-black sm:min-h-64">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            poster="/hero-preview-poster.webp"
+            className="h-full w-full object-cover"
+          >
+            <source src="/hero-preview.webm" type="video/webm" />
+            <source src="/hero-preview.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute left-3 top-3 flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-xs bg-secondary/90 px-2 py-0.5 font-mono text-[10px] font-bold tracking-wider uppercase text-secondary-foreground shadow-brutal-xs backdrop-blur-xs">
+            <span className="size-2 animate-pulse rounded-full bg-red-600" />
+            AI Scanner
+          </div>
         </div>
         <div className="flex flex-col justify-between border-[length:var(--border-width)] border-black rounded-lg bg-card p-4 sm:p-5">
           <span className="font-mono text-xs font-bold tracking-wider uppercase">Today&apos;s score</span>
-          <span className="font-display text-5xl font-black tracking-[-0.08em] tabular-nums sm:text-6xl">86</span>
+          <span className="font-display text-5xl font-black tracking-[-0.08em] tabular-nums sm:text-6xl">100</span>
           <span className="text-sm font-bold">Strong smile energy</span>
         </div>
         <div className="flex flex-col justify-between border-[length:var(--border-width)] border-black rounded-lg bg-secondary p-4 text-secondary-foreground sm:p-5">
