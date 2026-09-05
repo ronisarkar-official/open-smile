@@ -17,9 +17,6 @@ import {
 	Check,
 	Info,
 	Activity,
-	KeyRound,
-	UserPlus,
-	Shield,
 	Flame,
 	Gift,
 	SlidersHorizontal,
@@ -52,6 +49,7 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { EmailTemplateType, MailerDiagnostics } from '@/lib/mailer/types';
 import { AdminUserCombobox } from '@/components/admin/admin-user-combobox';
+import { AdminAiGeneratorDialog } from '@/components/admin/admin-ai-generator-dialog';
 import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import { MarkdownView } from '@/components/ui/markdown-view';
 
@@ -85,14 +83,20 @@ interface SuppressionItem {
 	created_at: string;
 }
 
-const TEMPLATES: { id: EmailTemplateType; label: string; description: string }[] = [
-	{ id: 'otp', label: 'One-Time Passcode (OTP)', description: '6-digit high contrast authentication code' },
-	{ id: 'welcome', label: 'Welcome Onboarding', description: 'Gamified smiler onboarding and quick start CTA' },
-	{ id: 'login-alert', label: 'Login Security Alert', description: 'New device / IP security detection notice' },
-	{ id: 'reset-password', label: 'Password Reset', description: 'Time-limited password recovery token link' },
-	{ id: 'streak-reminder', label: 'Daily Streak Expiration', description: 'Reminder before midnight IST to preserve streak' },
-	{ id: 'reward-unlocked', label: 'Reward & Voucher Won', description: 'Prize unlock notification with voucher code' },
+const DISPATCH_TEMPLATES: { id: EmailTemplateType; label: string; description: string }[] = [
 	{ id: 'broadcast', label: 'Official Announcement', description: 'Custom rich newsletter or community broadcast' },
+	{ id: 'streak-reminder', label: 'Streak Re-engagement', description: 'Reminder before midnight IST to preserve streak' },
+	{ id: 'reward-unlocked', label: 'Bonus Reward Drop', description: 'Prize unlock notification with voucher code' },
+];
+
+const ALL_LOG_TEMPLATES: { id: string; label: string }[] = [
+	{ id: 'broadcast', label: 'Official Announcement' },
+	{ id: 'streak-reminder', label: 'Streak Reminder' },
+	{ id: 'reward-unlocked', label: 'Reward Unlocked' },
+	{ id: 'otp', label: 'Automated: OTP Code' },
+	{ id: 'welcome', label: 'Automated: Welcome Onboarding' },
+	{ id: 'login-alert', label: 'Automated: Login Alert' },
+	{ id: 'reset-password', label: 'Automated: Reset Password' },
 ];
 
 export default function AdminMailerPage() {
@@ -106,17 +110,18 @@ export default function AdminMailerPage() {
 		totalFailed: 0,
 	});
 
-	const [selectedTemplate, setSelectedTemplate] = React.useState<EmailTemplateType>('welcome');
+	const [selectedTemplate, setSelectedTemplate] = React.useState<EmailTemplateType>('broadcast');
 	const [audience, setAudience] = React.useState<'single' | 'admin_team' | 'waitlist' | 'all_users'>('single');
 	const [targetEmail, setTargetEmail] = React.useState('');
 	const [recipientName, setRecipientName] = React.useState('Smiler');
-	const [subject, setSubject] = React.useState('Welcome to Open Smile! 🎉');
-	const [headline, setHeadline] = React.useState('Welcome aboard, Smiler! 🎉');
+	const [selectedUserObj, setSelectedUserObj] = React.useState<any>(null);
+	const [subject, setSubject] = React.useState('Open Smile Announcement 🌟');
+	const [headline, setHeadline] = React.useState('Important Platform Update');
 	const [bodyContent, setBodyContent] = React.useState(
-		'Your Open Smile account is live. Start smiling today to unlock daily coin multipliers and redeem Amazon vouchers.',
+		'We are excited to roll out our latest update with brand new rewards and challenges. Keep smiling and earning coins!',
 	);
-	const [ctaLabel, setCtaLabel] = React.useState('Take Your First Smile 📸');
-	const [ctaUrl, setCtaUrl] = React.useState('/capture');
+	const [ctaLabel, setCtaLabel] = React.useState('Explore Open Smile 🚀');
+	const [ctaUrl, setCtaUrl] = React.useState('/dashboard');
 	const [isDispatching, setIsDispatching] = React.useState(false);
 
 	const [logs, setLogs] = React.useState<EmailLogItem[]>([]);
@@ -196,41 +201,23 @@ export default function AdminMailerPage() {
 
 	const handleTemplateChange = (tmpl: EmailTemplateType) => {
 		setSelectedTemplate(tmpl);
-		if (tmpl === 'welcome') {
-			setSubject('Welcome to Open Smile! 🎉');
-			setHeadline('Welcome aboard, Smiler! 🎉');
-			setBodyContent('Your Open Smile account is live. Start smiling today to unlock daily coin multipliers.');
-			setCtaLabel('Take Your First Smile 📸');
-			setCtaUrl('/capture');
-		} else if (tmpl === 'otp') {
-			setSubject('[Open Smile] Verification Code: 849201');
-			setHeadline('Security Verification');
-			setBodyContent('Your 6-digit one-time code is 849201. Valid for 5 minutes.');
-			setCtaLabel('');
-			setCtaUrl('');
-		} else if (tmpl === 'login-alert') {
-			setSubject('Security Alert: New Sign-in');
-			setHeadline('New Sign-in Detected');
-			setBodyContent('A new session was authenticated on your Open Smile account.');
-			setCtaLabel('Secure My Account 🛡️');
-			setCtaUrl('/forgot-password');
-		} else if (tmpl === 'streak-reminder') {
+		if (tmpl === 'streak-reminder') {
 			setSubject('🔥 Don\'t lose your 5-day smile streak!');
 			setHeadline('Keep Your Streak Alive!');
-			setBodyContent('You have 4 hours left before midnight IST to record today\'s smile.');
+			setBodyContent('You have 4 hours left before midnight IST to record today\'s smile and maintain your streak multiplier.');
 			setCtaLabel('Smile Now & Save Streak 📸');
 			setCtaUrl('/capture');
 		} else if (tmpl === 'reward-unlocked') {
-			setSubject('🎁 You unlocked a ₹100 Amazon Gift Voucher!');
-			setHeadline('Congratulations! Prize Ready');
-			setBodyContent('You earned enough coins to unlock a ₹100 Amazon shopping voucher.');
+			setSubject('🎁 Special Bonus Reward Unlocked!');
+			setHeadline('Congratulations! Bonus Prize Ready');
+			setBodyContent('You earned enough coins to unlock a special bonus voucher. Claim it now in your rewards vault!');
 			setCtaLabel('View In Rewards Vault 🎁');
 			setCtaUrl('/rewards');
 		} else {
 			setSubject('Open Smile Announcement 🌟');
 			setHeadline('Important Platform Update');
-			setBodyContent('We are excited to roll out our latest update with brand new rewards and challenges.');
-			setCtaLabel('Explore Open Smile');
+			setBodyContent('We are excited to roll out our latest update with brand new rewards and challenges. Keep smiling and earning coins!');
+			setCtaLabel('Explore Open Smile 🚀');
 			setCtaUrl('/dashboard');
 		}
 	};
@@ -534,11 +521,28 @@ export default function AdminMailerPage() {
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 					{/* Dispatcher Form */}
 					<div className="lg:col-span-7 border-[length:var(--border-width)] border-black rounded-xl p-5 sm:p-6 bg-card shadow-brutal space-y-5">
-						<div>
-							<h3 className="font-title font-black text-lg">Send Email / Campaign</h3>
-							<p className="font-mono text-xs text-muted-foreground">
-								Select an enterprise Neubrutalist template or broadcast a custom announcement
-							</p>
+						<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-[length:var(--border-width)] border-black/15 pb-4">
+							<div>
+								<h3 className="font-title font-black text-lg">Send Email / Campaign</h3>
+								<p className="font-mono text-xs text-muted-foreground">
+									Select an enterprise Neubrutalist template or broadcast a custom announcement
+								</p>
+							</div>
+							<AdminAiGeneratorDialog
+								mode="email"
+								audience={audience === 'single' ? 'specific' : 'all'}
+								user={
+									selectedUserObj || (targetEmail ? { name: recipientName, email: targetEmail } : null)
+								}
+								template={selectedTemplate}
+								onApplyEmail={(draft) => {
+									setSubject(draft.subject);
+									setHeadline(draft.headline);
+									setBodyContent(draft.body);
+									if (draft.cta_label) setCtaLabel(draft.cta_label);
+									if (draft.cta_url) setCtaUrl(draft.cta_url);
+								}}
+							/>
 						</div>
 
 						{/* Template Picker */}
@@ -546,8 +550,8 @@ export default function AdminMailerPage() {
 							<Label className="font-mono text-xs font-bold uppercase tracking-wider">
 								Email Template
 							</Label>
-							<div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-								{TEMPLATES.map((tmpl) => (
+							<div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+								{DISPATCH_TEMPLATES.map((tmpl) => (
 									<button
 										key={tmpl.id}
 										type="button"
@@ -600,6 +604,7 @@ export default function AdminMailerPage() {
 										value={targetEmail}
 										onChange={(val, user) => {
 											setTargetEmail(user?.email || val);
+											setSelectedUserObj(user || null);
 											if (user?.name) {
 												setRecipientName(user.name);
 											}
@@ -828,7 +833,7 @@ export default function AdminMailerPage() {
 								className="h-9 border-[length:var(--border-width)] border-black rounded-md bg-background px-3 font-mono text-xs font-bold cursor-pointer"
 							>
 								<option value="all">All Templates</option>
-								{TEMPLATES.map((t) => (
+								{ALL_LOG_TEMPLATES.map((t) => (
 									<option key={t.id} value={t.id}>
 										{t.label}
 									</option>
@@ -1065,11 +1070,6 @@ export default function AdminMailerPage() {
 						</h3>
 						<div className="space-y-2 font-mono text-xs">
 							{[
-								{
-									key: 'RESEND_API_KEY',
-									configured: Boolean(process.env.NEXT_PUBLIC_APP_NAME),
-									label: 'Resend API Key (HTTPS Fast Dispatch)',
-								},
 								{
 									key: 'EMAIL_USER',
 									configured: true,

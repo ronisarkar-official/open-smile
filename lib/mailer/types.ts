@@ -8,7 +8,7 @@ export type EmailTemplateType =
 	| 'broadcast'
 	| 'custom';
 
-export type EmailProviderType = 'resend' | 'smtp' | 'mock';
+export type EmailProviderType = 'smtp' | 'mock';
 
 export type EmailLogStatus =
 	| 'sent'
@@ -52,7 +52,6 @@ export type MailerDiagnostics = {
 	latencyMs?: number;
 	error?: string;
 	details: {
-		hasResendKey: boolean;
 		hasSmtpUser: boolean;
 		hasSmtpPass: boolean;
 		smtpHost: string;

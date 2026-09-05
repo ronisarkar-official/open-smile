@@ -11,10 +11,21 @@ import {
 	Smile,
 	Sparkles,
 	Compass,
+	Trash2,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from '@/components/ui/dialog';
+import { useSession } from '@/lib/auth-client';
 import { useSystemSettings } from '@/hooks/use-system-settings';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 const filters = [
@@ -25,6 +36,7 @@ const filters = [
 
 interface ExplorePost {
 	id: string;
+	userId?: string;
 	user: string;
 	avatar: string;
 	userAvatar?: string;
@@ -36,13 +48,18 @@ interface ExplorePost {
 	caption?: string;
 	imageUrl?: string;
 	isLikedByMe?: boolean;
+	isMine?: boolean;
 }
 
 export default function ExplorePage() {
 	const { settings } = useSystemSettings();
+	const { data: session } = useSession();
+	const { toast } = useToast();
 	const [selectedFilter, setSelectedFilter] = React.useState('latest');
 	const [posts, setPosts] = React.useState<ExplorePost[]>([]);
 	const [loading, setLoading] = React.useState(true);
+	const [postToDelete, setPostToDelete] = React.useState<ExplorePost | null>(null);
+	const [isDeleting, setIsDeleting] = React.useState(false);
 
 	const fetchFeed = React.useCallback(async (filterName: string) => {
 		if (settings.maintenance_mode || settings.explore_feed_enabled === false) {
@@ -108,6 +125,36 @@ export default function ExplorePage() {
 				);
 			}
 		} catch {}
+	};
+
+	const handleDeleteConfirm = async () => {
+		if (!postToDelete) return;
+		setIsDeleting(true);
+		try {
+			const res = await fetch(`/api/explore/${postToDelete.id}`, {
+				method: 'DELETE',
+			});
+			const data = await res.json();
+			if (!res.ok) {
+				throw new Error(data.error || 'Failed to delete photo');
+			}
+
+			setPosts((prev) => prev.filter((p) => p.id !== postToDelete.id));
+			toast({
+				title: 'Photo Deleted',
+				description: 'Your smile photo was removed from the Explore feed.',
+				variant: 'success',
+			});
+			setPostToDelete(null);
+		} catch (err: any) {
+			toast({
+				title: 'Delete Failed',
+				description: err?.message || 'Could not delete photo. Please try again.',
+				variant: 'error',
+			});
+		} finally {
+			setIsDeleting(false);
+		}
 	};
 
 	if (settings.maintenance_mode || settings.explore_feed_enabled === false) {
@@ -207,92 +254,114 @@ export default function ExplorePage() {
 				<section
 					className="mt-8 columns-1 gap-5 sm:columns-2 lg:columns-3"
 					aria-label="Smile feed">
-					{posts.map((post) => (
-						<article
-							key={post.id}
-							className="brutal-surface brutal-lift mb-5 break-inside-avoid bg-card border-[length:var(--border-width)] border-black rounded-xl overflow-hidden shadow-brutal">
-							<div
-								className={`${post.bg} relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-muted`}>
-								{post.imageUrl ? (
-									<img
-										src={post.imageUrl}
-										alt={`Real smile by ${post.user}`}
-										className="size-full object-cover"
-										loading="lazy"
-									/>
-								) : (
-									<div className="flex flex-col items-center justify-center p-6 text-center">
-										<Smile
-											className="size-20 opacity-30"
-											strokeWidth={1.5}
+					{posts.map((post) => {
+						const isOwner = Boolean(
+							post.isMine || (session?.user?.id && post.userId && post.userId === session.user.id)
+						);
+						return (
+							<article
+								key={post.id}
+								className="brutal-surface brutal-lift mb-5 break-inside-avoid bg-card border-[length:var(--border-width)] border-black rounded-xl overflow-hidden shadow-brutal">
+								<div
+									className={`${post.bg} relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-muted`}>
+									{post.imageUrl ? (
+										<img
+											src={post.imageUrl}
+											alt={`Real smile by ${post.user}`}
+											className="size-full object-cover"
+											loading="lazy"
 										/>
-									</div>
-								)}
-								<div className="absolute left-3 top-3 flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-card px-2.5 py-1 shadow-brutal-xs">
-									<ScanFace
-										className="size-3.5"
-										strokeWidth={2.5}
-									/>
-									<span className="font-mono text-xs font-black tabular-nums">
-										{post.score}
-									</span>
-									<span className="font-mono text-[10px] text-muted-foreground">
-										/ 100
-									</span>
-								</div>
-							</div>
-							<div className="border-t-[length:var(--border-width)] border-black p-4">
-								<div className="flex items-center justify-between">
-									<div className="flex items-center gap-2.5">
-										<Avatar className="size-8 border-[length:var(--border-width)] border-black shadow-brutal-xs">
-											<AvatarImage
-												src={post.userAvatar || DEFAULT_AVATAR_URL}
-												alt={post.user}
-												className="object-cover"
+									) : (
+										<div className="flex flex-col items-center justify-center p-6 text-center">
+											<Smile
+												className="size-20 opacity-30"
+												strokeWidth={1.5}
 											/>
-											<AvatarFallback className="text-xs font-black bg-primary text-primary-foreground">
-												{post.avatar}
-											</AvatarFallback>
-										</Avatar>
-										<div>
-											<p className="text-sm font-black">{post.user}</p>
-											<div className="flex items-center gap-1.5 mt-0.5">
-												<span className="font-mono text-[10px] text-muted-foreground font-semibold">
-													{post.timeAgo}
-												</span>
-												{post.expiresIn && (
-													<span className="inline-flex items-center gap-1 border border-black/20 rounded px-1.5 py-0.5 bg-muted font-mono text-[9px] font-bold text-muted-foreground">
-														<Clock className="size-2.5 text-amber-500" />
-														<span>{post.expiresIn}</span>
-													</span>
-												)}
-											</div>
 										</div>
-									</div>
-									<button
-										type="button"
-										onClick={() => handleLike(post.id)}
-										className={cn(
-											'flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md px-2.5 py-1.5 font-mono text-xs font-bold transition-all hover:-translate-y-0.5 hover:shadow-brutal-xs active:translate-y-0.5 active:shadow-none cursor-pointer',
-											post.isLikedByMe
-												? 'bg-red-400 text-black shadow-brutal-xs'
-												: 'bg-card text-foreground hover:bg-secondary'
-										)}>
-										<Heart
-											className={cn('size-3.5', post.isLikedByMe ? 'fill-current' : '')}
+									)}
+									<div className="absolute left-3 top-3 flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-card px-2.5 py-1 shadow-brutal-xs">
+										<ScanFace
+											className="size-3.5"
 											strokeWidth={2.5}
 										/>
-										<span className="tabular-nums font-black">{post.likes}</span>
-									</button>
+										<span className="font-mono text-xs font-black tabular-nums">
+											{post.score}
+										</span>
+										<span className="font-mono text-[10px] text-muted-foreground">
+											/ 100
+										</span>
+									</div>
+									{isOwner && (
+										<button
+											type="button"
+											onClick={() => setPostToDelete(post)}
+											title="Delete your smile photo"
+											aria-label="Delete your smile photo"
+											className="absolute right-3 top-3 z-10 flex size-8 items-center justify-center rounded-md border-[length:var(--border-width)] border-black bg-card/90 text-destructive shadow-brutal-xs backdrop-blur-xs transition-all hover:bg-destructive hover:text-destructive-foreground hover:-translate-y-0.5 active:translate-y-0.5 active:shadow-none cursor-pointer">
+											<Trash2 className="size-4" strokeWidth={2.5} />
+										</button>
+									)}
 								</div>
-								{post.caption && (
-									<p className="mt-2 text-xs font-medium text-muted-foreground leading-relaxed">
-										{post.caption}
-									</p>
-								)}
-							</div>
-						</article>
-					))}
+								<div className="border-t-[length:var(--border-width)] border-black p-4">
+									<div className="flex items-center justify-between">
+										<div className="flex items-center gap-2.5">
+											<Avatar className="size-8 border-[length:var(--border-width)] border-black shadow-brutal-xs">
+												<AvatarImage
+													src={post.userAvatar || DEFAULT_AVATAR_URL}
+													alt={post.user}
+													className="object-cover"
+												/>
+												<AvatarFallback className="text-xs font-black bg-primary text-primary-foreground">
+													{post.avatar}
+												</AvatarFallback>
+											</Avatar>
+											<div>
+												<div className="flex items-center gap-1.5">
+													<p className="text-sm font-black">{post.user}</p>
+													{isOwner && (
+														<span className="border border-black bg-primary text-primary-foreground px-1.5 py-0.2 font-mono text-[9px] font-black uppercase rounded shadow-brutal-xs">
+															You
+														</span>
+													)}
+												</div>
+												<div className="flex items-center gap-1.5 mt-0.5">
+													<span className="font-mono text-[10px] text-muted-foreground font-semibold">
+														{post.timeAgo}
+													</span>
+													{post.expiresIn && (
+														<span className="inline-flex items-center gap-1 border border-black/20 rounded px-1.5 py-0.5 bg-muted font-mono text-[9px] font-bold text-muted-foreground">
+															<Clock className="size-2.5 text-amber-500" />
+															<span>{post.expiresIn}</span>
+														</span>
+													)}
+												</div>
+											</div>
+										</div>
+										<button
+											type="button"
+											onClick={() => handleLike(post.id)}
+											className={cn(
+												'flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md px-2.5 py-1.5 font-mono text-xs font-bold transition-all hover:-translate-y-0.5 hover:shadow-brutal-xs active:translate-y-0.5 active:shadow-none cursor-pointer',
+												post.isLikedByMe
+													? 'bg-red-400 text-black shadow-brutal-xs'
+													: 'bg-card text-foreground hover:bg-secondary'
+											)}>
+											<Heart
+												className={cn('size-3.5', post.isLikedByMe ? 'fill-current' : '')}
+												strokeWidth={2.5}
+											/>
+											<span className="tabular-nums font-black">{post.likes}</span>
+										</button>
+									</div>
+									{post.caption && (
+										<p className="mt-2 text-xs font-medium text-muted-foreground leading-relaxed">
+											{post.caption}
+										</p>
+									)}
+								</div>
+							</article>
+						);
+					})}
 				</section>
 			)}
 
@@ -307,6 +376,67 @@ export default function ExplorePage() {
 					{loading ? 'Refreshing...' : 'Refresh feed'}
 				</Button>
 			</div>
+
+			<Dialog
+				open={Boolean(postToDelete)}
+				onOpenChange={(open) => !open && !isDeleting && setPostToDelete(null)}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<div className="mx-auto flex size-12 items-center justify-center rounded-xl border-[length:var(--border-width)] border-black bg-destructive/10 text-destructive shadow-brutal-xs mb-2">
+							<Trash2 className="size-6" strokeWidth={2.5} />
+						</div>
+						<DialogTitle className="text-xl font-black font-title text-center">
+							Delete Your Smile Photo?
+						</DialogTitle>
+						<DialogDescription className="font-mono text-xs text-center text-muted-foreground pt-1">
+							This will permanently remove your picture and score from the public Explore feed and delete the uploaded image file.
+						</DialogDescription>
+					</DialogHeader>
+
+					{postToDelete?.imageUrl && (
+						<div className="relative mx-auto aspect-[4/3] w-48 overflow-hidden rounded-lg border-[length:var(--border-width)] border-black bg-muted shadow-brutal-xs my-2">
+							<img
+								src={postToDelete.imageUrl}
+								alt="Preview of smile to delete"
+								className="size-full object-cover"
+							/>
+							<div className="absolute left-2 top-2 flex items-center gap-1 border border-black rounded bg-card px-1.5 py-0.5 font-mono text-[10px] font-black shadow-brutal-xs">
+								<ScanFace className="size-3" strokeWidth={2.5} />
+								<span>{postToDelete.score} / 100</span>
+							</div>
+						</div>
+					)}
+
+					<DialogFooter className="mt-4 flex flex-col-reverse sm:flex-row gap-2 sm:gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							disabled={isDeleting}
+							onClick={() => setPostToDelete(null)}
+							className="font-mono text-xs font-bold uppercase border-[length:var(--border-width)] border-black shadow-brutal-xs">
+							Keep Photo
+						</Button>
+						<Button
+							type="button"
+							variant="destructive"
+							disabled={isDeleting}
+							onClick={handleDeleteConfirm}
+							className="gap-2 font-mono text-xs font-black uppercase border-[length:var(--border-width)] border-black shadow-brutal-xs">
+							{isDeleting ? (
+								<>
+									<RefreshCw className="size-3.5 animate-spin" />
+									Deleting...
+								</>
+							) : (
+								<>
+									<Trash2 className="size-3.5" strokeWidth={2.5} />
+									Delete Forever
+								</>
+							)}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</main>
 	);
 }

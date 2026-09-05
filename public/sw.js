@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'open-smile-v1';
+const CACHE_VERSION = 'open-smile-v2';
 const CACHE_STATIC = `static-${CACHE_VERSION}`;
 const CACHE_MODELS = `models-${CACHE_VERSION}`;
 const CACHE_DYNAMIC = `dynamic-${CACHE_VERSION}`;
@@ -44,6 +44,19 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (!url.protocol.startsWith('http')) {
+    return;
+  }
+
+  // Bypass service worker fetch interception for external avatar & media providers.
+  // This allows the browser to stream images natively under img-src without SW connect-src CSP restrictions.
+  if (
+    url.hostname.includes('googleusercontent.com') ||
+    url.hostname.includes('google.com') ||
+    url.hostname.includes('githubusercontent.com') ||
+    url.hostname.includes('imagekit.io') ||
+    url.hostname.includes('unsplash.com') ||
+    url.hostname.includes('pravatar.cc')
+  ) {
     return;
   }
 
@@ -143,7 +156,10 @@ self.addEventListener('fetch', (event) => {
           });
           return networkResponse;
         })
-        .catch(() => cachedResponse);
+        .catch(() => {
+          if (cachedResponse) return cachedResponse;
+          return new Response(null, { status: 408, statusText: 'Network Unavailable' });
+        });
     })
   );
 });

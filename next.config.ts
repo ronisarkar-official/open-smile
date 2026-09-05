@@ -8,14 +8,21 @@ const isDev = process.env.NODE_ENV === 'development';
 const scriptSrc = ["'self'", "'unsafe-inline'"];
 if (isDev) scriptSrc.push("'unsafe-eval'"); // Turbopack dev may eval modules
 
-const connectSrc = ["'self'", 'https://*.imagekit.io'];
+const connectSrc = [
+	"'self'",
+	'https://*.imagekit.io',
+	'https://*.googleusercontent.com',
+	'https://lh3.googleusercontent.com',
+	'https://*.google.com',
+	'https://avatars.githubusercontent.com',
+];
 if (isDev) connectSrc.push('ws:', 'wss:'); // dev HMR websockets
 
 const cspParts = [
 	`default-src 'self'`,
 	`script-src ${scriptSrc.join(' ')} 'wasm-unsafe-eval'`,
 	`style-src 'self' 'unsafe-inline'`,
-	`img-src 'self' data: blob: https://ik.imagekit.io https://avatars.githubusercontent.com https://lh3.googleusercontent.com https://xubohuah.github.io https://images.unsplash.com https://i.pravatar.cc https://cdn.simpleicons.org https://www.google.com`,
+	`img-src 'self' data: blob: https://ik.imagekit.io https://avatars.githubusercontent.com https://*.googleusercontent.com https://lh3.googleusercontent.com https://*.google.com https://xubohuah.github.io https://images.unsplash.com https://i.pravatar.cc https://cdn.simpleicons.org https://www.google.com`,
 	`font-src 'self' data:`,
 	`connect-src ${connectSrc.join(' ')}`,
 	`media-src 'self' blob: data:`,
@@ -64,7 +71,15 @@ const nextConfig: NextConfig = {
 			},
 			{
 				protocol: 'https',
+				hostname: '*.googleusercontent.com',
+			},
+			{
+				protocol: 'https',
 				hostname: 'lh3.googleusercontent.com',
+			},
+			{
+				protocol: 'https',
+				hostname: '*.google.com',
 			},
 			{
 				protocol: 'https',

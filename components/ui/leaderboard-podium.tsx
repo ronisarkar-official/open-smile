@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { Crown, Sparkles, Trophy } from "lucide-react"
 
 import { cn } from "@/lib/utils"
-import { DEFAULT_AVATAR_URL } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from "@/components/ui/avatar"
 
 // Types (inlined)
 interface LeaderboardRanking {
@@ -203,15 +203,22 @@ const LeaderboardPodium = React.forwardRef<
               <div className="relative mb-2 sm:mb-3 flex items-center justify-center" aria-hidden="true">
                 {showAvatar ? (
                   <div className="relative">
-                    <img
-                      src={avatarSrc}
-                      alt={`${displayName} avatar`}
+                    <Avatar
                       className={cn(
-                        "rounded-full border-2 border-border/80 object-cover shadow-sm transition-all duration-200 group-hover:scale-105",
+                        "rounded-full border-2 border-border/80 shadow-sm transition-all duration-200 group-hover:scale-105",
                         isFirstPlace && "border-rank-1 ring-2 sm:ring-4 ring-rank-1/30",
                         avatarSize
                       )}
-                    />
+                    >
+                      <AvatarImage
+                        src={avatarSrc}
+                        alt={`${displayName} avatar`}
+                        className="size-full object-cover"
+                      />
+                      <AvatarFallback className="bg-primary text-primary-foreground font-black text-xs sm:text-sm uppercase select-none flex items-center justify-center size-full">
+                        {displayName.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
                     {isFirstPlace && (
                       <div className="absolute -top-3 left-1/2 -translate-x-1/2 flex items-center justify-center text-rank-1 animate-bounce">
                         <Sparkles className="size-3.5 sm:size-4.5" />

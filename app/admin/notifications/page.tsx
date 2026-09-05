@@ -9,7 +9,6 @@ import {
 	Trophy,
 	Sparkles,
 	Camera,
-	ShieldCheck,
 	AlertCircle,
 	Search,
 	Trash2,
@@ -40,6 +39,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { AdminUserCombobox } from '@/components/admin/admin-user-combobox';
+import { AdminAiGeneratorDialog } from '@/components/admin/admin-ai-generator-dialog';
 import { MarkdownEditor } from '@/components/ui/markdown-editor';
 import { MarkdownView } from '@/components/ui/markdown-view';
 
@@ -81,7 +81,6 @@ const ICONS = [
 	{ id: 'trophy', label: 'Trophy (Podium)', icon: Trophy },
 	{ id: 'sparkles', label: 'Sparkles', icon: Sparkles },
 	{ id: 'camera', label: 'Camera', icon: Camera },
-	{ id: 'shield', label: 'Shield (Security)', icon: ShieldCheck },
 	{ id: 'alert', label: 'Alert Warning', icon: AlertCircle },
 ];
 
@@ -351,11 +350,27 @@ export default function AdminNotificationsPage() {
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 					{/* Composer Form */}
 					<div className="lg:col-span-7 border-[length:var(--border-width)] border-black rounded-xl p-5 sm:p-6 bg-card shadow-brutal space-y-5">
-						<div>
-							<h3 className="font-title font-black text-lg">Compose Notification</h3>
-							<p className="font-mono text-xs text-muted-foreground">
-								Target all registered users, active smilers, or an individual account
-							</p>
+						<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b-[length:var(--border-width)] border-black/15 pb-4">
+							<div>
+								<h3 className="font-title font-black text-lg">Compose Notification</h3>
+								<p className="font-mono text-xs text-muted-foreground">
+									Target all registered users, active smilers, or an individual account
+								</p>
+							</div>
+							<AdminAiGeneratorDialog
+								mode="notification"
+								audience={target === 'specific' ? 'specific' : 'all'}
+								user={selectedUserObj}
+								category={category}
+								onApplyNotification={(draft) => {
+									setTitle(draft.title);
+									setDescription(draft.description);
+									setCategory(draft.category);
+									setIconType(draft.icon_type);
+									if (draft.action_label) setActionLabel(draft.action_label);
+									if (draft.action_url) setActionUrl(draft.action_url);
+								}}
+							/>
 						</div>
 
 						{/* Target Audience */}

@@ -99,6 +99,7 @@ export async function GET(request: NextRequest) {
 				timeAgo: formatTimeAgo(r.created_at),
 				expiresIn: `${hoursRemaining}h left`,
 				isLikedByMe: Boolean(r.is_liked_by_me),
+				isMine: Boolean(currentUserId && String(r.user_id) === String(currentUserId)),
 				bg: bgClasses[idx % bgClasses.length],
 			};
 		});

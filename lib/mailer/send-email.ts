@@ -33,9 +33,6 @@ function textToHtml(text: string, subject: string): string {
 }
 
 function getActiveProvider(): EmailProviderType {
-	if (process.env.RESEND_API_KEY?.trim()) {
-		return "resend";
-	}
 	const user = process.env.EMAIL_USER?.trim();
 	const pass = process.env.EMAIL_PASS?.replace(/\s+/g, "");
 	if (
@@ -68,39 +65,7 @@ function devLog(to: string, subject: string, text: string, from: string) {
 	console.log("=========================================\n");
 }
 
-async function sendViaResend(
-	apiKey: string,
-	from: string,
-	to: string,
-	subject: string,
-	html: string,
-	text: string,
-	replyTo?: string
-): Promise<{ id: string }> {
-	const res = await fetch("https://api.resend.com/emails", {
-		method: "POST",
-		headers: {
-			Authorization: `Bearer ${apiKey}`,
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({
-			from,
-			to: [to],
-			subject,
-			html,
-			text,
-			...(replyTo ? { reply_to: replyTo } : {}),
-		}),
-	});
 
-	if (!res.ok) {
-		const errText = await res.text();
-		throw new Error(`Resend API error (${res.status}): ${errText}`);
-	}
-
-	const data = (await res.json()) as { id: string };
-	return { id: data.id || "resend-ok" };
-}
 
 function createSmtpTransporter() {
 	const host = process.env.EMAIL_HOST?.trim();
@@ -214,57 +179,7 @@ export async function sendEmailSafe(input: EmailInput): Promise<SendEmailResult>
 			};
 		}
 
-		if (provider === "resend") {
-			const apiKey = process.env.RESEND_API_KEY!.trim();
-			try {
-				const result = await sendViaResend(
-					apiKey,
-					formattedFrom,
-					to,
-					subject,
-					resolvedHtml,
-					text,
-					replyTo
-				);
 
-				await insertEmailLog({
-					recipient_email: to,
-					user_id: userId,
-					template,
-					subject,
-					status: "sent",
-					provider: "resend",
-					message_id: result.id,
-					metadata,
-				}).catch(() => {});
-
-				return {
-					success: true,
-					status: "sent",
-					provider: "resend",
-					messageId: result.id,
-				};
-			} catch (resendErr) {
-				const errorMsg = resendErr instanceof Error ? resendErr.message : String(resendErr);
-				await insertEmailLog({
-					recipient_email: to,
-					user_id: userId,
-					template,
-					subject,
-					status: "failed",
-					provider: "resend",
-					error: errorMsg,
-					metadata,
-				}).catch(() => {});
-
-				return {
-					success: false,
-					status: "failed",
-					provider: "resend",
-					error: errorMsg,
-				};
-			}
-		}
 
 		const transporter = createSmtpTransporter();
 		const info = await transporter.sendMail({
@@ -324,7 +239,6 @@ export async function sendEmail(input: EmailInput): Promise<void> {
 
 export async function verifyMailTransport(): Promise<MailerDiagnostics> {
 	const provider = getActiveProvider();
-	const hasResendKey = Boolean(process.env.RESEND_API_KEY?.trim());
 	const hasSmtpUser = Boolean(process.env.EMAIL_USER?.trim());
 	const hasSmtpPass = Boolean(process.env.EMAIL_PASS?.trim());
 	const smtpHost = process.env.EMAIL_HOST?.trim() || "smtp.gmail.com";
@@ -332,7 +246,6 @@ export async function verifyMailTransport(): Promise<MailerDiagnostics> {
 	const { fromAddress } = getSenderInfo();
 
 	const details = {
-		hasResendKey,
 		hasSmtpUser,
 		hasSmtpPass,
 		smtpHost,
@@ -347,42 +260,6 @@ export async function verifyMailTransport(): Promise<MailerDiagnostics> {
 			latencyMs: 1,
 			details,
 		};
-	}
-
-	if (provider === "resend") {
-		const start = Date.now();
-		try {
-			const res = await fetch("https://api.resend.com/api-keys", {
-				method: "GET",
-				headers: {
-					Authorization: `Bearer ${process.env.RESEND_API_KEY!.trim()}`,
-				},
-			});
-			const latencyMs = Date.now() - start;
-			if (res.ok) {
-				return {
-					healthy: true,
-					provider: "resend",
-					latencyMs,
-					details,
-				};
-			}
-			return {
-				healthy: false,
-				provider: "resend",
-				latencyMs,
-				error: `Resend authentication check returned status ${res.status}`,
-				details,
-			};
-		} catch (err) {
-			return {
-				healthy: false,
-				provider: "resend",
-				latencyMs: Date.now() - start,
-				error: err instanceof Error ? err.message : String(err),
-				details,
-			};
-		}
 	}
 
 	const start = Date.now();

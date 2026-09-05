@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MediaPipeDrawingSpecCard } from "@/components/admin/mediapipe-drawingspec-card";
+import { AdminAiSettingsCard } from "@/components/admin/admin-ai-settings-card";
 import {
 	DEFAULT_DRAWING_SPEC,
 	type MediaPipeDrawingSpec,
@@ -611,7 +612,7 @@ const PODIUM_TIERS = [
 	},
 ];
 
-type SettingsTab = "all" | "modules" | "vision" | "economics" | "podiums" | "danger";
+type SettingsTab = "all" | "modules" | "ai" | "vision" | "economics" | "podiums" | "danger";
 
 export default function AdminSettingsPage() {
 	const { toast } = useToast();
@@ -622,6 +623,15 @@ export default function AdminSettingsPage() {
 
 	const [activeTab, setActiveTab] = React.useState<SettingsTab>("all");
 	const [searchQuery, setSearchQuery] = React.useState("");
+
+	React.useEffect(() => {
+		if (typeof window !== "undefined") {
+			const tab = new URLSearchParams(window.location.search).get("tab");
+			if (tab && ["all", "modules", "ai", "vision", "economics", "podiums", "danger"].includes(tab)) {
+				setActiveTab(tab as SettingsTab);
+			}
+		}
+	}, []);
 	const [isSavingDrawingSpec, setIsSavingDrawingSpec] = React.useState(false);
 
 	const [cleanupLoading, setCleanupLoading] = React.useState(false);
@@ -935,6 +945,21 @@ export default function AdminSettingsPage() {
 
 	const showModules =
 		activeTab === "all" || activeTab === "modules" || (normalizedSearch.length > 0 && (filteredFeatureSwitches.length > 0 || filteredAntiCheatSwitches.length > 0));
+	const showAi =
+		activeTab === "all" ||
+		activeTab === "ai" ||
+		(normalizedSearch.length > 0 &&
+			("ai".includes(normalizedSearch) ||
+				"engine".includes(normalizedSearch) ||
+				"llm".includes(normalizedSearch) ||
+				"model".includes(normalizedSearch) ||
+				"provider".includes(normalizedSearch) ||
+				"groq".includes(normalizedSearch) ||
+				"gemini".includes(normalizedSearch) ||
+				"openai".includes(normalizedSearch) ||
+				"openrouter".includes(normalizedSearch) ||
+				"custom".includes(normalizedSearch) ||
+				"api key".includes(normalizedSearch)));
 	const showEconomics =
 		activeTab === "all" || activeTab === "economics" || (normalizedSearch.length > 0 && (filteredAntiCheatNumbers.length > 0 || filteredEconomyNumbers.length > 0));
 	const showVision =
@@ -1010,6 +1035,7 @@ export default function AdminSettingsPage() {
 						[
 							{ id: "all", label: "All", icon: Layers },
 							{ id: "modules", label: "Modules", icon: Shield },
+							{ id: "ai", label: "AI Engine", icon: Sparkles },
 							{ id: "vision", label: "MediaPipe Vision", icon: ScanFace },
 							{ id: "economics", label: "Economics", icon: Coins },
 							{ id: "podiums", label: "Podiums", icon: Trophy },
@@ -1118,6 +1144,14 @@ export default function AdminSettingsPage() {
 						})}
 					</div>
 				</div>
+			) : null}
+
+			{/* Section: AI Engine & Custom Providers */}
+			{showAi ? (
+				<AdminAiSettingsCard
+					currentSettings={settings}
+					onSettingsUpdated={() => fetchSettings(true)}
+				/>
 			) : null}
 
 			{/* Section: MediaPipe Vision & DrawingSpec */}

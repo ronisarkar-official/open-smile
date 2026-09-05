@@ -26,9 +26,23 @@ function AvatarImage({
 	className,
 	src,
 	alt,
+	onError,
 	...props
 }: React.ComponentProps<typeof AvatarPrimitive.Image>) {
-	const imageSrc = src || DEFAULT_AVATAR_URL;
+	const [imageSrc, setImageSrc] = React.useState<string | Blob | undefined>(
+		src || DEFAULT_AVATAR_URL,
+	);
+
+	React.useEffect(() => {
+		setImageSrc(src || DEFAULT_AVATAR_URL);
+	}, [src]);
+
+	const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+		if (imageSrc !== DEFAULT_AVATAR_URL) {
+			setImageSrc(DEFAULT_AVATAR_URL);
+		}
+		onError?.(e);
+	};
 
 	return (
 		<AvatarPrimitive.Image
@@ -36,7 +50,7 @@ function AvatarImage({
 			src={imageSrc}
 			alt={alt}
 			referrerPolicy="no-referrer"
-			crossOrigin="anonymous"
+			onError={handleError}
 			className={cn('aspect-square size-full object-cover', className)}
 			{...props}
 		/>

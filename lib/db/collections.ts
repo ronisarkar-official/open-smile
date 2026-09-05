@@ -11,6 +11,7 @@ import {
 	getDaysAgoInIST,
 } from '@/lib/ist-date';
 import { DEFAULT_DRAWING_SPEC } from '@/lib/mediapipe-drawing';
+import { DEFAULT_AI_CONFIG } from '@/lib/ai/types';
 
 function generateSessionToken(): string {
 	return crypto.randomBytes(32).toString('base64url');
@@ -849,7 +850,7 @@ export async function getLeaderboardSmileRankings(
 		SELECT 
 			u.id AS user_id,
 			COALESCE(u.name, 'Smiler') AS user_name,
-			COALESCE(u.image, '/icons/default-icon.webp') AS avatar_url,
+			COALESCE(NULLIF(TRIM(u.image), ''), '/icons/default-icon.webp') AS avatar_url,
 			COALESCE(u.streak_count, 0) AS streak_count,
 			SUM(dup.daily_points)::int AS primary_value
 		 FROM "user" u
@@ -871,7 +872,7 @@ export async function getLeaderboardSmileRankings(
 		SELECT 
 			u.id AS user_id,
 			COALESCE(u.name, 'Smiler') AS user_name,
-			COALESCE(u.image, '/icons/default-icon.webp') AS avatar_url,
+			COALESCE(NULLIF(TRIM(u.image), ''), '/icons/default-icon.webp') AS avatar_url,
 			COALESCE(u.streak_count, 0) AS streak_count,
 			SUM(dup.daily_points)::int AS primary_value
 		 FROM "user" u
@@ -2514,6 +2515,50 @@ export async function adminDeleteExplorePost(
 	}
 }
 
+export async function deleteUserExplorePost(
+	userId: string,
+	postId: string,
+): Promise<{ success: boolean; deleted: boolean; error?: string }> {
+	const pool = getPool();
+	const client = await pool.connect();
+	try {
+		await client.query('BEGIN');
+
+		const checkRes = await client.query(
+			`SELECT id, image_url FROM explore_posts WHERE id = $1 AND user_id = $2`,
+			[postId, userId],
+		);
+
+		if (checkRes.rows.length === 0) {
+			await client.query('ROLLBACK');
+			return { success: false, deleted: false, error: 'Post not found or unauthorized' };
+		}
+
+		const imageUrl = checkRes.rows[0]?.image_url;
+
+		await client.query(`DELETE FROM explore_likes WHERE post_id = $1`, [postId]);
+		await client.query(`DELETE FROM likes WHERE post_id = $1`, [postId]);
+		await client.query(`DELETE FROM posts WHERE id = $1 AND user_id = $2`, [postId, userId]);
+		const del = await client.query(
+			`DELETE FROM explore_posts WHERE id = $1 AND user_id = $2 RETURNING id`,
+			[postId, userId],
+		);
+
+		await client.query('COMMIT');
+
+		if (imageUrl && typeof imageUrl === 'string' && imageUrl.includes('ik.imagekit.io')) {
+			deleteFromImageKitByUrl(imageUrl).catch(() => {});
+		}
+
+		return { success: true, deleted: (del.rowCount || 0) > 0 };
+	} catch (err) {
+		await client.query('ROLLBACK');
+		throw err;
+	} finally {
+		client.release();
+	}
+}
+
 export async function getSystemSettings() {
 	const pool = getPool();
 	const { rows } = await pool.query(
@@ -2580,6 +2625,7 @@ export async function getSystemSettingsMap(): Promise<Record<string, any>> {
 		monthly_podium_3_max_coins: 350,
 		palm_shutter_enabled: true,
 		mediapipe_drawing_spec: DEFAULT_DRAWING_SPEC,
+		ai_config: DEFAULT_AI_CONFIG,
 	};
 	for (const row of rows) {
 		defaults[row.key] = row.value;
@@ -4335,9 +4381,7 @@ export async function getEmailStats(): Promise<{
 	const successRate = total > 0 ? Math.round((successful / total) * 100) : 100;
 
 	let activeProvider = 'Mock (Development)';
-	if (process.env.RESEND_API_KEY) {
-		activeProvider = 'Resend (HTTPS)';
-	} else if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+	if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
 		activeProvider = 'SMTP (Nodemailer)';
 	}
 

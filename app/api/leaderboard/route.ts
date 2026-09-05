@@ -132,7 +132,7 @@ export async function GET(request: NextRequest) {
 						byline: getSmileByline(period, userRank.primary_value),
 						value: userRank.primary_value,
 						change: 0,
-						avatarUrl: (currentUser as any).image || '/icons/default-icon.webp',
+						avatarUrl: (currentUser as any).image?.trim() || '/icons/default-icon.webp',
 						isCurrentUser: true,
 						displayed: true,
 					};
