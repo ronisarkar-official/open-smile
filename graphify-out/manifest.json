@@ -984,9 +984,9 @@
     "semantic_hash": ""
   },
   "DESIGN.md": {
-    "mtime": 1787458755.805766,
-    "seen": 1788164055.4971888,
-    "ast_hash": "ec9f8c7d9df2787b25e228fe8955cdaf",
+    "mtime": 1788714102.8869672,
+    "seen": 1788714129.0264804,
+    "ast_hash": "d85191c0cf71d4b716e29c7165a7f1d4",
     "semantic_hash": ""
   },
   "PRD.md": {
@@ -996,15 +996,15 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1787421910.6360197,
-    "seen": 1788164055.497191,
-    "ast_hash": "52cb8f668fb0f48736f63fb3aeacb31f",
+    "mtime": 1788714567.5885172,
+    "seen": 1788714597.5467105,
+    "ast_hash": "7c8781ab3d504ecd1c1c13e48b84b532",
     "semantic_hash": ""
   },
   "architecture.md": {
-    "mtime": 1787745570.2452338,
-    "seen": 1788164055.4971917,
-    "ast_hash": "66173f69b0596298d0b3d7745995b7d3",
+    "mtime": 1788714313.8482392,
+    "seen": 1788714326.8236613,
+    "ast_hash": "831855751db77100a7e9ae5feedcf7f2",
     "semantic_hash": ""
   },
   "rules.md": {
@@ -1605,18 +1605,6 @@
     "mtime": 1788371758.7911506,
     "seen": 1788372136.2797742,
     "ast_hash": "658a9f6cc2b90aa309618f5ec9784128",
-    "semantic_hash": ""
-  },
-  "BACKEND_IMPLEMENTATION_ANALYSIS.md": {
-    "mtime": 1788372305.4783914,
-    "seen": 1788372624.0234132,
-    "ast_hash": "ab5fc57c5a7291bffcc782a67bf82103",
-    "semantic_hash": ""
-  },
-  "admin-implementation_plan.md": {
-    "mtime": 1788372305.478919,
-    "seen": 1788372624.0234172,
-    "ast_hash": "d1df03313f4df5244e748b6b637d45e7",
     "semantic_hash": ""
   },
   "app/(dashboard)/streak/page.tsx": {

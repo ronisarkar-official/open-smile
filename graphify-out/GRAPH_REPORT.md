@@ -1,16 +1,16 @@
-# Graph Report - open-smile  (2026-09-05)
+# Graph Report - open-smile  (2026-09-06)
 
 ## Corpus Check
-- 332 files · ~293,373 words
+- 330 files · ~288,531 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 2803 nodes · 5396 edges · 194 communities (120 shown, 67 thin omitted)
+- 2752 nodes · 5348 edges · 194 communities (120 shown, 66 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 106 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `77ea5dd9`
+- Built from commit: `03a01729`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -24,22 +24,22 @@
 - cn
 - primitives/animate/tooltip.tsx
 - smile-result-screen.tsx
-- button.tsx
+- (dashboard)/explore/page.tsx
 - routers/rewards.py
 - compilerOptions
 - devDependencies
 - getSystemSettingsMap
 - components.json
-- profile-content.tsx
+- button.tsx
 - requireServerAdmin
 - app/page.tsx
 - rateLimit
 - voucher-marketplace.tsx
 - mailer/page.tsx
 - highlight.tsx
-- Open Smile — Backend Architecture & Implementation Gap Analysis (FastAPI on Vercel)
-- getUserCoinBalance
-- getPool
+- dashboard/sidebar.tsx
+- icons.tsx
+- collections.ts
 - my-team.tsx
 - database.py
 - abort
@@ -49,12 +49,12 @@
 - capture-celebration-overlay.tsx
 - webcam-view.tsx
 - test_backend.py
-- combobox.tsx
+- popover.tsx
 - routers/refer.py
 - utils.ts
 - ExceptionInfo
 - ExceptionInfo
-- collections.ts
+- db/index.ts
 - routers/streaks.py
 - Surfaces
 - dashboard/settings/page.tsx
@@ -69,9 +69,9 @@
 - createWasm
 - dependencies.py
 - DESIGN.md
-- Admin Control Panel & Full Feature Management System
+- getUserCoinBalance
 - next.config.ts
-- ai/client.ts
+- admin-ai-settings-card.tsx
 - rewards-view.tsx
 - score-reveal.tsx
 - makeEntry
@@ -109,16 +109,16 @@
 - scratch-card-modal.tsx
 - @imagekit/next
 - leaderboard-card.tsx
-- getUserStreakFullDetails
+- auth/index.ts
 - Contextual Icon Animations
-- db/index.ts
-- [username]/page.tsx
+- requireServerUser
+- consistency-calendar.tsx
 - app/layout.tsx
 - pg
 - verify-otp/route.ts
 - AdminUsersPage
 - users/[id]/route.ts
-- radix/checkbox.tsx
+- vouchers/page.tsx
 - Scale on Press
 - framer-motion
 - @radix-ui/react-label
@@ -127,8 +127,8 @@
 - @imagekit/nodejs
 - index.py
 - verify-otp/page.tsx
-- admin/layout.tsx
-- settings/route.ts
+- ui/dropdown-menu.tsx
+- ui/sheet.tsx
 - postcss.config.mjs
 - close
 - convertReturnValue
@@ -180,26 +180,25 @@
 - Transition Only What Changes
 - Typography
 - Architecture — Open Smile
-- README.md
+- Open Smile 😁
 - Details that make interfaces feel better
 - Security — Open Smile
-- apply supabase/migrations/001_init.sql against your Supabase Postgres instance
+- settings/route.ts
 - Shadows Instead of Borders
 - scripts
-- hand-gesture.ts
-- Colors
-- Typography
+- toast.tsx
+- Getting started
 - CLAUDE.md
 - copilot-instructions.md
 - schema.md
 - @number-flow/react
 - AdminSettingsPage
-- slot.tsx
+- badge.tsx
 - reward-calculator.ts
 - clsx
 - @floating-ui/react
 - footer.tsx
-- LivenessDetector
+- Physics, Motion & Interactions
 - @radix-ui/react-slot
 - ui/animated-number-countdown.tsx
 - navbar.tsx
@@ -207,7 +206,7 @@
 - vercel.json
 - @radix-ui/react-accordion
 - capture-flow.tsx
-- AdminExplorePage
+- useToast
 - @supabase/supabase-js
 - react
 - react-dom
@@ -236,19 +235,19 @@
 ## Surprising Connections (you probably didn't know these)
 - `SettingsPage()` --calls--> `cn()`  [EXTRACTED]
   app/(dashboard)/dashboard/settings/page.tsx → lib/utils.ts
-- `handleLogoUpload()` --calls--> `convertToWebP()`  [EXTRACTED]
-  app/admin/vouchers/page.tsx → lib/convert-to-webp.ts
-- `generateMetadata()` --calls--> `getUserPublicProfileByUsername()`  [EXTRACTED]
-  app/u/[username]/page.tsx → lib/db/collections.ts
-- `PublicProfilePage()` --calls--> `getUserPublicProfileByUsername()`  [EXTRACTED]
-  app/u/[username]/page.tsx → lib/db/collections.ts
-- `SheetOverlay()` --calls--> `cn()`  [EXTRACTED]
-  components/animate-ui/components/radix/sheet.tsx → lib/utils.ts
+- `MediaPipeDrawingSpecCardProps` --references--> `MediaPipeDrawingSpec`  [EXTRACTED]
+  components/admin/mediapipe-drawingspec-card.tsx → lib/mediapipe-drawing.ts
+- `DropdownMenuSubTrigger()` --calls--> `cn()`  [EXTRACTED]
+  components/animate-ui/components/radix/dropdown-menu.tsx → lib/utils.ts
+- `DropdownMenuSubContent()` --calls--> `cn()`  [EXTRACTED]
+  components/animate-ui/components/radix/dropdown-menu.tsx → lib/utils.ts
+- `DropdownMenuCheckboxItem()` --calls--> `cn()`  [EXTRACTED]
+  components/animate-ui/components/radix/dropdown-menu.tsx → lib/utils.ts
 
 ## Import Cycles
 - None detected.
 
-## Communities (194 total, 67 thin omitted)
+## Communities (194 total, 66 thin omitted)
 
 ### Community 0 - "vision_wasm_internal.js"
 Cohesion: 0.01
@@ -260,31 +259,31 @@ Nodes (16): RFC-2279, RFC-3629, NOTE: In our implementation, st_blocks = Math.ce
 
 ### Community 3 - "send-email.ts"
 Cohesion: 0.08
-Nodes (50): dynamic, POST(), dynamic, POST(), { GET, POST, PATCH, PUT, DELETE }, POST(), GET(), getPreviewHtml() (+42 more)
+Nodes (52): dynamic, POST(), dynamic, POST(), POST(), getClientIp(), POST(), GET() (+44 more)
 
 ### Community 4 - "components/radix/sheet.tsx"
-Cohesion: 0.07
-Nodes (38): Sheet(), SheetCloseProps, SheetContent(), SheetContentProps, SheetDescription(), SheetDescriptionProps, SheetFooter(), SheetFooterProps (+30 more)
+Cohesion: 0.06
+Nodes (43): Sheet(), SheetCloseProps, SheetContentProps, SheetDescriptionProps, SheetFooter(), SheetFooterProps, SheetHeaderProps, SheetOverlay() (+35 more)
 
 ### Community 5 - "radix/sidebar.tsx"
-Cohesion: 0.05
-Nodes (41): [LocalSidebarProvider, useSidebar], SidebarContentProps, SidebarContextProps, SidebarFooter(), SidebarFooterProps, SidebarGroupAction(), SidebarGroupActionProps, SidebarGroupContent() (+33 more)
+Cohesion: 0.04
+Nodes (47): SheetContent(), SheetDescription(), SheetHeader(), SheetTitle(), [LocalSidebarProvider, useSidebar], SidebarContentProps, SidebarContextProps, SidebarFooter() (+39 more)
 
 ### Community 6 - "cn"
-Cohesion: 0.03
-Nodes (93): DropdownMenu(), DropdownMenuCheckboxItem(), DropdownMenuContent(), DropdownMenuGroup(), DropdownMenuItem(), DropdownMenuLabel(), DropdownMenuRadioItem(), DropdownMenuSeparator() (+85 more)
+Cohesion: 0.06
+Nodes (44): ReferPage(), Collapsible(), CollapsibleContent(), CollapsibleContentProps, CollapsibleProps, CollapsibleTrigger(), CollapsibleTriggerProps, AvatarUpload() (+36 more)
 
 ### Community 7 - "primitives/animate/tooltip.tsx"
-Cohesion: 0.07
-Nodes (36): Tooltip(), TooltipContent(), TooltipContentProps, TooltipProps, TooltipProvider(), TooltipProviderProps, TooltipTrigger(), TooltipTriggerProps (+28 more)
+Cohesion: 0.06
+Nodes (43): Tooltip(), TooltipContent(), TooltipContentProps, TooltipProps, TooltipProvider(), TooltipProviderProps, TooltipTrigger(), TooltipTriggerProps (+35 more)
 
 ### Community 8 - "smile-result-screen.tsx"
-Cohesion: 0.10
-Nodes (13): NeubrutalistPhotoCard(), NeubrutalistPhotoCardProps, ShareExploreModal(), AI_REACTIONS, AiReaction, CONFETTI_COLORS, getAiReaction(), getScoreBarColor() (+5 more)
+Cohesion: 0.17
+Nodes (11): NeubrutalistPhotoCard(), NeubrutalistPhotoCardProps, ShareExploreModal(), AI_REACTIONS, AiReaction, CONFETTI_COLORS, getAiReaction(), getScoreBarColor() (+3 more)
 
-### Community 9 - "button.tsx"
-Cohesion: 0.08
-Nodes (27): ExplorePost, filters, ReferPage(), ReferStatsData, steps, EMAIL_PROMPT_CHIPS, NOTIFICATION_PROMPT_CHIPS, TONES (+19 more)
+### Community 9 - "(dashboard)/explore/page.tsx"
+Cohesion: 0.09
+Nodes (21): ExplorePost, filters, ReferStatsData, steps, ShareExploreModalProps, SocialShareModal(), SocialShareModalProps, BadgeShowcaseProps (+13 more)
 
 ### Community 10 - "routers/rewards.py"
 Cohesion: 0.19
@@ -306,45 +305,45 @@ Nodes (28): GET, POST(), dynamic, GET(), getSmileByline(), revalidate, dynamic, 
 Cohesion: 0.09
 Nodes (22): aliases, components, hooks, lib, ui, utils, iconLibrary, menuAccent (+14 more)
 
-### Community 15 - "profile-content.tsx"
-Cohesion: 0.09
-Nodes (20): CatalogVoucher, CATEGORIES, VOUCHER_TYPES, VoucherType, LoginForm(), SignupForm(), AdminAiSettingsCardProps, POPULAR_MODELS (+12 more)
+### Community 15 - "button.tsx"
+Cohesion: 0.08
+Nodes (21): LoginForm(), SignupForm(), EMAIL_PROMPT_CHIPS, NOTIFICATION_PROMPT_CHIPS, TONES, AdminBootstrapClient(), GitHubIcon(), GoogleIcon() (+13 more)
 
 ### Community 16 - "requireServerAdmin"
 Cohesion: 0.05
-Nodes (61): AdminLayout(), dynamic, POST(), dynamic, GET(), DELETE(), dynamic, dynamic (+53 more)
+Nodes (60): AdminLayout(), dynamic, POST(), DELETE(), dynamic, dynamic, POST(), DELETE() (+52 more)
 
 ### Community 17 - "app/page.tsx"
 Cohesion: 0.11
 Nodes (12): FinalCta(), Footer(), Hero(), HowItWorks(), StepItem, STEPS, TRUST_POINTS, TrustPoint (+4 more)
 
 ### Community 18 - "rateLimit"
-Cohesion: 0.14
-Nodes (21): dynamic, POST(), getClientIp(), POST(), getClientIp(), POST(), getClientIp(), POST() (+13 more)
+Cohesion: 0.17
+Nodes (17): dynamic, POST(), getClientIp(), POST(), getClientIp(), POST(), GET, POST() (+9 more)
 
 ### Community 19 - "voucher-marketplace.tsx"
 Cohesion: 0.13
 Nodes (19): ExplorePage(), ClaimedVouchersList(), ClaimedVouchersListProps, VoucherClaimModal(), VoucherClaimModalProps, ClaimedVoucher, INITIAL_CLAIMED_VOUCHERS, VOUCHER_CATEGORIES (+11 more)
 
 ### Community 20 - "mailer/page.tsx"
-Cohesion: 0.05
-Nodes (54): AdminCapturesPage(), fetchCaptures(), handleFlagCapture(), AdminLogsPage(), AdminMailerPage(), ALL_LOG_TEMPLATES, DISPATCH_TEMPLATES, EmailLogItem (+46 more)
+Cohesion: 0.09
+Nodes (34): ALL_LOG_TEMPLATES, DISPATCH_TEMPLATES, EmailLogItem, MailerStats, SuppressionItem, AdminNotificationItem, CATEGORIES, ICONS (+26 more)
 
 ### Community 21 - "highlight.tsx"
 Cohesion: 0.12
 Nodes (18): BaseHighlightProps, Bounds, ControlledChildrenModeHighlightProps, ControlledParentModeHighlightProps, DEFAULT_BOUNDS_OFFSET, ExtendedChildProps, getNonOverridingDataAttributes(), Highlight() (+10 more)
 
-### Community 22 - "Open Smile — Backend Architecture & Implementation Gap Analysis (FastAPI on Vercel)"
+### Community 22 - "dashboard/sidebar.tsx"
+Cohesion: 0.07
+Nodes (30): DropdownMenu(), DropdownMenuCheckboxItem(), DropdownMenuContent(), DropdownMenuGroup(), DropdownMenuItem(), DropdownMenuLabel(), DropdownMenuRadioItem(), DropdownMenuSeparator() (+22 more)
+
+### Community 23 - "icons.tsx"
+Cohesion: 0.15
+Nodes (15): DashboardStats, DashboardView(), DashboardViewProps, RecentSmile, MILESTONES, StreakViewProps, CoinIconProps, UserCoinBalanceProps (+7 more)
+
+### Community 24 - "collections.ts"
 Cohesion: 0.06
-Nodes (33): 1.1 Smile Capture & Anti-Cheat Pipeline (Subal), 1.2 Streak & Freeze Management (Subal), 1.3 Refer & Earn Program (Subal), 1.4 Serverless Maintenance Crons & Health Check (Subal), 1. System Architecture: Next.js + Python FastAPI (Vercel Serverless), 2.1 Leaderboard & Podium Engine (Akash), 2.2 Rewards & Voucher Marketplace (Akash), 2.3 Explore Feed & Social Smiles (Akash) (+25 more)
-
-### Community 23 - "getUserCoinBalance"
-Cohesion: 0.12
-Nodes (22): dynamic, generateVoucherCode(), POST(), revalidate, dynamic, formatCardDate(), POST(), revalidate (+14 more)
-
-### Community 24 - "getPool"
-Cohesion: 0.08
-Nodes (43): dynamic, GET(), revalidate, GET(), DELETE(), dynamic, GET(), POST() (+35 more)
+Nodes (57): dynamic, GET(), revalidate, GET(), DELETE(), dynamic, GET(), POST() (+49 more)
 
 ### Community 25 - "my-team.tsx"
 Cohesion: 0.21
@@ -375,28 +374,28 @@ Cohesion: 0.33
 Nodes (5): BRUTAL_COLORS, CaptureCelebrationOverlay(), CaptureCelebrationOverlayProps, ConfettiPiece, FlyingCoin
 
 ### Community 32 - "webcam-view.tsx"
-Cohesion: 0.16
-Nodes (20): MediaPipeDrawingSpecCardProps, requestCameraStream(), WebcamView, WebcamViewProps, DEFAULT_SETTINGS, SystemSettingsContext, SystemSettingsContextValue, SystemSettingsProvider() (+12 more)
+Cohesion: 0.13
+Nodes (26): requestCameraStream(), WebcamView, WebcamViewProps, DEFAULT_SETTINGS, SystemSettingsContext, SystemSettingsContextValue, SystemSettingsProvider(), SystemSettingsState (+18 more)
 
 ### Community 33 - "test_backend.py"
 Cohesion: 0.13
 Nodes (25): CaptureRewardBreakdown, CaptureSubmitRequest, CaptureSubmitResponse, BaseModel, get_capture_status(), get, Pool, post (+17 more)
 
-### Community 34 - "combobox.tsx"
-Cohesion: 0.21
-Nodes (9): Combobox(), ComboboxOption, ComboboxProps, Popover(), PopoverContent(), PopoverDescription(), PopoverHeader(), PopoverTitle() (+1 more)
+### Community 34 - "popover.tsx"
+Cohesion: 0.25
+Nodes (6): Popover(), PopoverContent(), PopoverDescription(), PopoverHeader(), PopoverTitle(), PopoverTrigger()
 
 ### Community 35 - "routers/refer.py"
 Cohesion: 0.21
 Nodes (17): BaseModel, ReferralStats, ReferStatsResponse, ReferValidateRequest, ReferValidateResponse, get_stats(), get, Pool (+9 more)
 
 ### Community 36 - "utils.ts"
-Cohesion: 0.12
-Nodes (29): AdminScratchCardItem, dynamic, JoinPageProps, ReferralTracker(), ReferralTrackerProps, MOBILE_NAV_ITEMS, AdminUserComboboxProps, AdminUserItem (+21 more)
+Cohesion: 0.09
+Nodes (36): metadata, AdminScratchCardItem, dynamic, JoinPage(), JoinPageProps, ReferralTracker(), ReferralTrackerProps, AdminHeader() (+28 more)
 
-### Community 39 - "collections.ts"
-Cohesion: 0.08
-Nodes (30): DELETE(), dynamic, GET(), PATCH(), POST(), GET(), POST, JoinPage() (+22 more)
+### Community 39 - "db/index.ts"
+Cohesion: 0.12
+Nodes (16): dynamic, GET(), dynamic, GET(), dynamic, GET(), GET(), POST (+8 more)
 
 ### Community 40 - "routers/streaks.py"
 Cohesion: 0.20
@@ -451,24 +450,24 @@ Cohesion: 0.24
 Nodes (13): extract_session_token_candidates(), get_current_user(), get_optional_user(), Any, Pool, Request, override_auth(), anyio (+5 more)
 
 ### Community 53 - "DESIGN.md"
-Cohesion: 0.17
-Nodes (11): Accessibility Checkpoint, Components, Do's and Don'ts, Elevation & Depth, Layout, Overview, Physics, Shapes (+3 more)
+Cohesion: 0.14
+Nodes (13): Accessibility Checkpoint, Border & Radius System, Border Utilities, Border Widths, Color Palette & Theme Tokens, Component Standards, Dark Mode (`.dark`), Elevation, Depth & Shadow System (+5 more)
 
-### Community 54 - "Admin Control Panel & Full Feature Management System"
-Cohesion: 0.12
-Nodes (16): Admin Control Panel & Full Feature Management System, Admin UI Components & Pages, Authentication & API Layer, Automated / API Verification, Database Layer, Key Features & Structure, Manual UI Verification, [MODIFY] [backend/auth/session.ts](file:///d:/open-smile/backend/auth/session.ts) (+8 more)
+### Community 54 - "getUserCoinBalance"
+Cohesion: 0.11
+Nodes (23): dynamic, generateVoucherCode(), POST(), revalidate, dynamic, formatCardDate(), POST(), revalidate (+15 more)
 
 ### Community 55 - "next.config.ts"
 Cohesion: 0.29
 Nodes (6): connectSrc, ContentSecurityPolicy, cspParts, nextConfig, scriptSrc, securityHeaders
 
-### Community 56 - "ai/client.ts"
-Cohesion: 0.16
-Nodes (21): dynamic, POST(), dynamic, POST(), AdminAiGeneratorDialogProps, callAICompletion(), generateEmailDraft(), generateNotificationDraft() (+13 more)
+### Community 56 - "admin-ai-settings-card.tsx"
+Cohesion: 0.15
+Nodes (23): dynamic, POST(), dynamic, POST(), AdminAiGeneratorDialogProps, AdminAiSettingsCardProps, POPULAR_MODELS, callAICompletion() (+15 more)
 
 ### Community 57 - "rewards-view.tsx"
-Cohesion: 0.12
-Nodes (23): dynamic, metadata, revalidate, DashboardViewProps, RecentSmile, RewardsView(), VoucherTab, ScratchCardGallery() (+15 more)
+Cohesion: 0.20
+Nodes (13): dynamic, metadata, revalidate, RewardsView(), VoucherTab, ScratchCardGallery(), ScratchCardTile(), ScratchCardTileProps (+5 more)
 
 ### Community 58 - "score-reveal.tsx"
 Cohesion: 0.47
@@ -579,36 +578,36 @@ Cohesion: 0.44
 Nodes (8): LeaderboardResponse, PodiumEntry, BaseModel, RankingEntry, UserRank, get_leaderboard(), get, Pool
 
 ### Community 93 - "scratch-card-modal.tsx"
-Cohesion: 0.20
-Nodes (8): ScratchCardTileProps, BACKDROP_TRANSITION, PANEL_TRANSITION, ScratchCardItem, ScratchCardModal(), ScratchCardModalProps, ScratchCard(), ScratchCardProps
+Cohesion: 0.25
+Nodes (6): BACKDROP_TRANSITION, PANEL_TRANSITION, ScratchCardModal(), ScratchCardModalProps, ScratchCard(), ScratchCardProps
 
 ### Community 95 - "leaderboard-card.tsx"
-Cohesion: 0.07
-Nodes (30): metadata, LeaderboardView(), PeriodData, runOptions, ShimmerLine(), StreakView(), updateCountdown(), formatRangeDate() (+22 more)
+Cohesion: 0.08
+Nodes (28): metadata, LeaderboardView(), PeriodData, runOptions, ShimmerLine(), StreakView(), updateCountdown(), formatRangeDate() (+20 more)
 
-### Community 96 - "getUserStreakFullDetails"
-Cohesion: 0.09
-Nodes (24): dynamic, GET(), revalidate, dynamic, GET(), revalidate, dynamic, GET() (+16 more)
+### Community 96 - "auth/index.ts"
+Cohesion: 0.07
+Nodes (31): { GET, POST, PATCH, PUT, DELETE }, dynamic, GET(), revalidate, dynamic, GET(), revalidate, dynamic (+23 more)
 
 ### Community 97 - "Contextual Icon Animations"
 Cohesion: 0.40
 Nodes (5): Choosing Between Motion and CSS, Contextual Icon Animations, CSS Transition Approach (No Motion), Motion Example, When to Animate Icons
 
-### Community 98 - "db/index.ts"
-Cohesion: 0.06
-Nodes (40): dynamic, POST(), dynamic, GET(), revalidate, POST(), dynamic, POST() (+32 more)
+### Community 98 - "requireServerUser"
+Cohesion: 0.07
+Nodes (33): dynamic, POST(), dynamic, GET(), revalidate, POST(), dynamic, POST() (+25 more)
 
-### Community 99 - "[username]/page.tsx"
-Cohesion: 0.29
-Nodes (6): dynamic, generateMetadata(), PageProps, PublicProfilePage(), revalidate, PublicProfileView()
+### Community 99 - "consistency-calendar.tsx"
+Cohesion: 0.67
+Nodes (3): ConsistencyCalendar(), ConsistencyCalendarProps, MonthlyCaptureItem
 
 ### Community 100 - "app/layout.tsx"
-Cohesion: 0.07
-Nodes (30): inter, metadata, sora, spaceGrotesk, spaceMono, viewport, PwaInstallBanner(), IosInstallGuide() (+22 more)
+Cohesion: 0.10
+Nodes (20): inter, metadata, sora, spaceGrotesk, spaceMono, viewport, PwaInstallBanner(), IosInstallGuide() (+12 more)
 
 ### Community 102 - "verify-otp/route.ts"
 Cohesion: 0.07
-Nodes (50): getClientIp(), invalidCredentials(), POST(), POST(), getClientIp(), POST(), getClientIp(), getSessionCookieName() (+42 more)
+Nodes (52): getClientIp(), invalidCredentials(), POST(), POST(), getClientIp(), POST(), getClientIp(), getSessionCookieName() (+44 more)
 
 ### Community 103 - "AdminUsersPage"
 Cohesion: 0.62
@@ -618,17 +617,17 @@ Nodes (7): AdminUsersPage(), fetchUsers(), handleBanToggle(), handleDeleteUser()
 Cohesion: 0.47
 Nodes (5): DELETE(), dynamic, GET(), adminDeleteUser(), getAdminUserDetail()
 
-### Community 105 - "radix/checkbox.tsx"
-Cohesion: 0.19
-Nodes (9): Checkbox(), CheckboxContextType, CheckboxIndicatorProps, CheckboxProps, [CheckboxProvider, useCheckbox], Sheet(), CommonControlledStateProps, useControlledState() (+1 more)
+### Community 105 - "vouchers/page.tsx"
+Cohesion: 0.20
+Nodes (9): CatalogVoucher, CATEGORIES, VOUCHER_TYPES, VoucherType, CONNECTOR_COLOR_PRESETS, LANDMARK_COLOR_PRESETS, MediaPipeDrawingSpecCard(), MediaPipeDrawingSpecCardProps (+1 more)
 
 ### Community 106 - "Scale on Press"
 Cohesion: 0.40
 Nodes (5): CSS Example, Motion Example, Scale on Press, Static Prop Pattern, Tailwind Example
 
 ### Community 110 - "AdminVouchersPage"
-Cohesion: 0.23
-Nodes (9): AdminVouchersPage(), calculateBenefit(), fetchData(), handleConfirmDelete(), handleCreateVoucher(), handleLogoUpload(), handleSeedVouchers(), handleUpdateVoucher() (+1 more)
+Cohesion: 0.26
+Nodes (8): AdminVouchersPage(), calculateBenefit(), fetchData(), handleConfirmDelete(), handleCreateVoucher(), handleSeedVouchers(), handleUpdateVoucher(), resolveBrandLogo()
 
 ### Community 112 - "index.py"
 Cohesion: 0.22
@@ -638,13 +637,13 @@ Nodes (12): health_check(), lifespan(), get, redirect_docs(), close_db_pool(), A
 Cohesion: 0.36
 Nodes (3): InputOTP(), InputOTPGroup(), InputOTPSlot()
 
-### Community 115 - "admin/layout.tsx"
-Cohesion: 0.28
-Nodes (5): metadata, AdminBootstrapClient(), AdminHeader(), AdminSidebar(), NAV_ITEMS
+### Community 115 - "ui/dropdown-menu.tsx"
+Cohesion: 0.12
+Nodes (9): DropdownMenuCheckboxItem(), DropdownMenuContent(), DropdownMenuItem(), DropdownMenuLabel(), DropdownMenuRadioItem(), DropdownMenuSeparator(), DropdownMenuShortcut(), DropdownMenuSubContent() (+1 more)
 
-### Community 116 - "settings/route.ts"
-Cohesion: 0.47
-Nodes (5): dynamic, GET(), POST(), getSystemSettings(), updateSystemSetting()
+### Community 116 - "ui/sheet.tsx"
+Cohesion: 0.25
+Nodes (8): SheetContent, SheetContentProps, SheetDescription, SheetFooter(), SheetHeader(), SheetOverlay, SheetTitle, sheetVariants
 
 ### Community 146 - "Animations"
 Cohesion: 0.13
@@ -659,12 +658,12 @@ Cohesion: 0.17
 Nodes (11): Caveat, Font Family Scope, Font Smoothing (macOS), Good vs. Bad, Tabular Numbers, text-wrap: balance, text-wrap: pretty, Text Wrapping (+3 more)
 
 ### Community 149 - "Architecture — Open Smile"
-Cohesion: 0.18
-Nodes (10): Architecture — Open Smile, Auth architecture, Cross-cutting concerns, Data flow: a smile capture, end to end, Data flow: referrals, Deployment note, Storage boundaries, System overview (+2 more)
+Cohesion: 0.20
+Nodes (10): Architectural Decisions & Invariants, Architecture — Open Smile, Auth & Session Architecture, Cross-Cutting & Infrastructure, Data Flow: Referral Activation & Economy Protection, Data Flow: Smile Capture, Scoring & Reveal, Data Flow: Voucher Marketplace & Redemption, Leaderboard Aggregation & Settlement (+2 more)
 
-### Community 151 - "README.md"
-Cohesion: 0.22
-Nodes (6): Getting started, mailer (transactional emails: OTP, welcome, login notification, reset password, beta waitlist), Open Smile 😁, Tech stack, What it does, Why it's different
+### Community 151 - "Open Smile 😁"
+Cohesion: 0.29
+Nodes (7): Core mechanics, briefly, License, Open Smile 😁, Team, Tech stack, What it does, Why it's different
 
 ### Community 152 - "Details that make interfaces feel better"
 Cohesion: 0.17
@@ -674,9 +673,9 @@ Nodes (10): Common Mistakes, Concentric border radius, Details that make interfa
 Cohesion: 0.25
 Nodes (8): Auth & session security, Coin ledger integrity, Facial data & privacy, Input handling, Known open items (track before production use), Reporting, Security — Open Smile, Threat model summary
 
-### Community 154 - "apply supabase/migrations/001_init.sql against your Supabase Postgres instance"
-Cohesion: 0.33
-Nodes (6): apply supabase/migrations/001_init.sql against your Supabase Postgres instance, Core mechanics, briefly, License, Project status, Project structure, Team
+### Community 154 - "settings/route.ts"
+Cohesion: 0.47
+Nodes (5): dynamic, GET(), POST(), getSystemSettings(), updateSystemSetting()
 
 ### Community 156 - "Shadows Instead of Borders"
 Cohesion: 0.40
@@ -686,25 +685,21 @@ Nodes (5): Shadow as Border (Dark Mode), Shadow as Border (Light Mode), Shadows 
 Cohesion: 0.17
 Nodes (11): name, private, scripts, build, dev, dev:all, dev:py, lint (+3 more)
 
-### Community 159 - "hand-gesture.ts"
-Cohesion: 0.36
-Nodes (7): createGestureRecognizer(), detectHandGesture(), distance(), evaluateHandFist(), evaluateOpenPalm(), HandGestureResult, initGestureRecognizer()
+### Community 159 - "toast.tsx"
+Cohesion: 0.40
+Nodes (5): AlertToast, AlertToastProps, alertToastVariants, iconColorClasses, iconMap
 
-### Community 160 - "Colors"
-Cohesion: 0.67
-Nodes (3): Colors, Do, Don't
-
-### Community 161 - "Typography"
-Cohesion: 0.67
-Nodes (3): Do, Don't, Typography
+### Community 160 - "Getting started"
+Cohesion: 0.33
+Nodes (6): Database setup, Environment configuration, Getting started, Installation, Prerequisites, Running locally
 
 ### Community 166 - "AdminSettingsPage"
 Cohesion: 0.29
 Nodes (3): AdminSettingsPage(), fetchSettings(), handlePlatformReset()
 
-### Community 167 - "slot.tsx"
-Cohesion: 0.32
-Nodes (7): AnyProps, DOMMotionProps, mergeProps(), mergeRefs(), Slot(), SlotProps, WithAsChild
+### Community 167 - "badge.tsx"
+Cohesion: 0.67
+Nodes (3): Badge(), BadgeProps, badgeVariants
 
 ### Community 168 - "reward-calculator.ts"
 Cohesion: 0.38
@@ -714,40 +709,44 @@ Nodes (6): calculateSmileCoins(), CoinCalculationResult, getTier(), mulberry32()
 Cohesion: 0.33
 Nodes (5): defaultBottomLinks, defaultFooterColumns, FooterColumn, FooterLinkItem, FooterProps
 
+### Community 172 - "Physics, Motion & Interactions"
+Cohesion: 0.67
+Nodes (3): Keyframe Animations & Reveal Utilities, Physics, Motion & Interactions, The Tactile Lift (`.brutal-lift`)
+
 ### Community 174 - "ui/animated-number-countdown.tsx"
 Cohesion: 0.33
 Nodes (4): AnimatedNumberCountdown(), CountdownProps, MotionNumberFlow, TimeLeft
 
 ### Community 175 - "navbar.tsx"
-Cohesion: 0.19
+Cohesion: 0.15
 Nodes (7): highlights, runtime, metadata, Logo(), LogoProps, links, Navbar()
 
 ### Community 179 - "capture-flow.tsx"
-Cohesion: 0.16
-Nodes (16): metadata, AuthGateOverlay(), AuthGateOverlayProps, CaptureFlow(), CaptureFlowProps, CapturePhase, getNextIndianMidnight(), WebcamViewHandle (+8 more)
+Cohesion: 0.12
+Nodes (19): handleLogoUpload(), metadata, AuthGateOverlay(), AuthGateOverlayProps, CaptureFlow(), CaptureFlowProps, CapturePhase, getNextIndianMidnight() (+11 more)
 
-### Community 180 - "AdminExplorePage"
-Cohesion: 1.00
-Nodes (3): AdminExplorePage(), fetchPosts(), handleDeletePost()
+### Community 180 - "useToast"
+Cohesion: 0.08
+Nodes (25): AdminCapturesPage(), fetchCaptures(), handleFlagCapture(), AdminExplorePage(), fetchPosts(), handleDeletePost(), AdminLogsPage(), AdminMailerPage() (+17 more)
 
 ## Knowledge Gaps
-- **680 isolated node(s):** `runtime`, `highlights`, `metadata`, `dynamic`, `revalidate` (+675 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1305 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **67 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **645 isolated node(s):** `runtime`, `highlights`, `metadata`, `dynamic`, `revalidate` (+640 more)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 1267 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **66 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `cn()` connect `cn` to `components/radix/sheet.tsx`, `radix/sidebar.tsx`, `primitives/animate/tooltip.tsx`, `smile-result-screen.tsx`, `button.tsx`, `profile-content.tsx`, `voucher-marketplace.tsx`, `mailer/page.tsx`, `highlight.tsx`, `webcam-view.tsx`, `combobox.tsx`, `utils.ts`, `AdminSettingsPage`, `slot.tsx`, `dashboard/settings/page.tsx`, `capture-flow.tsx`, `AdminExplorePage`, `rewards-view.tsx`, `score-reveal.tsx`, `scratch-card-modal.tsx`, `leaderboard-card.tsx`, `app/layout.tsx`, `AdminUsersPage`, `AdminVouchersPage`, `verify-otp/page.tsx`, `admin/layout.tsx`?**
-  _High betweenness centrality (0.105) - this node is a cross-community bridge._
-- **Why does `Button()` connect `button.tsx` to `radix/sidebar.tsx`, `cn`, `smile-result-screen.tsx`, `profile-content.tsx`, `app/page.tsx`, `voucher-marketplace.tsx`, `mailer/page.tsx`, `webcam-view.tsx`, `combobox.tsx`, `utils.ts`, `dashboard/settings/page.tsx`, `navbar.tsx`, `capture-flow.tsx`, `rewards-view.tsx`, `scratch-card-modal.tsx`, `[username]/page.tsx`, `app/layout.tsx`, `verify-otp/page.tsx`, `admin/layout.tsx`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
-- **Why does `AdminUsersPage()` connect `AdminUsersPage` to `utils.ts`, `mailer/page.tsx`, `cn`?**
-  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+- **Why does `cn()` connect `cn` to `components/radix/sheet.tsx`, `radix/sidebar.tsx`, `primitives/animate/tooltip.tsx`, `smile-result-screen.tsx`, `(dashboard)/explore/page.tsx`, `button.tsx`, `voucher-marketplace.tsx`, `mailer/page.tsx`, `highlight.tsx`, `dashboard/sidebar.tsx`, `icons.tsx`, `toast.tsx`, `webcam-view.tsx`, `popover.tsx`, `utils.ts`, `AdminSettingsPage`, `badge.tsx`, `dashboard/settings/page.tsx`, `capture-flow.tsx`, `useToast`, `admin-ai-settings-card.tsx`, `rewards-view.tsx`, `score-reveal.tsx`, `scratch-card-modal.tsx`, `leaderboard-card.tsx`, `AdminUsersPage`, `vouchers/page.tsx`, `AdminVouchersPage`, `verify-otp/page.tsx`, `ui/dropdown-menu.tsx`, `ui/sheet.tsx`?**
+  _High betweenness centrality (0.109) - this node is a cross-community bridge._
+- **Why does `Button()` connect `button.tsx` to `radix/sidebar.tsx`, `cn`, `smile-result-screen.tsx`, `(dashboard)/explore/page.tsx`, `app/page.tsx`, `voucher-marketplace.tsx`, `mailer/page.tsx`, `icons.tsx`, `webcam-view.tsx`, `utils.ts`, `dashboard/settings/page.tsx`, `navbar.tsx`, `capture-flow.tsx`, `useToast`, `admin-ai-settings-card.tsx`, `rewards-view.tsx`, `scratch-card-modal.tsx`, `auth/index.ts`, `consistency-calendar.tsx`, `app/layout.tsx`, `vouchers/page.tsx`, `verify-otp/page.tsx`?**
+  _High betweenness centrality (0.037) - this node is a cross-community bridge._
+- **Why does `AdminUsersPage()` connect `AdminUsersPage` to `useToast`, `utils.ts`, `cn`?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **Are the 62 inferred relationships involving `ModuleFactory()` (e.g. with `__asyncjs__mediapipe_map_buffer_jspi()` and `BeginGlQueryTiming()`) actually correct?**
   _`ModuleFactory()` has 62 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `runtime`, `highlights`, `metadata` to the rest of the system?**
-  _680 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _645 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `vision_wasm_internal.js` be split into smaller, more focused modules?**
   _Cohesion score 0.01015228426395939 - nodes in this community are weakly interconnected._
 - **Should `vision_wasm_nosimd_internal.js` be split into smaller, more focused modules?**
