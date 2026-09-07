@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Camera, Check, Gift, Sparkles, Trophy, ArrowRight, ShieldCheck } from 'lucide-react';
@@ -10,6 +11,47 @@ export const dynamic = 'force-dynamic';
 
 interface JoinPageProps {
 	params: Promise<{ code: string }>;
+}
+
+export async function generateMetadata({ params }: JoinPageProps): Promise<Metadata> {
+	const { code } = await params;
+	const referrer = await findUserByReferralCode(code);
+	const name = referrer?.name || 'A friend';
+
+	return {
+		title: `Join Open Smile — Invited by ${name}`,
+		description: `${name} invited you to join Open Smile. Smile daily, score with on-device AI, and earn real rewards.`,
+		robots: {
+			index: false,
+			follow: true,
+		},
+		openGraph: {
+			title: `Join Open Smile — Invited by ${name}`,
+			description: `${name} invited you to join Open Smile. Smile daily, score with on-device AI, and earn real rewards.`,
+			images: [
+				{
+					url: '/open-smile_default-image.webp',
+					width: 1424,
+					height: 810,
+					alt: 'Join Open Smile',
+					type: 'image/webp',
+				},
+			],
+		},
+		twitter: {
+			card: 'summary_large_image',
+			title: `Join Open Smile — Invited by ${name}`,
+			description: `${name} invited you to join Open Smile. Smile daily, score with on-device AI, and earn real rewards.`,
+			images: [
+				{
+					url: '/open-smile_default-image.webp',
+					width: 1424,
+					height: 810,
+					alt: 'Join Open Smile',
+				},
+			],
+		},
+	};
 }
 
 export default async function JoinPage({ params }: JoinPageProps) {

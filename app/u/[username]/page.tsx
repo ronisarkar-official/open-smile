@@ -30,10 +30,36 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 	return {
 		title: `${profile.name} (@${profile.username}) — Open Smile`,
 		description: `Check out ${profile.name}'s ${profile.stats.streakCount}-day smile streak, ${unlockedTrophiesCount} unlocked trophies, and ${profile.stats.tierName} status on Open Smile.`,
+		alternates: {
+			canonical: `/u/${encodeURIComponent(profile.username)}`,
+		},
 		openGraph: {
 			title: `${profile.name} — ${profile.stats.streakCount} Day Smile Streak 🔥`,
 			description: `Smiled ${profile.stats.totalSmiles} times • ${profile.stats.tierName} • Daily AI Rewards`,
-			images: [profile.image || '/icons/icon-512x512.png'],
+			images: [
+				profile.image
+					? { url: profile.image, alt: `${profile.name}'s profile avatar` }
+					: {
+							url: '/open-smile_default-image.webp',
+							width: 1424,
+							height: 810,
+							alt: `${profile.name} on Open Smile`,
+							type: 'image/webp',
+					  },
+			],
+		},
+		twitter: {
+			card: 'summary_large_image',
+			title: `${profile.name} — ${profile.stats.streakCount} Day Smile Streak 🔥`,
+			description: `Smiled ${profile.stats.totalSmiles} times • ${profile.stats.tierName} • Daily AI Rewards`,
+			images: [
+				profile.image || {
+					url: '/open-smile_default-image.webp',
+					width: 1424,
+					height: 810,
+					alt: `${profile.name} on Open Smile`,
+				},
+			],
 		},
 	};
 }
@@ -74,5 +100,26 @@ export default async function PublicProfilePage({ params }: PageProps) {
 		);
 	}
 
-	return <PublicProfileView profile={profile} />;
+	const profileSchema = {
+		'@context': 'https://schema.org',
+		'@type': 'ProfilePage',
+		name: `${profile.name}'s Smile Profile`,
+		mainEntity: {
+			'@type': 'Person',
+			name: profile.name,
+			identifier: profile.username,
+			image: profile.image || '/open-smile_default-image.webp',
+			description: `${profile.name} has a ${profile.stats.streakCount}-day smile streak on Open Smile.`,
+		},
+	};
+
+	return (
+		<>
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(profileSchema) }}
+			/>
+			<PublicProfileView profile={profile} />
+		</>
+	);
 }

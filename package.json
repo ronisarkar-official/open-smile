@@ -34,6 +34,7 @@
     "better-auth": "^1.6.25",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "driver.js": "^1.8.0",
     "framer-motion": "^13.1.1",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.14.0",

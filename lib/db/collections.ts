@@ -4500,3 +4500,41 @@ export async function listEmailSuppressions(options?: {
 	};
 }
 
+export interface SitemapProfileItem {
+	username: string;
+	updatedAt?: string | Date;
+}
+
+export async function getPublicProfilesForSitemap(
+	limit = 500,
+): Promise<SitemapProfileItem[]> {
+	try {
+		const pool = getPool();
+		const { rows } = await pool.query(
+			`SELECT name, COALESCE("updatedAt", created_at, NOW()) as updated_at
+			 FROM "user"
+			 WHERE name IS NOT NULL AND TRIM(name) != ''
+			 ORDER BY updated_at DESC
+			 LIMIT $1`,
+			[Math.max(1, Math.min(limit, 5000))],
+		);
+
+		const seen = new Set<string>();
+		const result: SitemapProfileItem[] = [];
+
+		for (const row of rows) {
+			const slug = (row.name as string).trim().toLowerCase().replace(/\s+/g, '-');
+			if (!slug || seen.has(slug)) continue;
+			seen.add(slug);
+			result.push({
+				username: slug,
+				updatedAt: row.updated_at,
+			});
+		}
+
+		return result;
+	} catch {
+		return [];
+	}
+}
+

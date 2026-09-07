@@ -9,9 +9,10 @@ export function Toaster() {
   const { toasts, dismiss } = useToast();
 
   return (
-    <div
-      aria-live="polite"
+    <section
+      role="region"
       aria-label="Notifications"
+      tabIndex={-1}
       className="pointer-events-none fixed bottom-4 right-4 z-[500] flex w-full max-w-sm flex-col-reverse gap-3"
     >
       <AnimatePresence initial={false} mode="popLayout">
@@ -27,6 +28,6 @@ export function Toaster() {
           </div>
         ))}
       </AnimatePresence>
-    </div>
+    </section>
   );
 }

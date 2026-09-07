@@ -41,7 +41,7 @@ export function Navbar() {
 
         <div className="hidden items-center gap-3 md:flex">
           {isPending ? (
-            <div className="h-11 w-28 animate-pulse border-[length:var(--border-width)] border-black rounded-lg bg-muted" aria-label="Loading account controls" />
+            <div role="status" className="h-11 w-28 animate-pulse border-[length:var(--border-width)] border-black rounded-lg bg-muted" aria-label="Loading account controls" />
           ) : session?.user ? (
             <>
               <Button asChild variant="outline" size="sm">

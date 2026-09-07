@@ -10,6 +10,38 @@ export const metadata: Metadata = {
 	title: 'Try Smile Capture — Open Smile AI',
 	description:
 		'Experience on-device smile recognition in your browser. Test your smile score and earn test coins instantly with zero signup required.',
+	alternates: {
+		canonical: '/try',
+	},
+	openGraph: {
+		title: 'Try Smile Capture — Open Smile AI',
+		description:
+			'Experience on-device smile recognition in your browser. Test your smile score and earn test coins instantly.',
+		url: '/try',
+		images: [
+			{
+				url: '/open-smile_default-image.webp',
+				width: 1424,
+				height: 810,
+				alt: 'Try Smile Capture — Open Smile AI',
+				type: 'image/webp',
+			},
+		],
+	},
+	twitter: {
+		card: 'summary_large_image',
+		title: 'Try Smile Capture — Open Smile AI',
+		description:
+			'Experience on-device smile recognition in your browser. Test your smile score and earn test coins instantly.',
+		images: [
+			{
+				url: '/open-smile_default-image.webp',
+				width: 1424,
+				height: 810,
+				alt: 'Try Smile Capture — Open Smile AI',
+			},
+		],
+	},
 };
 
 export default function TryCapturePage() {

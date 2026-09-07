@@ -1,8 +1,18 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Camera, Coins, ScanFace } from "lucide-react";
 import { Logo } from "@/components/logo";
 
 export const runtime = "edge";
+
+export const metadata: Metadata = {
+  title: "Account Authentication — Open Smile",
+  description: "Sign in or register for Open Smile to start earning daily smile rewards.",
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
 
 const highlights = [
   { label: "Smile checks", icon: Camera, color: "bg-primary" },

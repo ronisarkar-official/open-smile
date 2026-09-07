@@ -16,12 +16,17 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
 };
 
+const rawBaseUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  process.env.BETTER_AUTH_URL ||
+  "https://open-smile.vercel.app";
+const baseUrl = rawBaseUrl.replace(/\/+$/, "");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(baseUrl),
   title: {
     default: "Open Smile: smile more, win more",
     template: "%s · Open Smile",
@@ -29,6 +34,52 @@ export const metadata: Metadata = {
   description:
     "A playful smile-recognition rewards platform where everyday smiles earn real rewards.",
   applicationName: "Open Smile",
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: baseUrl,
+    siteName: "Open Smile",
+    title: "Open Smile: smile more, win more",
+    description:
+      "A playful smile-recognition rewards platform where everyday smiles earn real rewards.",
+    images: [
+      {
+        url: "/open-smile_default-image.webp",
+        width: 1424,
+        height: 810,
+        alt: "Open Smile — Smile More, Win More",
+        type: "image/webp",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Open Smile: smile more, win more",
+    description:
+      "A playful smile-recognition rewards platform where everyday smiles earn real rewards.",
+    images: [
+      {
+        url: "/open-smile_default-image.webp",
+        width: 1424,
+        height: 810,
+        alt: "Open Smile — Smile More, Win More",
+      },
+    ],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -85,6 +136,51 @@ const themeInitScript = `
 })();
 `;
 
+const structuredData = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebApplication",
+      "@id": `${baseUrl}/#webapp`,
+      name: "Open Smile",
+      url: baseUrl,
+      image: `${baseUrl}/open-smile_default-image.webp`,
+      applicationCategory: "GameApplication, LifestyleApplication",
+      operatingSystem: "Web, iOS, Android",
+      description:
+        "A playful smile-recognition rewards platform where everyday smiles earn real rewards.",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      featureList: [
+        "On-device AI smile detection",
+        "Gamified streak counter",
+        "Daily voucher rewards",
+        "Leaderboards and badges",
+      ],
+    },
+    {
+      "@type": "Organization",
+      "@id": `${baseUrl}/#organization`,
+      name: "Open Smile",
+      url: baseUrl,
+      logo: `${baseUrl}/icons/icon-512x512.png`,
+      image: `${baseUrl}/open-smile_default-image.webp`,
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${baseUrl}/#website`,
+      name: "Open Smile",
+      url: baseUrl,
+      publisher: {
+        "@id": `${baseUrl}/#organization`,
+      },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -99,6 +195,10 @@ export default function RootLayout({
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
       </head>
       <body className="flex min-h-full flex-col">
         <ThemeProvider defaultTheme="light" storageKey="app-theme">
