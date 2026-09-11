@@ -44,9 +44,42 @@ export const metadata: Metadata = {
 	},
 };
 
+const rawBaseUrl =
+	process.env.NEXT_PUBLIC_APP_URL ||
+	process.env.BETTER_AUTH_URL ||
+	'https://open-smile.vercel.app';
+const baseUrl = rawBaseUrl.replace(/\/+$/, '');
+
+const tryToolSchema = {
+	'@context': 'https://schema.org',
+	'@type': 'WebApplication',
+	name: 'Open Smile AI Demo — Free Camera Smile Tester',
+	url: `${baseUrl}/try`,
+	applicationCategory: 'MultimediaApplication, GameApplication',
+	operatingSystem: 'Web, iOS, Android',
+	browserRequirements: 'Requires camera access',
+	offers: {
+		'@type': 'Offer',
+		price: '0',
+		priceCurrency: 'USD',
+	},
+	description:
+		'Experience on-device smile recognition in your browser. Test your smile score and earn test coins instantly with zero signup required.',
+	featureList: [
+		'On-device AI smile detection',
+		'Instant facial landmark scoring',
+		'Zero video or photo upload (100% private)',
+		'Interactive scratch card preview',
+	],
+};
+
 export default function TryCapturePage() {
 	return (
 		<div className="min-h-screen bg-background text-foreground flex flex-col">
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(tryToolSchema) }}
+			/>
 			<Navbar/>
 
 			{/* Sub-header Banner */}

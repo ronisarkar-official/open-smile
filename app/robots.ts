@@ -10,12 +10,15 @@ export default function robots(): MetadataRoute.Robots {
 		rules: [
 			{
 				userAgent: '*',
-				allow: ['/', '/try', '/join', '/u/', '/login', '/signup', '/llms.txt'],
+				allow: ['/', '/try', '/join', '/u/', '/login', '/signup', '/llms.txt', '/llms-full.txt'],
 				disallow: [
 					'/admin/',
 					'/api/',
 					'/dashboard/',
 					'/capture/',
+					'/leaderboard/',
+					'/rewards/',
+					'/explore/',
 					'/profile/',
 					'/notifications/',
 					'/refer/',
@@ -32,12 +35,15 @@ export default function robots(): MetadataRoute.Robots {
 			},
 			{
 				userAgent: ['ChatGPT-User', 'PerplexityBot'],
-				allow: ['/', '/try', '/join', '/u/', '/llms.txt'],
+				allow: ['/', '/try', '/join', '/u/', '/llms.txt', '/llms-full.txt'],
 				disallow: [
 					'/admin/',
 					'/api/',
 					'/dashboard/',
 					'/capture/',
+					'/leaderboard/',
+					'/rewards/',
+					'/explore/',
 					'/profile/',
 					'/notifications/',
 					'/refer/',

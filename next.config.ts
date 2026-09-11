@@ -51,6 +51,10 @@ const securityHeaders = [
 		key: 'Permissions-Policy',
 		value: 'camera=(self), microphone=(), geolocation=(), interest-cohort=()',
 	},
+	{
+		key: 'Link',
+		value: '<https://open-smile.vercel.app/llms.txt>; rel="describedby"',
+	},
 ];
 
 const nextConfig: NextConfig = {

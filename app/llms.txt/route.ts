@@ -1,4 +1,10 @@
 export async function GET() {
+	const rawBaseUrl =
+		process.env.NEXT_PUBLIC_APP_URL ||
+		process.env.BETTER_AUTH_URL ||
+		'https://open-smile.vercel.app';
+	const baseUrl = rawBaseUrl.replace(/\/+$/, '');
+
 	const content = `# Open Smile
 
 > Smile more, win more. A playful, on-device AI smile-recognition rewards platform.
@@ -15,11 +21,17 @@ Open Smile is a gamified daily wellness and rewards platform. Users smile at the
 - **Privacy & Security**: Liveness detection, anti-cheat image hashing, zero cloud storage of facial biometric data, and 24-hour auto-delete for opt-in public posts.
 
 ## Key Links
-- Home: https://open-smile.vercel.app/
-- Free Smile Demo: https://open-smile.vercel.app/try
-- Join via Referral: https://open-smile.vercel.app/join
-- Member Login: https://open-smile.vercel.app/login
-- Member Signup: https://open-smile.vercel.app/signup
+- [Full LLM Documentation](${baseUrl}/llms-full.txt): Complete platform architecture, rules, coin economy, and anti-cheat documentation.
+- [Home](${baseUrl}/): Main landing page with platform overview, live demo preview, and reward showcase.
+- [Free Smile Demo](${baseUrl}/try): Interactive on-device camera smile detection demo without requiring an account.
+- [Join via Referral](${baseUrl}/join): Onboarding and referral sign-up page for new participants.
+- [Member Login](${baseUrl}/login): Account access and authentication portal.
+- [Member Signup](${baseUrl}/signup): Registration page to create a new Open Smile account and earn coins.
+
+## Optional
+- [Leaderboard](${baseUrl}/leaderboard): Rankings for top daily, weekly, and all-time smiles.
+- [Rewards Marketplace](${baseUrl}/rewards): Amazon gift card vouchers and badge achievement redemption.
+- [Referral Program](${baseUrl}/refer): Referral code sharing to earn bonus coins.
 `;
 
 	return new Response(content, {

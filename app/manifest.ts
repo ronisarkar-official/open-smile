@@ -47,6 +47,22 @@ export default function manifest(): MetadataRoute.Manifest {
         type: 'image/svg+xml',
       },
     ],
+    screenshots: [
+      {
+        src: '/open-smile_default-image.webp',
+        sizes: '1424x810',
+        type: 'image/webp',
+        form_factor: 'wide',
+        label: 'Open Smile AI Camera Scoring & Daily Streaks',
+      },
+      {
+        src: '/open-smile_default-image.webp',
+        sizes: '1424x810',
+        type: 'image/webp',
+        form_factor: 'narrow',
+        label: 'Open Smile Mobile Web App',
+      },
+    ],
     shortcuts: [
       {
         name: 'Capture Smile',

@@ -100,17 +100,67 @@ export default async function PublicProfilePage({ params }: PageProps) {
 		);
 	}
 
+	const rawBaseUrl =
+		process.env.NEXT_PUBLIC_APP_URL ||
+		process.env.BETTER_AUTH_URL ||
+		'https://open-smile.vercel.app';
+	const baseUrl = rawBaseUrl.replace(/\/+$/, '');
+	const profileUrl = `${baseUrl}/u/${encodeURIComponent(profile.username)}`;
+
 	const profileSchema = {
 		'@context': 'https://schema.org',
 		'@type': 'ProfilePage',
+		'@id': profileUrl,
+		url: profileUrl,
 		name: `${profile.name}'s Smile Profile`,
 		mainEntity: {
 			'@type': 'Person',
 			name: profile.name,
+			alternateName: `@${profile.username}`,
 			identifier: profile.username,
-			image: profile.image || '/open-smile_default-image.webp',
+			url: profileUrl,
+			image: profile.image || `${baseUrl}/open-smile_default-image.webp`,
 			description: `${profile.name} has a ${profile.stats.streakCount}-day smile streak on Open Smile.`,
+			interactionStatistic: [
+				{
+					'@type': 'InteractionCounter',
+					interactionType: 'https://schema.org/LikeAction',
+					userInteractionCount: profile.stats.streakCount,
+					name: 'Day Streak',
+				},
+				{
+					'@type': 'InteractionCounter',
+					interactionType: 'https://schema.org/CheckInAction',
+					userInteractionCount: profile.stats.totalSmiles,
+					name: 'Total Smiles',
+				},
+			],
 		},
+	};
+
+	const breadcrumbSchema = {
+		'@context': 'https://schema.org',
+		'@type': 'BreadcrumbList',
+		itemListElement: [
+			{
+				'@type': 'ListItem',
+				position: 1,
+				name: 'Home',
+				item: baseUrl,
+			},
+			{
+				'@type': 'ListItem',
+				position: 2,
+				name: 'Smilers',
+				item: `${baseUrl}/u`,
+			},
+			{
+				'@type': 'ListItem',
+				position: 3,
+				name: `@${profile.username}`,
+				item: profileUrl,
+			},
+		],
 	};
 
 	return (
@@ -118,6 +168,10 @@ export default async function PublicProfilePage({ params }: PageProps) {
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{ __html: JSON.stringify(profileSchema) }}
+			/>
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
 			/>
 			<PublicProfileView profile={profile} />
 		</>

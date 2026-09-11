@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { PwaProvider } from "@/components/pwa/pwa-provider";
 import { NavigationProgress } from "@/components/ui/navigation-progress";
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -98,6 +99,9 @@ export const metadata: Metadata = {
     apple: [
       { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
+  },
+  verification: {
+    google: "h-sOGh3RDTQVIFlEQzlnvqZ7OOPT0bxEQxFnY9W_L5s",
   },
 };
 
@@ -216,6 +220,7 @@ export default function RootLayout({
           </SessionProvider>
         </ThemeProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
