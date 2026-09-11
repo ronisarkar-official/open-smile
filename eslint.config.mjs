@@ -30,6 +30,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "public/**",
     "components/animate-ui/**",
+    ".agents/**",
+    ".venv/**",
   ]),
 ]);
 

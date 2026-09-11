@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Camera, Coins, ScanFace } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { PageTransition } from "@/components/ui/page-transition";
 
 export const runtime = "edge";
 
@@ -33,7 +34,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             Your smile can do more.
           </h1>
           <p className="mt-6 max-w-sm text-lg leading-8 text-black/75">
-            Join the beta for private smile checks, small wins, and rewards that make showing up feel good.
+            Join Open Smile for private smile checks, small wins, and rewards that make showing up feel good.
           </p>
         </div>
         <div className="relative z-10 grid grid-cols-3 gap-3">
@@ -53,7 +54,9 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <Link href="/" className="mb-6 inline-block lg:hidden focus-visible:outline-3 focus-visible:outline-offset-4">
             <Logo className="h-8 w-auto" />
           </Link>
-          {children}
+          <PageTransition>
+            {children}
+          </PageTransition>
         </div>
       </div>
     </div>

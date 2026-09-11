@@ -7,8 +7,10 @@ import {
   HowItWorks,
   WhyItsDifferentBento,
   TrustPrivacy,
+  Faq,
   FinalCta,
   Footer,
+  SmoothScroll,
 } from "@/components/landing";
 import { ActivityMarquee } from "@/components/marquee/activity-marquee";
 
@@ -48,6 +50,22 @@ const faqSchema = {
         text: "Smiling daily builds your consecutive streak, unlocking coin multipliers, special badges, and higher leaderboard rankings.",
       },
     },
+    {
+      "@type": "Question",
+      name: "Do I need to download an app or extension?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No downloads required. Open Smile works directly in any standard mobile or desktop web browser with camera access enabled.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "How does anti-cheat protect the reward pool?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Our system uses client-side liveness detection, capture cooldowns, and perceptual image hashing to reject repeat or spoofed captures, keeping the reward economy fair for everyone.",
+      },
+    },
   ],
 };
 
@@ -64,13 +82,15 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
+      <SmoothScroll />
       <Navbar />
-      <main id="main-content" className="flex-1 overflow-hidden">
+      <main id="main-content" className="flex-1 overflow-x-clip">
         <Hero />
         <ActivityMarquee />
         <HowItWorks />
         <WhyItsDifferentBento />
         <TrustPrivacy />
+        <Faq />
         <FinalCta />
       </main>
       <Footer />

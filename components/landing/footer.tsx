@@ -40,7 +40,7 @@ export const defaultFooterColumns: FooterColumn[] = [
       { label: "Refer & Earn", href: "/refer" },
       { label: "Daily Streaks", href: "/dashboard" },
       { label: "Meet the Team", href: "#team" },
-      { label: "Join Beta", href: "#beta" },
+      { label: "Get Started", href: "/signup" },
       { label: "Member Login", href: "/login" },
     ],
   },
@@ -59,7 +59,7 @@ export const defaultBottomLinks: FooterLinkItem[] = [
   { label: "How it works", href: "#how-it-works" },
   { label: "Why it’s private", href: "#privacy" },
   { label: "Team", href: "#team" },
-  { label: "Beta Waitlist", href: "#beta" },
+  { label: "Sign Up", href: "/signup" },
   { label: "Start Smiling", href: "/try" },
 ];
 

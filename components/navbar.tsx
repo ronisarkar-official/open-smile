@@ -11,7 +11,6 @@ const links = [
   { label: "How it works", href: "#how-it-works" },
   { label: "Why it’s private", href: "#privacy" },
   { label: "Team", href: "#team" },
-  { label: "Beta", href: "#beta" },
 ];
 
 export function Navbar() {
@@ -62,7 +61,7 @@ export function Navbar() {
                 <Link href="/login">Log in</Link>
               </Button>
               <Button asChild size="sm">
-                <Link href="/signup">Join the beta</Link>
+                <Link href="/signup">Get started</Link>
               </Button>
             </>
           )}
@@ -112,7 +111,7 @@ export function Navbar() {
                   <Link href="/login">Log in</Link>
                 </Button>
                 <Button asChild className="w-full" onClick={closeMenu}>
-                  <Link href="/signup">Join the beta</Link>
+                  <Link href="/signup">Get started</Link>
                 </Button>
               </>
             )}

@@ -4,7 +4,7 @@ import {
   ArrowUpRight,
   Coins,
   ShieldCheck,
-  Sparkles,
+  Smile,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -60,7 +60,7 @@ export function Hero() {
     <section className="mx-auto grid w-full max-w-7xl gap-10 px-5 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-16 lg:py-24">
       <div className="max-w-2xl">
         <p className="reveal-in inline-flex border-[length:var(--border-width)] border-black rounded-md bg-secondary px-3 py-1 text-xs font-extrabold tracking-[0.12em] text-secondary-foreground uppercase">
-          The beta is getting happier
+          Now live &amp; rewarding
         </p>
         <h1 className="font-display reveal-in reveal-delay-1 mt-5 max-w-[10ch] text-5xl font-black tracking-[-0.07em] sm:text-6xl lg:text-[clamp(4rem,6.2vw,6.4rem)] lg:leading-[0.88]">
           smile more. win more.
@@ -87,7 +87,7 @@ export function Hero() {
             <ShieldCheck className="size-5 text-accent" /> Privacy-first by design
           </span>
           <span className="flex items-center gap-2">
-            <Sparkles className="size-5 text-secondary" /> No doomscrolling required
+            <Smile className="size-5 text-secondary" /> No doomscrolling required
           </span>
         </div>
       </div>

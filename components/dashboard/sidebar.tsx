@@ -54,6 +54,7 @@ import { CoinIcon } from '@/components/ui/coin-icon';
 import { UserCoinBalance, UserStreak } from '@/components/icons';
 import { useSystemSettings } from '@/hooks/use-system-settings';
 import { useNotificationCount } from '@/hooks/use-notification-count';
+import { PageTransition } from '@/components/ui/page-transition';
 
 function ExploreNaviIcon({ className }: { className?: string }) {
 	return (
@@ -575,7 +576,9 @@ export const DashboardSidebar = ({
 					) : null}
 
 					<div className="flex flex-1 flex-col gap-4 p-4 pt-4 pb-24 md:pb-8">
-						{children}
+						<PageTransition>
+							{children}
+						</PageTransition>
 					</div>
 				</SidebarInset>
 			</SidebarProvider>

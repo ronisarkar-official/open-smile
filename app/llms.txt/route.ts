@@ -17,7 +17,7 @@ Open Smile is a gamified daily wellness and rewards platform. Users smile at the
 ## Key Links
 - Home: https://open-smile.vercel.app/
 - Free Smile Demo: https://open-smile.vercel.app/try
-- Waitlist / Join: https://open-smile.vercel.app/join
+- Join via Referral: https://open-smile.vercel.app/join
 - Member Login: https://open-smile.vercel.app/login
 - Member Signup: https://open-smile.vercel.app/signup
 `;

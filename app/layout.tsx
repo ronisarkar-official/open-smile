@@ -7,6 +7,7 @@ import { SystemSettingsProvider } from "@/hooks/use-system-settings";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 import { PwaProvider } from "@/components/pwa/pwa-provider";
+import { NavigationProgress } from "@/components/ui/navigation-progress";
 import { Analytics } from "@vercel/analytics/react";
 
 export const viewport: Viewport = {
@@ -201,6 +202,7 @@ export default function RootLayout({
         />
       </head>
       <body className="flex min-h-full flex-col">
+        <NavigationProgress />
         <ThemeProvider defaultTheme="light" storageKey="app-theme">
           <SessionProvider>
             <ToastProvider>

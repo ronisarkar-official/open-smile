@@ -5,6 +5,7 @@ import { AdminHeader } from '@/components/admin/admin-header';
 import { AdminSidebar } from '@/components/admin/admin-sidebar';
 import { AdminBootstrapClient } from '@/components/admin/admin-bootstrap-client';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { PageTransition } from '@/components/ui/page-transition';
 
 export const metadata: Metadata = {
 	title: 'Admin Control Panel | Open Smile',
@@ -34,7 +35,9 @@ export default async function AdminLayout({
 				<AdminSidebar className="hidden md:flex h-full" />
 				<main className="flex-1 h-full overflow-hidden flex flex-col min-w-0">
 					<ScrollArea className="h-full w-full">
-						<div className="p-4 sm:p-6 lg:p-8 mx-auto w-full max-w-[1600px]">{children}</div>
+						<div className="p-4 sm:p-6 lg:p-8 mx-auto w-full max-w-[1600px]">
+							<PageTransition>{children}</PageTransition>
+						</div>
 					</ScrollArea>
 				</main>
 			</div>

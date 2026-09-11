@@ -11,7 +11,6 @@ import {
   Lock,
   User,
   Loader2,
-  Gift,
 } from "lucide-react";
 import { GitHubIcon, GoogleIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -102,22 +101,13 @@ function SignupForm() {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">Join the beta</p>
+        <p className="font-mono text-xs font-bold tracking-[0.14em] uppercase">Create account</p>
         <h1 className="text-3xl font-black tracking-[-0.06em] sm:text-4xl">
           Make room for more good days.
         </h1>
         <p className="max-w-[42ch] text-sm leading-5 text-muted-foreground">
-          Set up your Open Smile account and we&apos;ll save your place in line.
+          Set up your Open Smile account and start turning smiles into rewards.
         </p>
-
-        {referralCode && (
-          <div className="mt-2 flex items-center gap-2 border-[length:var(--border-width)] border-border rounded-lg bg-accent/30 px-3 py-2 text-xs font-mono font-bold text-foreground shadow-brutal-xs">
-            <Gift className="size-4 text-primary shrink-0" />
-            <span className="truncate">
-              Welcome Scratch Card (up to 50 coins) unlocked with code: <strong>{referralCode}</strong>
-            </span>
-          </div>
-        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -245,7 +235,7 @@ function SignupForm() {
         </Button>
 
         <p className="text-center text-xs leading-snug text-muted-foreground">
-          By creating an account, you agree to the beta terms and privacy notice.
+          By creating an account, you agree to the terms of service and privacy notice.
         </p>
       </form>
 

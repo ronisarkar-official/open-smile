@@ -6,6 +6,8 @@ export * from "./why-its-different-bento";
 export * from "./how-it-works";
 export * from "./trust-privacy";
 export * from "./final-cta";
+export * from "./faq";
+export * from "./smooth-scroll";
 
 
 
