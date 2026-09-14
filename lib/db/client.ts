@@ -73,14 +73,3 @@ export function getSupabase(): SupabaseClient {
 	return client;
 }
 
-(async () => {
-	if (DATABASE_URL) {
-		try {
-			const pool = getPool();
-			await pool.query("SELECT 1");
-			console.log("✓ PostgreSQL connected successfully");
-		} catch (err) {
-			console.error("✗ PostgreSQL connection failed:", err);
-		}
-	}
-})();

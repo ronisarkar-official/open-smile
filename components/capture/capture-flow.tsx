@@ -63,10 +63,10 @@ type CapturePhase =
 	| 'DONE';
 
 const STORAGE_KEY = 'opensmile_pending_capture';
-const SMILE_TRIGGER_THRESHOLD = 60;
+const SMILE_TRIGGER_THRESHOLD = 50;
 const SMILE_TRIGGER_DURATION_MS = 450;
-const SMILE_HOLD_THRESHOLD = 50;
-const SMILE_LOST_TOLERANCE_MS = 350;
+const SMILE_HOLD_THRESHOLD = 28;
+const SMILE_LOST_TOLERANCE_MS = 900;
 
 export interface CaptureFlowProps {
 	redirectTo?: string;
@@ -207,6 +207,7 @@ export function CaptureFlow({
 	const isTriggeringRef = React.useRef<boolean>(false);
 	const captureSourceRef = React.useRef<'SMILE' | 'MANUAL' | 'PALM'>('SMILE');
 	const countdownTimeoutsRef = React.useRef<NodeJS.Timeout[]>([]);
+	const peakScoreRef = React.useRef<number>(0);
 
 	React.useEffect(() => {
 		initSmileDetector().catch(() => {});
@@ -247,6 +248,7 @@ export function CaptureFlow({
 		isTriggeringRef.current = false;
 		smileStartTimeRef.current = null;
 		smileLostTimeRef.current = null;
+		peakScoreRef.current = 0;
 		lastCountdownCancelTimeRef.current = Date.now();
 		setCountdownNumber(null);
 		setCountdownText(reason || '');
@@ -340,6 +342,7 @@ export function CaptureFlow({
 			isTriggeringRef.current = true;
 			captureSourceRef.current = triggerSource;
 			smileLostTimeRef.current = null;
+			peakScoreRef.current = instantScore ?? 0;
 
 			countdownTimeoutsRef.current.forEach((t) => clearTimeout(t));
 			countdownTimeoutsRef.current = [];
@@ -389,19 +392,14 @@ export function CaptureFlow({
 				}
 
 				const currentResult = lastResultRef.current;
-				const isSmileValid =
-					triggerSource === 'MANUAL' ||
-					triggerSource === 'PALM' ||
-					(currentResult &&
-						currentResult.hasFace &&
-						currentResult.score >= SMILE_HOLD_THRESHOLD);
-
-				if (!isSmileValid) {
-					cancelCountdown('Smile lost! Hold your smile to capture 😊');
+				const hasFace = Boolean(currentResult?.hasFace || lastResultHadFaceRef.current);
+				if (!hasFace && triggerSource === 'SMILE') {
+					cancelCountdown('Position face in frame to capture 😊');
 					return;
 				}
 
 				setCountdownNumber(null);
+				setCountdownText('');
 				playCountdownBeep(880, true);
 				playShutterSound();
 
@@ -410,11 +408,15 @@ export function CaptureFlow({
 				setHasCapturedImage(true);
 
 				const finalScore =
-					currentResult?.score ??
-					instantScore ??
+					Math.max(currentResult?.score ?? 0, peakScoreRef.current, instantScore ?? 0) ||
 					Math.floor(Math.random() * 25) + 75;
-				const minScore = Number(settings.min_smile_score_threshold) || 11;
-				const reward = calculateSmileCoins(finalScore, 1.0, undefined, minScore);
+				const rewardConfig = settings.capture_reward_config || {
+					min_smile_score_threshold: Number(settings.min_smile_score_threshold) || 11,
+					coin_multiplier: Math.max(0.1, Number(settings.coin_multiplier) || 1.0),
+					scratch_min_coins: Number(settings.scratch_min_coins) || 5,
+					scratch_max_coins: Number(settings.scratch_max_coins) || 100,
+				};
+				const reward = calculateSmileCoins(finalScore, 1.0, undefined, rewardConfig);
 
 				setSmileScore(finalScore);
 				setCoinsAwarded(reward.totalCoins);
@@ -440,7 +442,7 @@ export function CaptureFlow({
 				}
 			}, 2850);
 		},
-		[cancelCountdown, settings.liveness_detection_enabled],
+		[cancelCountdown, settings.liveness_detection_enabled, saveEarnedCard],
 	);
 
 	const lastResultUiUpdateRef = React.useRef<number>(0);
@@ -449,6 +451,10 @@ export function CaptureFlow({
 	const handleSmileUpdate = React.useCallback(
 		(result: SmileDetectionResult | null) => {
 			lastResultRef.current = result;
+
+			if (result && typeof result.score === 'number') {
+				peakScoreRef.current = Math.max(peakScoreRef.current, result.score);
+			}
 
 			const now = Date.now();
 			const hasFaceNow = Boolean(result?.hasFace);
@@ -496,7 +502,7 @@ export function CaptureFlow({
 				return;
 			}
 
-			if (now - lastCountdownCancelTimeRef.current < 2000) {
+			if (now - lastCountdownCancelTimeRef.current < 1000) {
 				smileStartTimeRef.current = null;
 				return;
 			}
@@ -647,6 +653,7 @@ export function CaptureFlow({
 		}
 		isTriggeringRef.current = false;
 		smileStartTimeRef.current = null;
+		peakScoreRef.current = 0;
 		setSmileScore(0);
 		setCoinsAwarded(0);
 		setLastResult(null);

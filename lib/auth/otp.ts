@@ -4,7 +4,6 @@ import {
 	findOtpCode,
 	incrementOtpAttempts,
 	deleteOtpCode,
-	ensureIndexes,
 } from "../db";
 
 export const OTP_TTL_MS = 5 * 60 * 1000;
@@ -46,7 +45,6 @@ export async function saveOTP(email: string, otp: string): Promise<void> {
 
 	if (isDbConfigured()) {
 		try {
-			await ensureIndexes();
 			await upsertOtpCode(
 				normalizedEmail,
 				otpHash,
@@ -75,7 +73,6 @@ export async function verifyOTP(email: string, otp: string): Promise<boolean> {
 
 	if (isDbConfigured()) {
 		try {
-			await ensureIndexes();
 			const record = await findOtpCode(normalizedEmail);
 			if (!record) return false;
 

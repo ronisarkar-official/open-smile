@@ -30,6 +30,45 @@ if (typeof window !== 'undefined') {
 let faceLandmarker: FaceLandmarker | null = null;
 let initPromise: Promise<FaceLandmarker> | null = null;
 
+interface BlendshapeIndices {
+	mouthSmileLeft: number;
+	mouthSmileRight: number;
+	eyeSquintLeft: number;
+	eyeSquintRight: number;
+	mouthDimpleLeft: number;
+	mouthDimpleRight: number;
+	jawOpen: number;
+	eyeBlinkLeft: number;
+	eyeBlinkRight: number;
+}
+
+let cachedBlendshapeIndices: BlendshapeIndices | null = null;
+
+function resolveBlendshapeIndices(
+	categories: { categoryName: string }[],
+): BlendshapeIndices {
+	const indices: BlendshapeIndices = {
+		mouthSmileLeft: -1,
+		mouthSmileRight: -1,
+		eyeSquintLeft: -1,
+		eyeSquintRight: -1,
+		mouthDimpleLeft: -1,
+		mouthDimpleRight: -1,
+		jawOpen: -1,
+		eyeBlinkLeft: -1,
+		eyeBlinkRight: -1,
+	};
+
+	for (let i = 0; i < categories.length; i++) {
+		const name = categories[i].categoryName;
+		if (name in indices) {
+			indices[name as keyof BlendshapeIndices] = i;
+		}
+	}
+
+	return indices;
+}
+
 const WASM_LOCAL_PATH = '/models';
 const WASM_CDN_PATH =
 	'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm';
@@ -156,48 +195,47 @@ export function computeSmileScore(
 
 	const blendshapesList = result.faceBlendshapes?.[0]?.categories ?? [];
 
-	let mouthSmileLeft = 0;
-	let mouthSmileRight = 0;
-	let eyeSquintLeft = 0;
-	let eyeSquintRight = 0;
-	let mouthDimpleLeft = 0;
-	let mouthDimpleRight = 0;
-	let jawOpen = 0;
-	let eyeBlinkLeft = 0;
-	let eyeBlinkRight = 0;
-
-	for (let i = 0; i < blendshapesList.length; i++) {
-		const bs = blendshapesList[i];
-		switch (bs.categoryName) {
-			case 'mouthSmileLeft':
-				mouthSmileLeft = bs.score;
-				break;
-			case 'mouthSmileRight':
-				mouthSmileRight = bs.score;
-				break;
-			case 'eyeSquintLeft':
-				eyeSquintLeft = bs.score;
-				break;
-			case 'eyeSquintRight':
-				eyeSquintRight = bs.score;
-				break;
-			case 'mouthDimpleLeft':
-				mouthDimpleLeft = bs.score;
-				break;
-			case 'mouthDimpleRight':
-				mouthDimpleRight = bs.score;
-				break;
-			case 'jawOpen':
-				jawOpen = bs.score;
-				break;
-			case 'eyeBlinkLeft':
-				eyeBlinkLeft = bs.score;
-				break;
-			case 'eyeBlinkRight':
-				eyeBlinkRight = bs.score;
-				break;
-		}
+	if (!cachedBlendshapeIndices && blendshapesList.length > 0) {
+		cachedBlendshapeIndices = resolveBlendshapeIndices(blendshapesList);
 	}
+
+	const indices = cachedBlendshapeIndices;
+	const mouthSmileLeft =
+		indices && indices.mouthSmileLeft >= 0 ?
+			blendshapesList[indices.mouthSmileLeft]?.score ?? 0
+		:	0;
+	const mouthSmileRight =
+		indices && indices.mouthSmileRight >= 0 ?
+			blendshapesList[indices.mouthSmileRight]?.score ?? 0
+		:	0;
+	const eyeSquintLeft =
+		indices && indices.eyeSquintLeft >= 0 ?
+			blendshapesList[indices.eyeSquintLeft]?.score ?? 0
+		:	0;
+	const eyeSquintRight =
+		indices && indices.eyeSquintRight >= 0 ?
+			blendshapesList[indices.eyeSquintRight]?.score ?? 0
+		:	0;
+	const mouthDimpleLeft =
+		indices && indices.mouthDimpleLeft >= 0 ?
+			blendshapesList[indices.mouthDimpleLeft]?.score ?? 0
+		:	0;
+	const mouthDimpleRight =
+		indices && indices.mouthDimpleRight >= 0 ?
+			blendshapesList[indices.mouthDimpleRight]?.score ?? 0
+		:	0;
+	const jawOpen =
+		indices && indices.jawOpen >= 0 ?
+			blendshapesList[indices.jawOpen]?.score ?? 0
+		:	0;
+	const eyeBlinkLeft =
+		indices && indices.eyeBlinkLeft >= 0 ?
+			blendshapesList[indices.eyeBlinkLeft]?.score ?? 0
+		:	0;
+	const eyeBlinkRight =
+		indices && indices.eyeBlinkRight >= 0 ?
+			blendshapesList[indices.eyeBlinkRight]?.score ?? 0
+		:	0;
 
 	const maxSmile = Math.max(mouthSmileLeft, mouthSmileRight);
 	const avgSmile = (mouthSmileLeft + mouthSmileRight) / 2;
@@ -334,6 +372,7 @@ export function detectSmile(
 
 export function destroySmileDetector() {
 	lastTimestamp = -1;
+	cachedBlendshapeIndices = null;
 	if (faceLandmarker) {
 		try {
 			faceLandmarker.close();

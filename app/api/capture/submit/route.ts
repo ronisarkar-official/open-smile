@@ -86,11 +86,15 @@ export async function POST(request: NextRequest) {
 			console.error('Streak update error:', e);
 		}
 
-		const minScore = Number(settings.min_smile_score_threshold) || 11;
-		const multiplier = Math.max(0.1, Number(settings.coin_multiplier) || 1.0);
+		const rewardConfig = settings.capture_reward_config || {
+			min_smile_score_threshold: Number(settings.min_smile_score_threshold) || 11,
+			coin_multiplier: Math.max(0.1, Number(settings.coin_multiplier) || 1.0),
+			scratch_min_coins: Number(settings.scratch_min_coins) || 5,
+			scratch_max_coins: Number(settings.scratch_max_coins) || 100,
+		};
 
-		const coinsCalculation = calculateSmileCoins(smileScore, streakMultiplier, undefined, minScore);
-		const coinsAwarded = Math.round(coinsCalculation.totalCoins * multiplier);
+		const coinsCalculation = calculateSmileCoins(smileScore, streakMultiplier, undefined, rewardConfig);
+		const coinsAwarded = coinsCalculation.totalCoins;
 
 		const captureRow = await insertSmileCapture(user.id, smileScore, coinsAwarded);
 		if (phash && captureRow?.id) {

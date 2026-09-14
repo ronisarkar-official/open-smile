@@ -47,8 +47,8 @@ Open Smile handles three categories of sensitive surface:
 
 ## Known open items (track before production use)
 
-- [ ] Confirm the OTP/rate-limit cleanup job is actually scheduled (cron/Edge Function), not just present as an uncalled function.
-- [ ] Define and enforce a max OTP verification attempt count.
+- [x] OTP/rate-limit cleanup is scheduled via `vercel.json` cron at `0 3 * * *` → `/api/cron/cleanup`.
+- [x] Enforce a max OTP verification attempt count (5 attempts max with auto-invalidation).
 - [ ] Confirm ImageKit's 1-day deletion is enforced server-side (a lifecycle policy) rather than relying on a client-triggered delete call that might not fire.
 - [ ] Account deletion flow — ensure cascading deletion of images, posts, and ledger data (or documented retention policy) if a user requests deletion.
 - [ ] Supabase Realtime channel auth currently needs Better Auth sessions passed into the presence/broadcast callback manually, since Realtime's built-in RLS expects Supabase Auth JWTs by default — verify this doesn't leave a channel accessible without a valid Better Auth session.

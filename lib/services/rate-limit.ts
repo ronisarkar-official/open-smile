@@ -1,4 +1,4 @@
-import { upsertRateLimit, resetRateLimit, ensureIndexes, cleanupExpiredRateLimits, cleanupExpiredOtpCodes } from "../db";
+import { upsertRateLimit, resetRateLimit, cleanupExpiredRateLimits, cleanupExpiredOtpCodes } from "../db";
 
 export interface RateLimitResult {
 	allowed: boolean;
@@ -17,7 +17,6 @@ export async function rateLimit(
 ): Promise<RateLimitResult> {
 	if (isDbConfigured()) {
 		try {
-			await ensureIndexes();
 			const record = await upsertRateLimit(
 				key,
 				now,

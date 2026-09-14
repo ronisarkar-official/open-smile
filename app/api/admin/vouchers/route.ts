@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
 			numeric_value,
 			coins_cost,
 			highlight_tag,
+			redirect_url,
 			codes,
 		} = body;
 
@@ -60,6 +61,7 @@ export async function POST(request: NextRequest) {
 			numericValue: numVal,
 			coinsCost: coinCost,
 			highlightTag: highlight_tag ? String(highlight_tag).trim() : undefined,
+			redirectUrl: redirect_url ? String(redirect_url).trim() : undefined,
 			codes: Array.isArray(codes) ? codes : [],
 		});
 
@@ -89,6 +91,7 @@ export async function PATCH(request: NextRequest) {
 			numeric_value,
 			coins_cost,
 			highlight_tag,
+			redirect_url,
 			is_active,
 		} = body;
 
@@ -117,6 +120,7 @@ export async function PATCH(request: NextRequest) {
 			numericValue: numVal,
 			coinsCost: coinCost,
 			highlightTag: highlight_tag !== undefined ? (highlight_tag ? String(highlight_tag).trim() : null) : undefined,
+			redirectUrl: redirect_url !== undefined ? (redirect_url ? String(redirect_url).trim() : null) : undefined,
 			isActive: is_active !== undefined ? Boolean(is_active) : undefined,
 		});
 

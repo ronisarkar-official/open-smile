@@ -33,6 +33,7 @@ export interface VoucherItem {
   logoBg?: string;
   accentColor?: string;
   imageUrl?: string;
+  redirectUrl?: string;
   remainingInventory?: number;
 }
 
@@ -49,6 +50,7 @@ export interface ClaimedVoucher {
   coinsSpent: number;
   logoBg?: string;
   websiteUrl?: string;
+  imageUrl?: string;
   status: 'active' | 'used';
 }
 

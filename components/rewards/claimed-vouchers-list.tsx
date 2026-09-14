@@ -96,6 +96,7 @@ export function ClaimedVouchersList({
                   <div className="flex items-center gap-2 sm:gap-3">
                     <BrandLogoImage
                       brandName={item.brandName}
+                      imageUrl={item.imageUrl}
                       size={40}
                     />
                     <div>
@@ -162,7 +163,7 @@ export function ClaimedVouchersList({
                   className="border-[length:var(--border-width)] border-black rounded-md font-mono text-[10px] sm:text-xs font-bold uppercase h-7 sm:h-8 px-2.5 gap-1 shadow-brutal-xs"
                 >
                   <a
-                    href={item.websiteUrl || 'https://amazon.in'}
+                    href={item.websiteUrl || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                   >

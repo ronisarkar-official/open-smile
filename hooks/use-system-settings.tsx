@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { type MediaPipeDrawingSpec, DEFAULT_DRAWING_SPEC } from "@/lib/mediapipe-drawing";
+import { type CaptureRewardConfig, DEFAULT_LUCKY_DROP_CHANCE, DEFAULT_LUCKY_BONUS_MIN, DEFAULT_LUCKY_BONUS_MAX, SMILE_TIERS } from "@/lib/reward-calculator";
 
 export interface SystemSettingsState {
 	maintenance_mode: boolean;
@@ -26,6 +27,7 @@ export interface SystemSettingsState {
 	scratch_max_coins: number;
 	palm_shutter_enabled?: boolean;
 	mediapipe_drawing_spec?: MediaPipeDrawingSpec;
+	capture_reward_config?: CaptureRewardConfig;
 	[key: string]: any;
 }
 

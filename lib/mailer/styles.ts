@@ -98,6 +98,11 @@ export const emailCss = `
   }
 `;
 
+export const OPEN_SMILE_LOGO_URL =
+	process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT
+		? `${process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT.replace(/\/+$/, '')}/brand/open-smile-brand-logo.png`
+		: 'https://ik.imagekit.io/2zeqzsn1n/brand/open-smile-brand-logo.png';
+
 export interface RenderEmailLayoutOptions {
 	title?: string;
 	badgeText?: string;
@@ -106,6 +111,8 @@ export interface RenderEmailLayoutOptions {
 	content: string;
 	footerNote?: string;
 	unsubscribeUrl?: string;
+	logoUrl?: string;
+	appUrl?: string;
 }
 
 export function renderEmailLayout({
@@ -116,7 +123,16 @@ export function renderEmailLayout({
 	content,
 	footerNote = "You are receiving this transactional email regarding your Open Smile account.",
 	unsubscribeUrl,
+	logoUrl,
+	appUrl,
 }: RenderEmailLayoutOptions): string {
+	const effectiveLogoUrl = logoUrl || OPEN_SMILE_LOGO_URL;
+	const effectiveAppUrl = (
+		appUrl ||
+		process.env.BETTER_AUTH_URL ||
+		"https://open-smile.vercel.app"
+	).replace(/\/+$/, "");
+
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -135,13 +151,20 @@ export function renderEmailLayout({
           <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse;">
             <tr>
               <td style="vertical-align: middle; padding-right: 12px; border: none;">
-                <!-- Logo Box Icon -->
-                <div style="background-color: #FF2D78; border: 2px solid #0f0f0f; border-radius: 6px; box-shadow: 2.5px 2.5px 0px #0f0f0f; width: 34px; height: 34px; text-align: center; line-height: 34px; display: inline-block;">
-                  <span style="font-size: 18px; line-height: 34px; display: inline-block;">😄</span>
-                </div>
+                <a href="${effectiveAppUrl}" target="_blank" style="text-decoration: none; display: inline-block;">
+                  <img
+                    src="${effectiveLogoUrl}"
+                    alt="Open Smile"
+                    width="36"
+                    height="36"
+                    style="display: block; width: 36px; height: 36px; border: 2px solid #0f0f0f; border-radius: 6px; box-shadow: 2.5px 2.5px 0px #0f0f0f; background-color: #FF2D78; object-fit: cover;"
+                  />
+                </a>
               </td>
               <td style="vertical-align: middle; border: none;">
-                <span style="font-size: 20px; font-weight: 900; letter-spacing: -0.5px; color: #0f0f0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">OPEN SMILE</span>
+                <a href="${effectiveAppUrl}" target="_blank" style="text-decoration: none; color: #0f0f0f;">
+                  <span style="font-size: 20px; font-weight: 900; letter-spacing: -0.5px; color: #0f0f0f; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">OPEN SMILE</span>
+                </a>
               </td>
               <td style="vertical-align: middle; padding-left: 12px; border: none;">
                 <span style="display: inline-block; background-color: ${badgeBg}; color: ${badgeColor}; font-size: 10px; font-weight: 900; padding: 3px 8px; border: 1.5px solid #0f0f0f; border-radius: 4px; box-shadow: 1.5px 1.5px 0px #0f0f0f; text-transform: uppercase; letter-spacing: 0.5px;">${badgeText}</span>

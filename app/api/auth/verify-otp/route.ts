@@ -6,6 +6,7 @@ import {
   createUserWithAccount,
   findUserByEmail,
   createPendingReferral,
+  verifyOtpAttemptAllowed,
 } from "@/lib/db";
 import { rateLimit } from "@/lib/services";
 import { sendLoginNotificationEmail } from "@/lib/mailer";
@@ -47,6 +48,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Too many attempts. Please try again later." },
         { status: 429, headers: { "Retry-After": String(Math.max(byEmail.retryAfter, byIp.retryAfter)) } }
+      );
+    }
+
+    const attemptCheck = await verifyOtpAttemptAllowed(normalizedEmail);
+    if (!attemptCheck.allowed) {
+      return NextResponse.json(
+        { error: "Too many failed attempts. Please request a new OTP." },
+        { status: 429 }
       );
     }
 

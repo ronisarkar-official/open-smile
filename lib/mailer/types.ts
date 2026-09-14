@@ -5,6 +5,7 @@ export type EmailTemplateType =
 	| 'reset-password'
 	| 'streak-reminder'
 	| 'reward-unlocked'
+	| 'voucher-claimed'
 	| 'broadcast'
 	| 'custom';
 

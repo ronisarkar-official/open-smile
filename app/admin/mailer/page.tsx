@@ -751,9 +751,11 @@ export default function AdminMailerPage() {
 								{/* Email Header */}
 								<div className="flex items-center justify-between border-b border-black/15 pb-3">
 									<div className="flex items-center gap-2">
-										<div className="size-7 rounded border border-black bg-primary text-white flex items-center justify-center font-bold text-xs">
-											😄
-										</div>
+										<img
+											src="https://ik.imagekit.io/2zeqzsn1n/brand/open-smile-brand-logo.png"
+											alt="Open Smile"
+											className="size-7 rounded border border-black bg-primary object-cover"
+										/>
 										<span className="font-black text-sm tracking-tight">OPEN SMILE</span>
 									</div>
 									<span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 border border-black rounded bg-accent">

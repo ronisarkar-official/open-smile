@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from typing import Optional
 
 MAX_DAILY_CAPTURES = 5
-PHASH_HAMMING_THRESHOLD = 5
+PHASH_HAMMING_THRESHOLD = 2
 
 def compute_hamming_distance(hash1: str, hash2: str) -> int:
     try:
@@ -59,7 +59,7 @@ async def validate_anti_cheat(
                 """
                 SELECT phash
                 FROM image_hashes
-                WHERE user_id = $1 AND phash IS NOT NULL AND created_at >= NOW() - INTERVAL '30 days'
+                WHERE user_id = $1 AND phash IS NOT NULL AND created_at >= NOW() - INTERVAL '24 hours'
                 """,
                 user_id,
             )

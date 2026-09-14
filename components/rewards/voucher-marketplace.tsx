@@ -32,8 +32,8 @@ import { BrandLogoImage } from '@/lib/brand-logos';
 
 interface VoucherMarketplaceProps {
   userCoins: number;
-  onClaimSuccess: (voucher: VoucherItem, claim: ClaimedVoucher) => void;
-  onNavigateToTab: (tab: 'my-vouchers' | 'marketplace' | 'scratch' | 'badges') => void;
+  onClaimSuccess?: (voucher: VoucherItem, claim?: ClaimedVoucher) => void;
+  onNavigateToTab?: (tab: 'my-vouchers' | 'marketplace' | 'scratch' | 'badges') => void;
 }
 
 type SortOption = 'featured' | 'coins-asc' | 'coins-desc' | 'value-desc';
@@ -134,7 +134,7 @@ export function VoucherMarketplace({
   const affordableCount = vouchers.filter((v) => userCoins >= v.coinsCost).length;
 
   const handleOpenClaim = (voucher: VoucherItem) => {
-    if (isRedemptionBlocked) return;
+    if (isRedemptionBlocked || (typeof voucher.remainingInventory === 'number' && voucher.remainingInventory <= 0)) return;
     setSelectedVoucher(voucher);
     setIsModalOpen(true);
   };
@@ -142,6 +142,17 @@ export function VoucherMarketplace({
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedVoucher(null);
+  };
+
+  const handleClaimSuccessInternal = (voucher: VoucherItem, claim: ClaimedVoucher) => {
+    setVouchers((prev) =>
+      prev.map((v) =>
+        v.id === voucher.id && typeof v.remainingInventory === 'number'
+          ? { ...v, remainingInventory: Math.max(0, v.remainingInventory - 1) }
+          : v
+      )
+    );
+    onClaimSuccess?.(voucher, claim);
   };
 
   return (
@@ -236,6 +247,7 @@ export function VoucherMarketplace({
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
           {displayedVouchers.map((voucher) => {
             const isAffordable = userCoins >= voucher.coinsCost;
+            const isOutOfStock = typeof voucher.remainingInventory === 'number' && voucher.remainingInventory <= 0;
             const progress = Math.min((userCoins / voucher.coinsCost) * 100, 100);
             const neededCoins = voucher.coinsCost - userCoins;
 
@@ -244,7 +256,7 @@ export function VoucherMarketplace({
                 key={voucher.id}
                 className={cn(
                   'relative flex flex-col justify-between border-[length:var(--border-width)] border-black rounded-xl bg-card p-3.5 sm:p-5 shadow-brutal-sm sm:shadow-brutal-lg transition-all duration-150',
-                  isAffordable ? 'hover:-translate-y-1 hover:shadow-brutal-xl' : 'opacity-95'
+                  isOutOfStock ? 'opacity-70 grayscale-[30%]' : isAffordable ? 'hover:-translate-y-1 hover:shadow-brutal-xl' : 'opacity-95'
                 )}
               >
                 <div>
@@ -288,9 +300,9 @@ export function VoucherMarketplace({
                     {typeof voucher.remainingInventory === 'number' && (
                       <span className={cn(
                         "inline-block border border-black rounded-xs px-1.5 py-0.5 font-mono text-[9px] sm:text-[10px] font-black uppercase",
-                        voucher.remainingInventory > 0 ? "bg-emerald-200 text-emerald-950" : "bg-red-200 text-red-950"
+                        voucher.remainingInventory > 0 ? "bg-emerald-200 text-emerald-950" : "bg-red-200 text-red-950 font-bold"
                       )}>
-                        {voucher.remainingInventory > 0 ? `${voucher.remainingInventory} in stock` : 'Restocking soon'}
+                        {voucher.remainingInventory > 0 ? `${voucher.remainingInventory} in stock` : 'Out of Stock'}
                       </span>
                     )}
                   </div>
@@ -313,7 +325,7 @@ export function VoucherMarketplace({
                     </div>
                   </div>
 
-                  {!isAffordable && (
+                  {!isAffordable && !isOutOfStock && (
                     <div className="space-y-1">
                       <div className="flex justify-between font-mono text-[9px] sm:text-[10px] text-muted-foreground">
                         <span>Unlock Progress</span>
@@ -337,10 +349,10 @@ export function VoucherMarketplace({
 
                   <Button
                     onClick={() => handleOpenClaim(voucher)}
-                    disabled={isRedemptionBlocked}
+                    disabled={isRedemptionBlocked || isOutOfStock}
                     className={cn(
                       'w-full border-[length:var(--border-width)] border-black font-title font-black text-[11px] sm:text-xs uppercase tracking-wider h-8.5 sm:h-10 gap-1.5 sm:gap-2 shadow-brutal-xs sm:shadow-brutal-sm active:translate-x-[1px] active:translate-y-[1px] active:shadow-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed',
-                      isRedemptionBlocked
+                      isRedemptionBlocked || isOutOfStock
                         ? 'bg-muted text-muted-foreground'
                         : isAffordable
                         ? 'bg-primary text-primary-foreground hover:bg-primary/90'
@@ -351,6 +363,11 @@ export function VoucherMarketplace({
                       <>
                         <Lock className="size-3 sm:size-3.5" />
                         <span>Claims Paused</span>
+                      </>
+                    ) : isOutOfStock ? (
+                      <>
+                        <Lock className="size-3 sm:size-3.5" />
+                        <span>Out of Stock</span>
                       </>
                     ) : isAffordable ? (
                       <>
@@ -394,7 +411,7 @@ export function VoucherMarketplace({
         isOpen={isModalOpen}
         userCoins={userCoins}
         onClose={handleCloseModal}
-        onConfirmClaim={onClaimSuccess}
+        onConfirmClaim={handleClaimSuccessInternal}
         onNavigateToTab={onNavigateToTab}
       />
     </div>

@@ -13,6 +13,7 @@ import {
   Gift,
   Info,
   Lock,
+  Mail,
   Sparkles,
   UserPlus,
   X,
@@ -34,21 +35,8 @@ interface VoucherClaimModalProps {
   onNavigateToTab?: (tab: 'my-vouchers' | 'marketplace' | 'scratch' | 'badges') => void;
 }
 
-function generateVoucherCode(brandId: string): { code: string; pin: string } {
-  const prefix = brandId.slice(0, 4).toUpperCase();
-  const randNum1 = Math.floor(1000 + Math.random() * 9000);
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let randChars = '';
-  for (let i = 0; i < 4; i++) {
-    randChars += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  const code = `OS-${prefix}-${randNum1}-${randChars}`;
-  const pin = String(Math.floor(1000 + Math.random() * 9000));
-  return { code, pin };
-}
-
 function getBrandUrl(brandId: string): string {
-  switch (brandId) {
+  switch (brandId.toLowerCase()) {
     case 'amazon':
       return 'https://www.amazon.in/addgiftcard';
     case 'flipkart':
@@ -65,8 +53,12 @@ function getBrandUrl(brandId: string): string {
       return 'https://www.starbucks.in';
     case 'bookmyshow':
       return 'https://in.bookmyshow.com';
+    case 'apple':
+      return 'https://www.apple.com';
+    case 'lenskart':
+      return 'https://www.lenskart.com';
     default:
-      return 'https://www.amazon.in';
+      return 'https://www.google.com';
   }
 }
 
@@ -176,11 +168,19 @@ export function VoucherClaimModal({
       });
       return;
     }
+    if (typeof voucher.remainingInventory === 'number' && voucher.remainingInventory <= 0) {
+      toast({
+        title: "Out of Stock",
+        description: "This voucher is currently out of stock.",
+        variant: "error",
+      });
+      return;
+    }
     if (!hasEnoughCoins) return;
     setIsSubmitting(true);
 
     try {
-      let res = await fetch('/api/v1/rewards/claim', {
+      let res = await fetch('/api/rewards/claim', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -191,7 +191,7 @@ export function VoucherClaimModal({
       });
 
       if (!res.ok) {
-        res = await fetch('/api/rewards/claim', {
+        res = await fetch('/api/v1/rewards/claim', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -214,12 +214,13 @@ export function VoucherClaimModal({
         title: json.title,
         valueFormatted: json.valueFormatted,
         code: json.code,
-        pin: json.pin || '7492',
+        pin: json.pin || null,
         claimedAt: json.claimedAt,
         expiresAt: json.expiresAt,
         coinsSpent: json.coinsSpent,
         logoBg: json.logoBg,
-        websiteUrl: json.websiteUrl,
+        websiteUrl: json.websiteUrl || voucher.redirectUrl || getBrandUrl(voucher.brandId),
+        imageUrl: json.imageUrl || voucher.imageUrl,
         status: 'active',
       };
       setClaimedData(serverClaim);
@@ -276,6 +277,7 @@ export function VoucherClaimModal({
             <div className="flex items-center gap-3">
               <BrandLogoImage
                 brandName={claimedData.brandName}
+                imageUrl={claimedData.imageUrl || voucher.imageUrl}
                 size={36}
               />
               <div>
@@ -328,6 +330,13 @@ export function VoucherClaimModal({
               </details>
             )}
 
+            <div className="flex items-center gap-2.5 p-3 bg-emerald-50 dark:bg-emerald-950/40 border-[length:var(--border-width)] border-black rounded-lg shadow-brutal-xs">
+              <Mail className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <p className="font-mono text-xs font-bold text-foreground leading-snug">
+                Voucher code &amp; details have also been sent to your email inbox!
+              </p>
+            </div>
+
             <div className="flex flex-col sm:flex-row gap-2 pt-1">
               <Button
                 asChild
@@ -341,12 +350,9 @@ export function VoucherClaimModal({
 
               <Button
                 variant="outline"
-                onClick={() => {
-                  onClose();
-                  onNavigateToTab?.('my-vouchers');
-                }}
+                onClick={onClose}
               >
-                My Vouchers
+                Done
               </Button>
             </div>
           </div>

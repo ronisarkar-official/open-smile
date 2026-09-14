@@ -22,3 +22,8 @@ class CaptureSubmitResponse(BaseModel):
     first_capture_bonus_unlocked: bool = False
     card_id: Optional[str] = None
     is_scratched: Optional[bool] = False
+    daily_captures_used: Optional[int] = None
+    max_daily_captures: Optional[int] = 10
+    captures_remaining: Optional[int] = None
+    limit_reached: bool = False
+    resets_at: Optional[str] = None

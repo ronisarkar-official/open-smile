@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:py": "uv run uvicorn api.index:app --port 8000 --reload",
     "dev:all": "concurrently -k -n \"next,py\" -c \"cyan,magenta\" \"next dev\" \"uv run uvicorn api.index:app --port 8000 --reload\"",
-    "test:py": "python -m pytest backend_py/tests",
+    "test:py": "uv run pytest backend_py/tests",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"
@@ -36,7 +36,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "driver.js": "^1.8.0",
-    "framer-motion": "^13.1.1",
     "input-otp": "^1.4.2",
     "lenis": "^1.3.26",
     "lucide-react": "^1.14.0",

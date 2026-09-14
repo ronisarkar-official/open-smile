@@ -20,6 +20,7 @@ class VoucherItem(BaseModel):
     remainingInventory: Optional[int] = None
     imageUrl: Optional[str] = None
     details: Optional[str] = None
+    redirectUrl: Optional[str] = None
 
 class ClaimVoucherRequest(BaseModel):
     voucher_id: str
@@ -39,6 +40,7 @@ class ClaimedVoucherResponse(BaseModel):
     coinsSpent: int
     logoBg: str
     websiteUrl: str
+    imageUrl: Optional[str] = None
     status: str
 
 class BadgeItem(BaseModel):

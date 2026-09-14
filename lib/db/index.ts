@@ -1,3 +1,12 @@
 export { getPool, getSupabase } from "./client";
-export * from "./collections";
+export * from "./auth-queries";
+export * from "./otp-queries";
+export * from "./capture-queries";
+export * from "./streak-queries";
+export * from "./leaderboard-queries";
+export * from "./admin-queries";
+export * from "./settings-queries";
+export * from "./referral-queries";
+export * from "./profile-queries";
+export * from "./notification-queries";
 export { ensureIndexes } from "./indexes";

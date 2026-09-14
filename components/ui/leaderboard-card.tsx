@@ -22,6 +22,7 @@ import {
 	SelectValue,
 } from '@/components/ui/select';
 import { CoinIcon } from '@/components/ui/coin-icon';
+import { useSystemSettings } from '@/hooks/use-system-settings';
 
 interface LeaderboardRunOption {
 	id: string;
@@ -62,23 +63,24 @@ function formatRangeDate(date: string | Date) {
 	});
 }
 
-const TOURNAMENT_REWARDS: Record<
-	string,
-	{
-		label: string;
-		desc: string;
-		resetLabel: string;
-		cards: Array<{
-			rank: string;
-			name: string;
-			range: string;
-			medal: string;
-			bg: string;
-			border: string;
-			badgeBg: string;
-		}>;
-	}
-> = {
+interface TournamentRewardCard {
+	rank: string;
+	name: string;
+	range: string;
+	medal: string;
+	bg: string;
+	border: string;
+	badgeBg: string;
+}
+
+interface TournamentRewardConfig {
+	label: string;
+	desc: string;
+	resetLabel: string;
+	cards: TournamentRewardCard[];
+}
+
+const TOURNAMENT_REWARDS: Record<string, TournamentRewardConfig> = {
 	daily: {
 		label: 'Daily Podium Rewards',
 		desc: 'Top 3 win Mystery Scratch Cards',
@@ -248,14 +250,65 @@ const LeaderboardCard = React.forwardRef<HTMLDivElement, LeaderboardCardProps>(
 			return () => clearInterval(interval);
 		}, [resetAt, activeRunId]);
 
+		const { settings } = useSystemSettings();
+
 		const isRushHour = React.useMemo(() => {
 			if (!resetAt || activeRunId !== 'daily') return false;
 			const diff = new Date(resetAt).getTime() - Date.now();
 			return diff > 0 && diff <= 60 * 60 * 1000;
 		}, [resetAt, activeRunId, countdownText]);
 
-		const currentReward =
-			TOURNAMENT_REWARDS[activeRunId] || TOURNAMENT_REWARDS.daily;
+		const currentReward = React.useMemo(() => {
+			const d1_min = settings.daily_podium_1_min_coins ?? 70;
+			const d1_max = settings.daily_podium_1_max_coins ?? 99;
+			const d2_min = settings.daily_podium_2_min_coins ?? 40;
+			const d2_max = settings.daily_podium_2_max_coins ?? 69;
+			const d3_min = settings.daily_podium_3_min_coins ?? 15;
+			const d3_max = settings.daily_podium_3_max_coins ?? 39;
+
+			const w1_min = settings.weekly_podium_1_min_coins ?? 250;
+			const w1_max = settings.weekly_podium_1_max_coins ?? 400;
+			const w2_min = settings.weekly_podium_2_min_coins ?? 120;
+			const w2_max = settings.weekly_podium_2_max_coins ?? 200;
+			const w3_min = settings.weekly_podium_3_min_coins ?? 60;
+			const w3_max = settings.weekly_podium_3_max_coins ?? 100;
+
+			const m1_min = settings.monthly_podium_1_min_coins ?? 800;
+			const m1_max = settings.monthly_podium_1_max_coins ?? 1200;
+			const m2_min = settings.monthly_podium_2_min_coins ?? 400;
+			const m2_max = settings.monthly_podium_2_max_coins ?? 600;
+			const m3_min = settings.monthly_podium_3_min_coins ?? 200;
+			const m3_max = settings.monthly_podium_3_max_coins ?? 350;
+
+			const dynamicRewards: Record<string, TournamentRewardConfig> = {
+				daily: {
+					...TOURNAMENT_REWARDS.daily,
+					cards: [
+						{ ...TOURNAMENT_REWARDS.daily.cards[0], range: `${d1_min}–${d1_max}` },
+						{ ...TOURNAMENT_REWARDS.daily.cards[1], range: `${d2_min}–${d2_max}` },
+						{ ...TOURNAMENT_REWARDS.daily.cards[2], range: `${d3_min}–${d3_max}` },
+					],
+				},
+				weekly: {
+					...TOURNAMENT_REWARDS.weekly,
+					cards: [
+						{ ...TOURNAMENT_REWARDS.weekly.cards[0], range: `${w1_min}–${w1_max}` },
+						{ ...TOURNAMENT_REWARDS.weekly.cards[1], range: `${w2_min}–${w2_max}` },
+						{ ...TOURNAMENT_REWARDS.weekly.cards[2], range: `${w3_min}–${w3_max}` },
+					],
+				},
+				monthly: {
+					...TOURNAMENT_REWARDS.monthly,
+					cards: [
+						{ ...TOURNAMENT_REWARDS.monthly.cards[0], range: `${m1_min}–${m1_max}` },
+						{ ...TOURNAMENT_REWARDS.monthly.cards[1], range: `${m2_min}–${m2_max}` },
+						{ ...TOURNAMENT_REWARDS.monthly.cards[2], range: `${m3_min}–${m3_max}` },
+					],
+				},
+			};
+
+			return dynamicRewards[activeRunId] || dynamicRewards.daily;
+		}, [settings, activeRunId]);
 
 		return (
 			<div

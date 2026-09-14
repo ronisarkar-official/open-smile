@@ -352,3 +352,78 @@ export function getAdminBroadcastEmailHtml(
 			'You are receiving this official announcement as an Open Smile community member.',
 	});
 }
+
+export function getVoucherClaimedEmailHtml(params: {
+	name: string;
+	brandName: string;
+	voucherTitle: string;
+	voucherCode: string;
+	pin?: string | null;
+	valueFormatted?: string;
+	coinsSpent?: number;
+	expiresAt?: string;
+	websiteUrl?: string;
+	appUrl?: string;
+	unsubscribeUrl?: string;
+}): string {
+	const displayName = params.name ? escapeHtml(params.name) : 'Smiler';
+	const url = (
+		params.appUrl ||
+		process.env.BETTER_AUTH_URL ||
+		'http://localhost:3000'
+	).replace(/\/+$/, '');
+	const brand = escapeHtml(params.brandName || 'Brand');
+	const title = escapeHtml(params.voucherTitle || `${brand} Voucher`);
+	const code = escapeHtml(params.voucherCode);
+	const pin = params.pin ? escapeHtml(params.pin) : null;
+	const redeemUrl = params.websiteUrl || `${url}/rewards`;
+
+	return renderEmailLayout({
+		title: `Your ${brand} Voucher Code 🎟️`,
+		badgeText: 'VOUCHER DELIVERED',
+		badgeBg: '#C6F135',
+		badgeColor: '#0f0f0f',
+		unsubscribeUrl: params.unsubscribeUrl,
+		content: `
+			<div style="display: inline-block; background-color: #C6F135; color: #0f0f0f; font-size: 11px; font-weight: 900; padding: 4px 10px; border: 1px solid #0f0f0f; border-radius: 7px; box-shadow: 1.5px 1.5px 0px 0px #0f0f0f; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px;">
+				Voucher Delivery 🎟️
+			</div>
+
+			<h1 style="font-size: 24px; font-weight: 900; color: #0f0f0f; margin: 0 0 12px; letter-spacing: -0.5px;">Here is your voucher, ${displayName}! 🎉</h1>
+			<p style="color: #57534e; font-size: 15px; line-height: 1.65; margin: 12px 0;">You successfully redeemed <strong>${title}</strong>${params.coinsSpent ? ` for <strong>${params.coinsSpent} coins</strong>` : ''}. Below are your voucher code and details to redeem online.</p>
+
+			<div style="background-color: #faf8f5; border: 2px solid #0f0f0f; border-radius: 7px; box-shadow: 3px 3px 0px #0f0f0f; padding: 24px 20px; margin: 24px 0; text-align: center;">
+				<div style="font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: 1.5px; color: #57534e; margin-bottom: 8px;">${brand.toUpperCase()} VOUCHER CODE</div>
+				<div style="background: #ffffff; border: 1.5px dashed #0f0f0f; border-radius: 6px; padding: 14px; margin-bottom: 12px;">
+					<div style="font-family: 'Space Mono', monospace, Consolas; font-size: 22px; font-weight: 900; letter-spacing: 3px; color: #0f0f0f; margin: 0; word-break: break-all;">
+						${code}
+					</div>
+				</div>
+				${
+					pin
+						? `<div style="font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; color: #0f0f0f; margin-top: 8px;">
+							Security PIN: <strong style="font-weight: 900; letter-spacing: 1px;">${pin}</strong>
+						   </div>`
+						: ''
+				}
+				${
+					params.expiresAt
+						? `<div style="font-size: 12px; color: #78716c; margin-top: 8px; font-weight: 600;">
+							Valid till: ${escapeHtml(params.expiresAt)}
+						   </div>`
+						: ''
+				}
+			</div>
+
+			<div style="margin: 28px 0 16px; text-align: center;">
+				<a href="${redeemUrl}" class="btn" style="display: inline-block; background-color: #FF2D78; color: #ffffff !important; text-decoration: none; padding: 14px 30px; font-size: 15px; font-weight: 900; border: 2px solid #0f0f0f; border-radius: 7px; box-shadow: 3px 3px 0px #0f0f0f; text-transform: uppercase; letter-spacing: 0.5px;">Redeem / Use Now ↗</a>
+			</div>
+
+			<p style="color: #78716c; font-size: 13px; line-height: 1.5; margin-top: 24px;">
+				Need help? Simply copy the code above and apply it at checkout on the ${brand} website or app.
+			</p>
+		`,
+		footerNote: 'You received this email because you redeemed a voucher reward on Open Smile.',
+	});
+}
+

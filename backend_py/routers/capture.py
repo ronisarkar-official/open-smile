@@ -1,3 +1,4 @@
+import json
 from fastapi import APIRouter, Depends, HTTPException, status
 import asyncpg
 from datetime import datetime, timezone, timedelta
@@ -38,27 +39,38 @@ async def submit_capture(
             )
 
             streak_count, streak_multiplier = await update_user_streak(conn, user_id)
-            base_coins, calculated_coins = calculate_smile_coins(payload.smile_score, streak_multiplier)
 
             settings_rows = await conn.fetch("SELECT key, value FROM system_settings")
-            settings_dict = {r["key"]: r["value"] for r in settings_rows}
+            settings_dict = {}
+            for r in settings_rows:
+                val = r["value"]
+                if isinstance(val, str) and (val.startswith("{") or val.startswith("[")):
+                    try:
+                        val = json.loads(val)
+                    except Exception:
+                        pass
+                settings_dict[r["key"]] = val
 
-            min_score_raw = settings_dict.get("min_smile_score_threshold", 50)
-            try:
-                min_score = int(min_score_raw)
-            except (ValueError, TypeError):
-                min_score = 50
+            reward_config = settings_dict.get("capture_reward_config")
+            if not isinstance(reward_config, dict):
+                reward_config = {}
 
-            multiplier_raw = settings_dict.get("coin_multiplier", 1.0)
-            try:
-                multiplier = float(multiplier_raw)
-            except (ValueError, TypeError):
-                multiplier = 1.0
+            if "coin_multiplier" not in reward_config and "coin_multiplier" in settings_dict:
+                try:
+                    reward_config["coin_multiplier"] = float(settings_dict["coin_multiplier"])
+                except Exception:
+                    pass
+            if "min_smile_score_threshold" not in reward_config and "min_smile_score_threshold" in settings_dict:
+                try:
+                    reward_config["min_smile_score_threshold"] = int(settings_dict["min_smile_score_threshold"])
+                except Exception:
+                    pass
 
-            if payload.smile_score < min_score:
-                total_coins = 0
-            else:
-                total_coins = max(1, round(calculated_coins * multiplier))
+            base_coins, total_coins = calculate_smile_coins(
+                payload.smile_score,
+                streak_multiplier,
+                reward_config,
+            )
 
             capture_id = await conn.fetchval(
                 """
@@ -98,6 +110,26 @@ async def submit_capture(
                 theme_color,
             )
 
+            daily_count = await conn.fetchval(
+                """
+                SELECT COUNT(*)
+                FROM smile_captures
+                WHERE user_id = $1 AND created_at AT TIME ZONE 'Asia/Kolkata' >= (NOW() AT TIME ZONE 'Asia/Kolkata')::date
+                """,
+                user_id,
+            ) or 0
+
+            ist = timezone(timedelta(hours=5, minutes=30))
+            now_ist = datetime.now(ist)
+            next_midnight_ist = datetime(now_ist.year, now_ist.month, now_ist.day, tzinfo=ist) + timedelta(days=1)
+            next_midnight = next_midnight_ist.astimezone(timezone.utc)
+            max_daily_raw = settings_dict.get("max_daily_captures_per_user", 10)
+            try:
+                max_daily = int(max_daily_raw)
+            except (ValueError, TypeError):
+                max_daily = 10
+            limit_reached = daily_count >= max_daily
+
             first_capture_bonus = await process_first_capture_referral(conn, user_id)
             balance = await get_user_balance(conn, user_id)
 
@@ -111,6 +143,11 @@ async def submit_capture(
         first_capture_bonus_unlocked=first_capture_bonus,
         card_id=str(card_id) if card_id else None,
         is_scratched=False,
+        daily_captures_used=daily_count,
+        max_daily_captures=max_daily,
+        captures_remaining=max(0, max_daily - daily_count),
+        limit_reached=limit_reached,
+        resets_at=next_midnight.isoformat(),
     )
 
 @router.get("/status")

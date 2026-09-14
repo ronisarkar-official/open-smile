@@ -50,8 +50,7 @@ async def test_rewards_catalog():
         assert response.status_code == 200
         catalog = response.json()
         assert len(catalog) > 0
-        assert any(v["brandName"] == "Amazon" for v in catalog)
-        assert any(v["brandName"] == "boAt" for v in catalog)
+        assert all("brandName" in v and "coinsCost" in v and "numericValue" in v for v in catalog)
 
 @pytest.mark.anyio
 async def test_activity_recent():

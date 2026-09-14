@@ -57,13 +57,14 @@ async def get_catalog(pool: asyncpg.Pool = Depends(get_db_pool)):
                     vc.numeric_value, 
                     vc.coins_cost, 
                     vc.highlight_tag,
+                    vc.redirect_url,
                     COALESCE(vc.voucher_type, 'gift_card') as voucher_type,
                     COALESCE(vc.value_formatted, '₹' || vc.numeric_value::text) as value_formatted,
                     COUNT(vi.id) FILTER (WHERE vi.status = 'available')::int as remaining_inventory
                 FROM vouchers_catalog vc
                 LEFT JOIN voucher_inventory vi ON vc.id = vi.voucher_id
                 WHERE vc.is_active = true
-                GROUP BY vc.id, vc.brand_name, vc.title, vc.description, vc.details, vc.category, vc.image_url, vc.numeric_value, vc.coins_cost, vc.highlight_tag, vc.voucher_type, vc.value_formatted
+                GROUP BY vc.id, vc.brand_name, vc.title, vc.description, vc.details, vc.category, vc.image_url, vc.numeric_value, vc.coins_cost, vc.highlight_tag, vc.redirect_url, vc.voucher_type, vc.value_formatted
                 ORDER BY vc.numeric_value ASC
                 """
             )
@@ -83,6 +84,7 @@ async def get_catalog(pool: asyncpg.Pool = Depends(get_db_pool)):
                     highlightTag=r["highlight_tag"],
                     description=r["description"] or f"Redeem {r['title']} with your smile coins.",
                     details=r["details"],
+                    redirectUrl=r["redirect_url"],
                     instructions=[f"Copy secret code and apply on {r['brand_name']} checkout."],
                     logoBg="#FF2D78",
                     imageUrl=r["image_url"],
@@ -101,16 +103,6 @@ async def claim_voucher(
     pool: asyncpg.Pool = Depends(get_db_pool),
 ):
     user_id = current_user["user_id"]
-
-    voucher = next((v for v in STATIC_VOUCHERS_CATALOG if v["id"] == payload.voucher_id), None)
-    if not voucher:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Voucher not found in catalog"
-        )
-
-    coins_cost = payload.coins_cost or voucher["coinsCost"]
-    code, pin = generate_voucher_code(voucher["brandId"])
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(days=365)
 
@@ -134,20 +126,78 @@ async def claim_voucher(
             )
 
         async with conn.transaction():
+            inv_row = await conn.fetchrow(
+                """
+                SELECT id, voucher_id, brand_name, title, code, pin
+                FROM voucher_inventory
+                WHERE voucher_id = $1 AND status = 'available'
+                ORDER BY created_at ASC
+                LIMIT 1
+                FOR UPDATE SKIP LOCKED
+                """,
+                payload.voucher_id,
+            )
+            if not inv_row:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="This voucher is currently out of stock."
+                )
+
+            cat_row = await conn.fetchrow(
+                """
+                SELECT id, brand_name, title, category, coins_cost, numeric_value, value_formatted, redirect_url
+                FROM vouchers_catalog
+                WHERE id = $1
+                """,
+                payload.voucher_id,
+            )
+
+            brand_name = (cat_row["brand_name"] if cat_row else None) or inv_row["brand_name"] or payload.brand or "Brand"
+            title = (cat_row["title"] if cat_row else None) or inv_row["title"] or f"{brand_name} Voucher"
+            coins_cost = (cat_row["coins_cost"] if cat_row else None) or payload.coins_cost or 200
+            value_formatted = (cat_row["value_formatted"] if cat_row else None) or f"₹{round(coins_cost / 2)}"
+            redirect_url = cat_row["redirect_url"] if cat_row else None
+            code = inv_row["code"]
+            pin = inv_row["pin"]
+
+            user_balance = await get_user_balance(conn, user_id)
+            if user_balance < coins_cost:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Insufficient coins. You have {user_balance} coins, but {coins_cost} are required."
+                )
+
             await deduct_coins(conn, user_id, coins_cost, "voucher_claim")
+
+            await conn.execute(
+                """
+                UPDATE voucher_inventory
+                SET status = 'claimed', claimed_by = $1, claimed_at = $2
+                WHERE id = $3
+                """,
+                user_id,
+                now,
+                inv_row["id"],
+            )
+
+            image_url = catalog_row["image_url"] if catalog_row else None
 
             reward_id = await conn.fetchval(
                 """
-                INSERT INTO rewards (user_id, tier, provider, voucher_code, coins_spent, claimed_at)
-                VALUES ($1, $2, $3, $4, $5, $6)
+                INSERT INTO rewards (user_id, tier, provider, voucher_code, coins_spent, claimed_at, voucher_id, redirect_url, pin, image_url)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 RETURNING id
                 """,
                 user_id,
-                voucher["valueFormatted"],
-                voucher["brandName"],
+                value_formatted,
+                brand_name,
                 code,
                 coins_cost,
                 now,
+                payload.voucher_id,
+                redirect_url,
+                pin,
+                image_url,
             )
 
             await conn.execute(
@@ -156,7 +206,7 @@ async def claim_voucher(
                 VALUES ($1, $2, $3, $4, 'claimed', $5)
                 """,
                 user_id,
-                voucher["title"],
+                title,
                 coins_cost,
                 code,
                 now,
@@ -168,27 +218,31 @@ async def claim_voucher(
                 VALUES ($1, $2, 'Voucher Marketplace', 0, $3, $4, $5, $6, true, '#22C55E', 'VOUCHER', $7)
                 """,
                 user_id,
-                f"{voucher['brandName']} Voucher ({voucher['valueFormatted']})",
-                voucher["id"],
-                voucher["title"],
+                f"{brand_name} Voucher ({value_formatted})",
+                payload.voucher_id,
+                title,
                 code,
-                voucher["brandName"],
+                brand_name,
                 now,
             )
 
+    website_url = redirect_url or get_brand_url(brand_name)
+    logo_bg = "#2874F0" if "flipkart" in brand_name.lower() else "#E21B24" if "boat" in brand_name.lower() else "#FF9900"
+
     return ClaimedVoucherResponse(
         id=str(reward_id),
-        voucherId=voucher["id"],
-        brandName=voucher["brandName"],
-        title=voucher["title"],
-        valueFormatted=voucher["valueFormatted"],
+        voucherId=payload.voucher_id,
+        brandName=brand_name,
+        title=title,
+        valueFormatted=value_formatted,
         code=code,
         pin=pin,
         claimedAt=now.strftime("%b %d, %Y"),
         expiresAt=expires_at.strftime("%b %d, %Y"),
         coinsSpent=coins_cost,
-        logoBg=voucher["logoBg"],
-        websiteUrl=get_brand_url(voucher["brandId"]),
+        logoBg=logo_bg,
+        websiteUrl=website_url,
+        imageUrl=image_url,
         status="active",
     )
 
@@ -201,10 +255,17 @@ async def get_my_vouchers(
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             """
-            SELECT id, tier, provider, voucher_code, coins_spent, claimed_at
-            FROM rewards
-            WHERE user_id = $1
-            ORDER BY claimed_at DESC
+            SELECT r.id, r.tier, r.provider, r.voucher_code, r.coins_spent, r.claimed_at,
+                   r.voucher_id, COALESCE(r.redirect_url, vc.redirect_url) as redirect_url, r.pin,
+                   COALESCE(
+                       r.image_url,
+                       vc.image_url,
+                       (SELECT vc2.image_url FROM vouchers_catalog vc2 WHERE LOWER(vc2.brand_name) = LOWER(r.provider) AND vc2.image_url IS NOT NULL LIMIT 1)
+                   ) as image_url
+            FROM rewards r
+            LEFT JOIN vouchers_catalog vc ON r.voucher_id = vc.id
+            WHERE r.user_id = $1
+            ORDER BY r.claimed_at DESC
             """,
             user_id,
         )
@@ -212,27 +273,27 @@ async def get_my_vouchers(
     claimed_list = []
     for r in rows:
         provider = r["provider"] or "Brand"
-        matching_v = next((v for v in STATIC_VOUCHERS_CATALOG if v["brandName"].lower() == provider.lower()), None)
-        logo_bg = matching_v["logoBg"] if matching_v else "#FF9900"
-        brand_id = matching_v["brandId"] if matching_v else "amazon"
-        title = matching_v["title"] if matching_v else f"{r['tier']} {provider} Voucher"
         claimed_dt = r["claimed_at"]
         expires_dt = claimed_dt + timedelta(days=365) if claimed_dt else datetime.now(timezone.utc)
+        logo_bg = "#2874F0" if "flipkart" in provider.lower() else "#E21B24" if "boat" in provider.lower() else "#FF9900"
+        title = f"{r['tier']} {provider} Voucher" if r["tier"] else f"{provider} Voucher"
+        website_url = r["redirect_url"] or get_brand_url(provider)
 
         claimed_list.append(
             ClaimedVoucherResponse(
                 id=str(r["id"]),
-                voucherId=matching_v["id"] if matching_v else "generic",
+                voucherId=r["voucher_id"] or "generic",
                 brandName=provider,
                 title=title,
                 valueFormatted=r["tier"] or "₹250",
                 code=r["voucher_code"],
-                pin="7492",
+                pin=r["pin"],
                 claimedAt=claimed_dt.strftime("%b %d, %Y") if claimed_dt else "Recent",
                 expiresAt=expires_dt.strftime("%b %d, %Y") if expires_dt else "1 Year",
                 coinsSpent=r["coins_spent"] or 0,
                 logoBg=logo_bg,
-                websiteUrl=get_brand_url(brand_id),
+                websiteUrl=website_url,
+                imageUrl=r["image_url"],
                 status="active",
             )
         )

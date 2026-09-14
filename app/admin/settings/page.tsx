@@ -35,6 +35,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { MediaPipeDrawingSpecCard } from "@/components/admin/mediapipe-drawingspec-card";
 import { AdminAiSettingsCard } from "@/components/admin/admin-ai-settings-card";
+import { AdminCaptureRewardsCard } from "@/components/admin/admin-capture-rewards-card";
 import {
 	DEFAULT_DRAWING_SPEC,
 	type MediaPipeDrawingSpec,
@@ -612,7 +613,7 @@ const PODIUM_TIERS = [
 	},
 ];
 
-type SettingsTab = "all" | "modules" | "ai" | "vision" | "economics" | "podiums" | "danger";
+type SettingsTab = "all" | "modules" | "rewards" | "ai" | "vision" | "economics" | "podiums" | "danger";
 
 export default function AdminSettingsPage() {
 	const { toast } = useToast();
@@ -627,7 +628,7 @@ export default function AdminSettingsPage() {
 	React.useEffect(() => {
 		if (typeof window !== "undefined") {
 			const tab = new URLSearchParams(window.location.search).get("tab");
-			if (tab && ["all", "modules", "ai", "vision", "economics", "podiums", "danger"].includes(tab)) {
+			if (tab && ["all", "modules", "rewards", "ai", "vision", "economics", "podiums", "danger"].includes(tab)) {
 				setActiveTab(tab as SettingsTab);
 			}
 		}
@@ -975,6 +976,18 @@ export default function AdminSettingsPage() {
 				"contour".includes(normalizedSearch) ||
 				"shape".includes(normalizedSearch) ||
 				"face".includes(normalizedSearch)));
+	const showRewards =
+		activeTab === "all" ||
+		activeTab === "rewards" ||
+		(normalizedSearch.length > 0 &&
+			("reward".includes(normalizedSearch) ||
+				"smile".includes(normalizedSearch) ||
+				"tier".includes(normalizedSearch) ||
+				"lucky".includes(normalizedSearch) ||
+				"drop".includes(normalizedSearch) ||
+				"scratch".includes(normalizedSearch) ||
+				"capture".includes(normalizedSearch) ||
+				"multiplier".includes(normalizedSearch)));
 	const showPodiums =
 		activeTab === "all" || activeTab === "podiums" || (normalizedSearch.length > 0 && filteredPodiumTiers.length > 0);
 	const showDanger =
@@ -1037,6 +1050,7 @@ export default function AdminSettingsPage() {
 						[
 							{ id: "all", label: "All", icon: Layers },
 							{ id: "modules", label: "Modules", icon: Shield },
+							{ id: "rewards", label: "Capture Rewards", icon: Gift },
 							{ id: "ai", label: "AI Engine", icon: Sparkles },
 							{ id: "vision", label: "MediaPipe Vision", icon: ScanFace },
 							{ id: "economics", label: "Economics", icon: Coins },
@@ -1168,6 +1182,14 @@ export default function AdminSettingsPage() {
 					}
 					onSave={handleSaveDrawingSpec}
 					isSaving={isSavingDrawingSpec}
+				/>
+			) : null}
+
+			{/* Section: Capture Rewards Engine & Tier Matrix */}
+			{showRewards ? (
+				<AdminCaptureRewardsCard
+					currentSettings={settings}
+					onSettingsUpdated={() => fetchSettings(true)}
 				/>
 			) : null}
 

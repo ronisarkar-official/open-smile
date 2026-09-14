@@ -22,6 +22,7 @@ import {
 	Sparkles,
 	SlidersHorizontal,
 	RotateCcw,
+	ExternalLink,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,6 +59,7 @@ interface CatalogVoucher {
 	numericValue: number;
 	coinsCost: number;
 	highlightTag?: string;
+	redirectUrl?: string;
 	isActive?: boolean;
 }
 
@@ -131,6 +133,7 @@ export default function AdminVouchersPage() {
 	const [newCategory, setNewCategory] = React.useState('food');
 	const [newCoins, setNewCoins] = React.useState('250');
 	const [newHighlight, setNewHighlight] = React.useState('Hot Coupon');
+	const [newRedirectUrl, setNewRedirectUrl] = React.useState('');
 	const [newImage, setNewImage] = React.useState('');
 	const [newCodes, setNewCodes] = React.useState('');
 	const [newUploadingLogo, setNewUploadingLogo] = React.useState(false);
@@ -162,6 +165,7 @@ export default function AdminVouchersPage() {
 	const [editCategory, setEditCategory] = React.useState('ecommerce');
 	const [editCoins, setEditCoins] = React.useState('1000');
 	const [editHighlight, setEditHighlight] = React.useState('');
+	const [editRedirectUrl, setEditRedirectUrl] = React.useState('');
 	const [editImage, setEditImage] = React.useState('');
 	const [editIsActive, setEditIsActive] = React.useState(true);
 	const [editUploadingLogo, setEditUploadingLogo] = React.useState(false);
@@ -383,6 +387,7 @@ export default function AdminVouchersPage() {
 					category: newCategory,
 					image_url: resolvedLogo || undefined,
 					highlight_tag: newHighlight.trim() || undefined,
+					redirect_url: newRedirectUrl.trim() || undefined,
 					codes: rawCodes,
 				}),
 			});
@@ -402,6 +407,7 @@ export default function AdminVouchersPage() {
 			setNewDescription('');
 			setNewDetails('');
 			setNewDetailsTab('write');
+			setNewRedirectUrl('');
 			setNewImage('');
 			setNewLogoPreview(null);
 			setNewCodes('');
@@ -427,6 +433,7 @@ export default function AdminVouchersPage() {
 		setEditCoins(String(voucher.coinsCost));
 		setEditCategory(voucher.category || 'ecommerce');
 		setEditHighlight(voucher.highlightTag || '');
+		setEditRedirectUrl(voucher.redirectUrl || '');
 		setEditImage(voucher.imageUrl || '');
 		setEditLogoPreview(voucher.imageUrl || null);
 		setEditIsActive(voucher.isActive ?? true);
@@ -499,6 +506,7 @@ export default function AdminVouchersPage() {
 					category: editCategory,
 					image_url: resolvedLogo || null,
 					highlight_tag: editHighlight.trim() || null,
+					redirect_url: editRedirectUrl.trim() || null,
 					is_active: editIsActive,
 				}),
 			});
@@ -1035,6 +1043,17 @@ export default function AdminVouchersPage() {
 												{voucher.description ||
 													'Redeem this voucher with smile coins.'}
 											</p>
+											{voucher.redirectUrl && (
+												<a
+													href={voucher.redirectUrl}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="inline-flex items-center gap-1 font-mono text-[10px] font-bold text-primary hover:underline mt-1 truncate max-w-full"
+													title={voucher.redirectUrl}>
+													<ExternalLink className="size-2.5 shrink-0" />
+													<span className="truncate">{voucher.redirectUrl}</span>
+												</a>
+											)}
 										</div>
 									</div>
 
@@ -1548,6 +1567,23 @@ export default function AdminVouchersPage() {
 												className="h-9 min-h-0 text-xs border-[length:var(--border-width)] border-black dark:border-outline rounded-md shadow-brutal-xs"
 											/>
 										</div>
+									</div>
+
+									{/* Redirect Link */}
+									<div>
+										<label className="block font-mono text-[10px] font-black uppercase text-foreground mb-1">
+											Redemption / Website Redirect Link (Optional)
+										</label>
+										<Input
+											type="url"
+											placeholder="e.g. https://lenskart.com/offers or https://apple.com/shop"
+											value={newRedirectUrl}
+											onChange={(e) => setNewRedirectUrl(e.target.value)}
+											className="h-9 min-h-0 text-xs border-[length:var(--border-width)] border-black dark:border-outline font-mono rounded-md shadow-brutal-xs"
+										/>
+										<p className="font-mono text-[9px] text-muted-foreground mt-1">
+											Target page opened when user clicks &quot;Use Now&quot; on their claimed voucher.
+										</p>
 									</div>
 
 									{/* Description & Terms */}
@@ -2064,6 +2100,23 @@ export default function AdminVouchersPage() {
 											onChange={(e) => setEditHighlight(e.target.value)}
 											className="h-9 min-h-0 text-xs border-[length:var(--border-width)] border-black dark:border-outline rounded-md shadow-brutal-xs"
 										/>
+									</div>
+
+									{/* Redirect Link */}
+									<div>
+										<label className="block font-mono text-[10px] font-black uppercase text-foreground mb-1">
+											Redemption / Website Redirect Link (Optional)
+										</label>
+										<Input
+											type="url"
+											placeholder="e.g. https://lenskart.com/offers or https://apple.com/shop"
+											value={editRedirectUrl}
+											onChange={(e) => setEditRedirectUrl(e.target.value)}
+											className="h-9 min-h-0 text-xs border-[length:var(--border-width)] border-black dark:border-outline font-mono rounded-md shadow-brutal-xs"
+										/>
+										<p className="font-mono text-[9px] text-muted-foreground mt-1">
+											Target page opened when user clicks &quot;Use Now&quot; on their claimed voucher.
+										</p>
 									</div>
 
 									{/* Description & Terms */}

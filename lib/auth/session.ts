@@ -45,7 +45,9 @@ export async function getServerUser(
 				image: (session.user as any).image || '/icons/default-icon.webp',
 			};
 		}
-	} catch {}
+	} catch (err) {
+		console.error("[auth] Primary session check failed:", err);
+	}
 
 	try {
 		const cookieHeader = reqHeaders.get("cookie") || "";
@@ -103,7 +105,9 @@ export async function getServerUser(
 				};
 			}
 		}
-	} catch {}
+	} catch (err) {
+		console.error("[auth] Fallback session check failed:", err);
+	}
 
 	return null;
 }

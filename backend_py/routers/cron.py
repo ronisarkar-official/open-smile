@@ -13,7 +13,7 @@ def verify_cron_auth(request: Request) -> None:
         if auth_header and auth_header.startswith("Bearer "):
             cron_secret = auth_header.split(" ")[1].strip()
 
-    if settings.CRON_SECRET and cron_secret != settings.CRON_SECRET:
+    if not settings.CRON_SECRET or cron_secret != settings.CRON_SECRET:
         if settings.APP_ENV == "production":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -130,10 +130,32 @@ async def run_leaderboard_settlement(
                     "podium": [],
                 }
 
+            settings_rows = await conn.fetch("SELECT key, value FROM system_settings WHERE key LIKE '%podium%'")
+            settings_map = {}
+            for r in settings_rows:
+                k = r["key"]
+                v = r["value"]
+                if isinstance(v, (int, float)):
+                    settings_map[k] = int(v)
+                elif isinstance(v, str):
+                    try:
+                        settings_map[k] = int(float(v))
+                    except (ValueError, TypeError):
+                        pass
+
+            def parse_bounds(min_k: str, max_k: str, def_min: int, def_max: int):
+                raw_min = settings_map.get(min_k, def_min)
+                raw_max = settings_map.get(max_k, def_max)
+                return min(raw_min, raw_max), max(raw_min, raw_max)
+
+            d1_min, d1_max = parse_bounds("daily_podium_1_min_coins", "daily_podium_1_max_coins", 70, 99)
+            d2_min, d2_max = parse_bounds("daily_podium_2_min_coins", "daily_podium_2_max_coins", 40, 69)
+            d3_min, d3_max = parse_bounds("daily_podium_3_min_coins", "daily_podium_3_max_coins", 15, 39)
+
             awards_config = [
-                {"rank": 1, "title": "Daily Leaderboard Champion", "badge": "PODIUM_GOLD", "theme": "#FFD700", "min": 70, "max": 99},
-                {"rank": 2, "title": "Daily Leaderboard Runner-Up", "badge": "PODIUM_SILVER", "theme": "#C0C0C0", "min": 40, "max": 69},
-                {"rank": 3, "title": "Daily Leaderboard 3rd Place", "badge": "PODIUM_BRONZE", "theme": "#CD7F32", "min": 15, "max": 39},
+                {"rank": 1, "title": "Daily Leaderboard Champion", "badge": "PODIUM_GOLD", "theme": "#FFD700", "min": d1_min, "max": d1_max},
+                {"rank": 2, "title": "Daily Leaderboard Runner-Up", "badge": "PODIUM_SILVER", "theme": "#C0C0C0", "min": d2_min, "max": d2_max},
+                {"rank": 3, "title": "Daily Leaderboard 3rd Place", "badge": "PODIUM_BRONZE", "theme": "#CD7F32", "min": d3_min, "max": d3_max},
             ]
 
             awarded = []
