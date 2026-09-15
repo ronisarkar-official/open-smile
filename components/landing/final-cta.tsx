@@ -4,14 +4,27 @@ import * as React from 'react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export function FinalCta() {
   return (
     <section
       id="get-started"
       aria-label="Get started with Open Smile"
-      className="border-y-[length:var(--border-width)] border-black bg-[#FFD23F] py-20 text-black sm:py-24 lg:py-28"
+      className="relative overflow-hidden brutal-border-y bg-card py-20 sm:py-24 lg:py-28"
     >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.06] dark:opacity-[0.12] [mask-image:radial-gradient(ellipse_75%_65%_at_50%_50%,#000_50%,transparent_100%)]"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, var(--outline) 1px, transparent 1px),
+            linear-gradient(to bottom, var(--outline) 1px, transparent 1px)
+          `,
+          backgroundSize: '36px 36px',
+        }}
+      />
+
       <div className="mx-auto w-full max-w-5xl px-5 sm:px-6 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -20,24 +33,38 @@ export function FinalCta() {
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           className="flex flex-col items-center"
         >
-          <h2 className="font-display text-3xl font-black tracking-tight text-black sm:text-5xl lg:text-6xl uppercase leading-tight">
-            GOT A SMILE? 😄
-            <span className="block mt-2 sm:mt-3">LET&apos;S TURN IT INTO COINS.</span>
+          
+
+          <h2 className="font-display text-4xl font-black tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+            Got a smile? <br />
+            <span className="bg-gradient-to-r from-primary via-[#9B51E0] to-secondary bg-clip-text text-transparent">
+              Turn it into real rewards.
+            </span>
           </h2>
 
+          <p className="mt-4 max-w-xl text-base font-semibold text-muted-foreground sm:text-lg">
+            No credit card. No account setup required for your first session. Calibrate in seconds.
+          </p>
+
           <div className="mt-8 sm:mt-10">
-            <Link
-              href="/try"
-              className="brutal-lift inline-flex items-center justify-center gap-3 border-[length:var(--border-width)] border-black rounded-xl bg-black px-7 py-4 font-mono text-base font-black tracking-wide text-white shadow-brutal-md transition-all hover:bg-neutral-900 hover:shadow-brutal-lg active:translate-x-0.5 active:translate-y-0.5 sm:px-9 sm:py-4.5 sm:text-lg"
-            >
-              <span>TRY YOUR SMILE — IT&apos;S FREE</span>
-              <ArrowRight className="size-5 shrink-0" strokeWidth={3} aria-hidden="true" />
-            </Link>
+            <Button asChild size="lg" className="h-14 px-8 text-base">
+              <Link href="/try">
+                <span>Start smiling now</span>
+                <ArrowRight className="size-5" />
+              </Link>
+            </Button>
           </div>
 
-          <p className="mt-5 font-mono text-xs font-bold text-black/80 sm:text-sm">
-            No account needed for your first try.
-          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4 font-mono text-xs font-bold text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-success" />
+              100% On-device
+            </span>
+            <span>•</span>
+            <span>Zero cloud storage</span>
+            <span>•</span>
+            <span>Instant ledger payouts</span>
+          </div>
         </motion.div>
       </div>
     </section>

@@ -10,4 +10,5 @@ export * from "./login-notification-email";
 export * from "./reset-password-email";
 export * from "./streak-reminder-email";
 export * from "./reward-email";
+export * from "./contact-email";
 

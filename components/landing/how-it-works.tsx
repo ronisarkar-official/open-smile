@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { motion } from 'motion/react';
-import { Camera, Sparkles, Flame, Gift, ArrowRight, ArrowDown } from 'lucide-react';
+import { Camera, Sparkles, Flame, Gift, ArrowRight, ArrowDown, CoinsIcon, CircleDollarSign } from 'lucide-react';
 
 interface StepItem {
   number: string;
@@ -15,42 +15,42 @@ interface StepItem {
 }
 
 const STEPS: StepItem[] = [
-  {
-    number: '01',
-    title: 'Smile at your camera',
-    description: 'The AI scores how real it looks in seconds.',
-    icon: Camera,
-    colorClass: 'bg-primary',
-    textClass: 'text-primary-foreground',
-    badgeBg: 'bg-card text-card-foreground',
-  },
-  {
-    number: '02',
-    title: 'Scratch your card',
-    description: 'See how many coins you won instantly.',
-    icon: Sparkles,
-    colorClass: 'bg-secondary',
-    textClass: 'text-secondary-foreground',
-    badgeBg: 'bg-card text-card-foreground',
-  },
-  {
-    number: '03',
-    title: 'Build your streak',
-    description: 'Smile daily, boost multipliers, and earn more.',
-    icon: Flame,
-    colorClass: 'bg-accent',
-    textClass: 'text-accent-foreground',
-    badgeBg: 'bg-card text-card-foreground',
-  },
-  {
-    number: '04',
-    title: 'Cash out',
-    description: 'Trade coins for real gift cards and vouchers.',
-    icon: Gift,
-    colorClass: 'bg-success',
-    textClass: 'text-success-foreground',
-    badgeBg: 'bg-card text-card-foreground',
-  },
+	{
+		number: '01',
+		title: 'Smile at your camera',
+		description: 'The AI scores how real it looks in seconds.',
+		icon: Camera,
+		colorClass: 'bg-primary',
+		textClass: 'text-primary-foreground',
+		badgeBg: 'bg-card text-card-foreground',
+	},
+	{
+		number: '02',
+		title: 'Scratch your card',
+		description: 'See how many coins you won instantly.',
+		icon: CircleDollarSign,
+		colorClass: 'bg-secondary',
+		textClass: 'text-secondary-foreground',
+		badgeBg: 'bg-card text-card-foreground',
+	},
+	{
+		number: '03',
+		title: 'Build your streak',
+		description: 'Smile daily, boost multipliers, and earn more.',
+		icon: Flame,
+		colorClass: 'bg-accent',
+		textClass: 'text-accent-foreground',
+		badgeBg: 'bg-card text-card-foreground',
+	},
+	{
+		number: '04',
+		title: 'Cash out',
+		description: 'Trade coins for real gift cards and vouchers.',
+		icon: Gift,
+		colorClass: 'bg-success',
+		textClass: 'text-success-foreground',
+		badgeBg: 'bg-card text-card-foreground',
+	},
 ];
 
 export function HowItWorks() {

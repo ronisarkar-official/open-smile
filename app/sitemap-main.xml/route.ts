@@ -9,6 +9,7 @@ export async function GET() {
 
 	const staticRoutes = [
 		{ url: `${baseUrl}`, lastmod: staticLastModified, changefreq: 'daily', priority: '1.0' },
+		{ url: `${baseUrl}/about`, lastmod: staticLastModified, changefreq: 'weekly', priority: '0.8' },
 		{ url: `${baseUrl}/try`, lastmod: staticLastModified, changefreq: 'weekly', priority: '0.9' },
 		{ url: `${baseUrl}/login`, lastmod: staticLastModified, changefreq: 'monthly', priority: '0.5' },
 		{ url: `${baseUrl}/signup`, lastmod: staticLastModified, changefreq: 'monthly', priority: '0.8' },

@@ -9,4 +9,5 @@ export * from "./settings-queries";
 export * from "./referral-queries";
 export * from "./profile-queries";
 export * from "./notification-queries";
+export * from "./contact-queries";
 export { ensureIndexes } from "./indexes";

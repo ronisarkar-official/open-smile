@@ -28,7 +28,7 @@ export const defaultFooterColumns: FooterColumn[] = [
     title: "Product",
     links: [
       { label: "Try Smile Check", href: "/try" },
-      { label: "How It Works", href: "#how-it-works" },
+      { label: "How It Works", href: "/#how-it-works" },
       { label: "Live Leaderboard", href: "/leaderboard" },
       { label: "Explore Feed", href: "/explore" },
       { label: "Rewards & Vouchers", href: "/rewards" },
@@ -37,9 +37,11 @@ export const defaultFooterColumns: FooterColumn[] = [
   {
     title: "Ecosystem",
     links: [
+      { label: "About Us", href: "/about" },
+      { label: "Meet the Team", href: "/about#team" },
       { label: "Refer & Earn", href: "/refer" },
       { label: "Daily Streaks", href: "/dashboard" },
-      { label: "Meet the Team", href: "#team" },
+      { label: "Contact Us", href: "/contact" },
       { label: "Get Started", href: "/signup" },
       { label: "Member Login", href: "/login" },
     ],
@@ -47,18 +49,20 @@ export const defaultFooterColumns: FooterColumn[] = [
   {
     title: "Privacy & AI",
     links: [
-      { label: "On-Device Scoring", href: "#privacy" },
-      { label: "24h Auto-Expiry", href: "#privacy" },
-      { label: "Anti-Cheat Checks", href: "#how-it-works" },
-      { label: "Zero Cloud Retention", href: "#privacy" },
+      { label: "On-Device Scoring", href: "/#privacy" },
+      { label: "24h Auto-Expiry", href: "/#privacy" },
+      { label: "Anti-Cheat Checks", href: "/#how-it-works" },
+      { label: "Zero Cloud Retention", href: "/#privacy" },
     ],
   },
 ];
 
 export const defaultBottomLinks: FooterLinkItem[] = [
-  { label: "How it works", href: "#how-it-works" },
-  { label: "Why it’s private", href: "#privacy" },
-  { label: "Team", href: "#team" },
+  { label: "About Us", href: "/about" },
+  { label: "How it works", href: "/#how-it-works" },
+  { label: "Why it’s private", href: "/#privacy" },
+  { label: "Team", href: "/about#team" },
+  { label: "Contact", href: "/contact" },
   { label: "Sign Up", href: "/signup" },
   { label: "Start Smiling", href: "/try" },
 ];

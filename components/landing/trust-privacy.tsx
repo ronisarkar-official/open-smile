@@ -60,7 +60,7 @@ export function TrustPrivacy() {
           <span>Security & Fair Play</span>
         </div>
         <h2 className="font-display mt-4 text-3xl font-black tracking-tight text-foreground sm:text-4xl">
-          YOUR SMILE. YOUR DATA. 🔒
+          YOUR SMILE. YOUR DATA.
         </h2>
         <p className="mt-3 text-sm font-semibold text-muted-foreground sm:text-base">
           Because this uses your face, privacy and fairness are built directly into the core loop.

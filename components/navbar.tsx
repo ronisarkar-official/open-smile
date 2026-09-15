@@ -8,9 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 
 const links = [
-  { label: "How it works", href: "#how-it-works" },
-  { label: "Why it’s private", href: "#privacy" },
-  { label: "Team", href: "#team" },
+  { label: "How it works", href: "/#how-it-works" },
+  { label: "Why it’s private", href: "/#privacy" },
+  { label: "About", href: "/about" },
+  { label: "Team", href: "/about#team" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export function Navbar() {
@@ -28,13 +30,13 @@ export function Navbar() {
 
         <div className="hidden items-center gap-1 md:flex">
           {links.map((link) => (
-            <a
+            <Link
               key={link.href}
               href={link.href}
               className="px-3 py-2 text-sm font-semibold transition-[background-color] duration-200 hover:bg-primary rounded-md focus-visible:bg-primary focus-visible:outline-3 focus-visible:outline-offset-2"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
 
@@ -83,14 +85,14 @@ export function Navbar() {
         <div className="border-t-[length:var(--border-width)] border-black bg-card p-5 md:hidden">
           <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-3">
             {links.map((link) => (
-              <a
+              <Link
                 key={link.href}
                 href={link.href}
                 onClick={closeMenu}
                 className="border-[length:var(--border-width)] border-black rounded-lg bg-background px-4 py-3 font-bold transition-[background-color] duration-200 hover:bg-primary"
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
             {session?.user ? (
               <>

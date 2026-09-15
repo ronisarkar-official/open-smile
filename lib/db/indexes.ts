@@ -86,6 +86,20 @@ export function ensureIndexes(): Promise<void> {
 
 					CREATE INDEX IF NOT EXISTS idx_admin_audit_logs_created ON admin_audit_logs (created_at DESC);
 
+					CREATE TABLE IF NOT EXISTS contact_messages (
+						id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+						name TEXT NOT NULL,
+						email TEXT NOT NULL,
+						subject TEXT NOT NULL,
+						message TEXT NOT NULL,
+						ip TEXT,
+						user_id TEXT,
+						status TEXT NOT NULL DEFAULT 'unread',
+						created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+					);
+
+					CREATE INDEX IF NOT EXISTS idx_contact_messages_created ON contact_messages (created_at DESC);
+
 					CREATE TABLE IF NOT EXISTS voucher_inventory (
 						id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 						voucher_id TEXT NOT NULL,

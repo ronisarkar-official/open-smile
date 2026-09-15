@@ -7,6 +7,7 @@ export type EmailTemplateType =
 	| 'reward-unlocked'
 	| 'voucher-claimed'
 	| 'broadcast'
+	| 'contact'
 	| 'custom';
 
 export type EmailProviderType = 'smtp' | 'mock';
