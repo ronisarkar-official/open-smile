@@ -325,11 +325,11 @@ export function SocialShareModal({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-			<DialogContent className="w-[calc(100%-2rem)] max-w-sm max-h-[92vh] overflow-y-auto p-4 sm:p-5 border-[length:var(--border-width)] border-border rounded-xl bg-card shadow-brutal-xl">
+			<DialogContent className="w-[calc(100%-2rem)] max-w-sm max-h-[92vh] overflow-y-auto p-4 sm:p-5 border-(length:--border-width) border-border rounded-xl bg-card shadow-brutal-xl">
 				<DialogHeader className="text-left space-y-0.5">
 					<div className="flex items-center justify-between pr-8">
 						<div className="flex items-center gap-2">
-							<div className="flex size-7 shrink-0 items-center justify-center rounded-md border-[length:var(--border-width)] border-border bg-primary text-primary-foreground shadow-brutal-xs">
+							<div className="flex size-7 shrink-0 items-center justify-center rounded-md border-(length:--border-width) border-border bg-primary text-primary-foreground shadow-brutal-xs">
 								<Sparkles className="size-3.5" strokeWidth={2.5} />
 							</div>
 							<DialogTitle className="font-title text-base sm:text-lg font-black tracking-tight text-foreground">
@@ -345,8 +345,8 @@ export function SocialShareModal({
 				<div className="mt-2 space-y-3.5">
 					<div
 						style={{ backgroundColor: cardConfig.bgHex }}
-						className="relative w-full max-w-[240px] mx-auto aspect-[4/5] rounded-xl border-[length:var(--border-width)] border-border p-3 shadow-brutal flex flex-col justify-between">
-						<div className="flex items-center justify-between border-[length:var(--border-width-sm)] border-border bg-card px-2 py-1 rounded-md shadow-brutal-xs">
+						className="relative w-full max-w-60 mx-auto aspect-4/5 rounded-xl border-(length:--border-width) border-border p-3 shadow-brutal flex flex-col justify-between">
+						<div className="flex items-center justify-between border-(length:--border-width-sm) border-border bg-card px-2 py-1 rounded-md shadow-brutal-xs">
 							<span className="font-mono text-[9px] font-black uppercase tracking-wider text-foreground">
 								OPEN SMILE
 							</span>
@@ -357,7 +357,7 @@ export function SocialShareModal({
 							</span>
 						</div>
 
-						<div className="relative my-2 aspect-[4/3] w-full overflow-hidden rounded-md border-[length:var(--border-width)] border-border bg-muted">
+						<div className="relative my-2 aspect-4/3 w-full overflow-hidden rounded-md border-(length:--border-width) border-border bg-muted">
 							{imageSrc ? (
 								<>
 									{/* eslint-disable-next-line @next/next/no-img-element */}
@@ -380,7 +380,7 @@ export function SocialShareModal({
 							)}
 						</div>
 
-						<div className="rounded-md border-[length:var(--border-width-sm)] border-border bg-card/95 p-2 shadow-brutal-xs text-left">
+						<div className="rounded-md border-(length:--border-width-sm) border-border bg-card/95 p-2 shadow-brutal-xs text-left">
 							<p className="font-title text-[11px] font-black line-clamp-1 text-foreground">
 								&ldquo;{cardConfig.comment}&rdquo;
 							</p>
@@ -398,7 +398,7 @@ export function SocialShareModal({
 							type="button"
 							onClick={handleNativeShare}
 							disabled={isGenerating}
-							className="w-full h-10 gap-2 border-[length:var(--border-width)] border-border bg-primary text-primary-foreground font-mono text-xs font-black uppercase tracking-wider shadow-brutal brutal-lift hover:bg-primary/90">
+							className="w-full h-10 gap-2 border-(length:--border-width) border-border bg-primary text-primary-foreground font-mono text-xs font-black uppercase tracking-wider shadow-brutal brutal-lift hover:bg-primary/90">
 							<Share2 className="size-4" />
 							{isGenerating ? 'Preparing Card...' : 'Share Photo Card'}
 						</Button>
@@ -410,7 +410,7 @@ export function SocialShareModal({
 								rel="noopener noreferrer"
 								title="WhatsApp"
 								aria-label="Share on WhatsApp"
-								className="flex h-10 items-center justify-center rounded-lg border-[length:var(--border-width)] border-border bg-[#25D366] text-white shadow-brutal-xs brutal-lift transition-transform">
+								className="flex h-10 items-center justify-center rounded-lg border-(length:--border-width) border-border bg-[#25D366] text-white shadow-brutal-xs brutal-lift transition-transform">
 								<WhatsAppIcon className="size-5" />
 							</a>
 
@@ -420,7 +420,7 @@ export function SocialShareModal({
 								rel="noopener noreferrer"
 								title="Post on X"
 								aria-label="Post on X"
-								className="flex h-10 items-center justify-center rounded-lg border-[length:var(--border-width)] border-border bg-black text-white shadow-brutal-xs brutal-lift transition-transform">
+								className="flex h-10 items-center justify-center rounded-lg border-(length:--border-width) border-border bg-black text-white shadow-brutal-xs brutal-lift transition-transform">
 								<XIcon className="size-4" />
 							</a>
 
@@ -430,7 +430,7 @@ export function SocialShareModal({
 								rel="noopener noreferrer"
 								title="Telegram"
 								aria-label="Share on Telegram"
-								className="flex h-10 items-center justify-center rounded-lg border-[length:var(--border-width)] border-border bg-[#229ED9] text-white shadow-brutal-xs brutal-lift transition-transform">
+								className="flex h-10 items-center justify-center rounded-lg border-(length:--border-width) border-border bg-[#229ED9] text-white shadow-brutal-xs brutal-lift transition-transform">
 								<TelegramIcon className="size-5" />
 							</a>
 
@@ -440,7 +440,7 @@ export function SocialShareModal({
 								rel="noopener noreferrer"
 								title="Facebook"
 								aria-label="Share on Facebook"
-								className="flex h-10 items-center justify-center rounded-lg border-[length:var(--border-width)] border-border bg-[#1877F2] text-white shadow-brutal-xs brutal-lift transition-transform">
+								className="flex h-10 items-center justify-center rounded-lg border-(length:--border-width) border-border bg-[#1877F2] text-white shadow-brutal-xs brutal-lift transition-transform">
 								<FacebookIcon className="size-5" />
 							</a>
 
@@ -450,7 +450,7 @@ export function SocialShareModal({
 								rel="noopener noreferrer"
 								title="Reddit"
 								aria-label="Share on Reddit"
-								className="flex h-10 items-center justify-center rounded-lg border-[length:var(--border-width)] border-border bg-[#FF4500] text-white shadow-brutal-xs brutal-lift transition-transform">
+								className="flex h-10 items-center justify-center rounded-lg border-(length:--border-width) border-border bg-[#FF4500] text-white shadow-brutal-xs brutal-lift transition-transform">
 								<RedditIcon className="size-5" />
 							</a>
 
@@ -460,7 +460,7 @@ export function SocialShareModal({
 								rel="noopener noreferrer"
 								title="LinkedIn"
 								aria-label="Share on LinkedIn"
-								className="flex h-10 items-center justify-center rounded-lg border-[length:var(--border-width)] border-border bg-[#0A66C2] text-white shadow-brutal-xs brutal-lift transition-transform">
+								className="flex h-10 items-center justify-center rounded-lg border-(length:--border-width) border-border bg-[#0A66C2] text-white shadow-brutal-xs brutal-lift transition-transform">
 								<LinkedInIcon className="size-5" />
 							</a>
 
@@ -470,7 +470,7 @@ export function SocialShareModal({
 								disabled={isGenerating}
 								title="Download Photo Card"
 								aria-label="Download Photo Card (PNG)"
-								className="flex h-10 items-center justify-center rounded-lg border-[length:var(--border-width)] border-border bg-card text-foreground hover:bg-muted shadow-brutal-xs brutal-lift cursor-pointer transition-transform">
+								className="flex h-10 items-center justify-center rounded-lg border-(length:--border-width) border-border bg-card text-foreground hover:bg-muted shadow-brutal-xs brutal-lift cursor-pointer transition-transform">
 								<Download className="size-4.5" />
 							</button>
 
@@ -479,7 +479,7 @@ export function SocialShareModal({
 								onClick={handleCopyLink}
 								title="Copy Share Link & Text"
 								aria-label="Copy Share Link & Text"
-								className="flex h-10 items-center justify-center rounded-lg border-[length:var(--border-width)] border-border bg-card text-foreground hover:bg-muted shadow-brutal-xs brutal-lift cursor-pointer transition-transform">
+								className="flex h-10 items-center justify-center rounded-lg border-(length:--border-width) border-border bg-card text-foreground hover:bg-muted shadow-brutal-xs brutal-lift cursor-pointer transition-transform">
 								{copiedLink ? (
 									<Check className="size-4.5 text-success" strokeWidth={3} />
 								) : (

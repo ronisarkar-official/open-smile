@@ -342,9 +342,9 @@
     "semantic_hash": "b45c38f35895cfc8bfe13a29e6ad22e6"
   },
   "components/capture/smile-result-screen.tsx": {
-    "mtime": 1789191110.9733012,
-    "seen": 1789282423.042307,
-    "ast_hash": "d4ca8f3564dde8c773dca52f47f27b76",
+    "mtime": 1789798209.655355,
+    "seen": 1789798243.5508435,
+    "ast_hash": "da3a6fd5bb5a7cfd7bdbd942895e2c4b",
     "semantic_hash": ""
   },
   "components/capture/webcam-view.tsx": {
@@ -396,9 +396,9 @@
     "semantic_hash": ""
   },
   "components/landing/hero.tsx": {
-    "mtime": 1789793473.767044,
-    "seen": 1789793590.5698867,
-    "ast_hash": "bc4a3476eff00d43d14a23aad951bf7f",
+    "mtime": 1789795443.634481,
+    "seen": 1789797407.0771708,
+    "ast_hash": "43d44ef1ab41dd913ba832a2c90f7a5a",
     "semantic_hash": ""
   },
   "components/landing/how-it-works.tsx": {
@@ -2310,9 +2310,9 @@
     "semantic_hash": ""
   },
   "components/contact/contact-form.tsx": {
-    "mtime": 1789756966.1920002,
-    "seen": 1789793590.569871,
-    "ast_hash": "c61402360eb1bf83de1f5587360f247c",
+    "mtime": 1789795485.6183753,
+    "seen": 1789797407.0771625,
+    "ast_hash": "9bc212a0946f7ce44fc8c640315b1a67",
     "semantic_hash": ""
   },
   "components/contact/index.ts": {
@@ -2394,9 +2394,9 @@
     "semantic_hash": ""
   },
   "app/(marketing)/try/page.tsx": {
-    "mtime": 1789447364.627171,
-    "seen": 1789754071.3177872,
-    "ast_hash": "c5474880fbfd2e118ac66a494fd5fab8",
+    "mtime": 1789797847.048658,
+    "seen": 1789798243.5507038,
+    "ast_hash": "081fa84a45f850f90013e7118e3749de",
     "semantic_hash": ""
   },
   "app/(seo)/llms-full.txt/route.ts": {
@@ -2433,6 +2433,18 @@
     "mtime": 1789756035.1511343,
     "seen": 1789793590.5698543,
     "ast_hash": "07589d2bbe0cb99e825e2c7210ce3cf4",
+    "semantic_hash": ""
+  },
+  "components/animate-ui/components/backgrounds/stars.tsx": {
+    "mtime": 1789797847.0150979,
+    "seen": 1789798243.55083,
+    "ast_hash": "a1283681321c261cfb8a6577aa7b9102",
+    "semantic_hash": ""
+  },
+  "components/animate-ui/components/backgrounds/fireworks.tsx": {
+    "mtime": 1789798188.6576202,
+    "seen": 1789798243.5508285,
+    "ast_hash": "24957254a0dfe38017cbd770a4f38fd5",
     "semantic_hash": ""
   }
 }

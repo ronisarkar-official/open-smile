@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { NeubrutalistPhotoCard } from '@/components/capture/neubrutalist-photo-card';
 import { ShareExploreModal } from '@/components/capture/share-explore-modal';
 import { SocialShareModal } from '@/components/capture/social-share-modal';
+import { FireworksBackground } from '@/components/animate-ui/components/backgrounds/fireworks';
 import { cn } from '@/lib/utils';
 
 interface SmileResultScreenProps {
@@ -159,6 +160,21 @@ function getVibeLabel(score: number) {
 
 const CONFETTI_COLORS = ['#FFD23F', '#FF6B6B', '#4ECDC4', '#A78BFA', '#FF9F1C'];
 
+const COLORFUL_FIREWORKS = [
+	'#FF2D78',
+	'#7B61FF',
+	'#00E5FF',
+	'#FFBE0B',
+	'#00F5D4',
+	'#FF5722',
+	'#70E000',
+	'#FF007F',
+	'#9D4EDD',
+	'#38BDF8',
+	'#FF1744',
+	'#FFEA00',
+];
+
 function ConfettiBurst() {
 	const pieces = React.useMemo(
 		() =>
@@ -261,9 +277,15 @@ export function SmileResultScreen({
 			animate={{ opacity: 1, y: 0 }}
 			transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
 			className="relative w-full space-y-3.5 sm:space-y-6">
+			<FireworksBackground
+				color={COLORFUL_FIREWORKS}
+				population={1.8}
+				className="pointer-events-none fixed inset-0 z-0 h-screen w-screen overflow-hidden"
+			/>
 			<AnimatePresence>{showConfetti && <ConfettiBurst />}</AnimatePresence>
 
-			<motion.h1
+			<div className="relative z-10 space-y-3.5 sm:space-y-6">
+				<motion.h1
 				initial={{ scale: 0.9, opacity: 0 }}
 				animate={{ scale: 1, opacity: 1 }}
 				transition={{ type: 'spring', damping: 14, stiffness: 260, delay: 0.1 }}
@@ -285,7 +307,7 @@ export function SmileResultScreen({
 					initial={{ opacity: 0, x: 20 }}
 					animate={{ opacity: 1, x: 0 }}
 					transition={{ delay: 0.2, duration: 0.4 }}
-					className="flex flex-col gap-2.5 sm:gap-4 border-[length:var(--border-width)] border-border rounded-xl bg-card p-3.5 sm:p-5 md:p-6 shadow-brutal-md sm:shadow-brutal-xl">
+					className="flex flex-col gap-2.5 sm:gap-4 border-(length:--border-width) border-border rounded-xl bg-card p-3.5 sm:p-5 md:p-6 shadow-brutal-md sm:shadow-brutal-xl">
 					<div>
 						<span className="font-mono text-[10px] sm:text-xs font-black tracking-widest text-muted-foreground uppercase">
 							Smile Score
@@ -299,7 +321,7 @@ export function SmileResultScreen({
 							</span>
 						</div>
 
-						<div className="mt-2 sm:mt-3 h-2.5 sm:h-3 w-full overflow-hidden rounded-xs border-[length:var(--border-width-sm)] border-border bg-muted">
+						<div className="mt-2 sm:mt-3 h-2.5 sm:h-3 w-full overflow-hidden rounded-xs border-(length:--border-width-sm) border-border bg-muted">
 							<motion.div
 								className={cn('h-full', getScoreBarColor(score))}
 								initial={{ width: 0 }}
@@ -309,7 +331,7 @@ export function SmileResultScreen({
 						</div>
 					</div>
 
-					<div className="inline-flex w-fit items-center gap-1.5 border-[length:var(--border-width-sm)] border-border bg-primary/15 rounded-lg px-2.5 py-1 font-mono text-[11px] sm:text-xs font-black uppercase tracking-wide text-foreground shadow-brutal-xs">
+					<div className="inline-flex w-fit items-center gap-1.5 border-(length:--border-width-sm) border-border bg-primary/15 rounded-lg px-2.5 py-1 font-mono text-[11px] sm:text-xs font-black uppercase tracking-wide text-foreground shadow-brutal-xs">
 						<Sparkles className="size-3 sm:size-3.5 text-primary" />
 						{vibe}
 					</div>
@@ -318,16 +340,16 @@ export function SmileResultScreen({
 						initial={{ opacity: 0, y: 8, scale: 0.98 }}
 						animate={{ opacity: 1, y: 0, scale: 1 }}
 						transition={{ delay: 0.35, duration: 0.35 }}
-						className="relative flex flex-col gap-1.5 sm:gap-2 rounded-lg border-[length:var(--border-width-sm)] border-border bg-muted/60 p-2.5 sm:p-3.5 shadow-brutal-xs">
+						className="relative flex flex-col gap-1.5 sm:gap-2 rounded-lg border-(length:--border-width-sm) border-border bg-muted/60 p-2.5 sm:p-3.5 shadow-brutal-xs">
 						<div className="flex items-center justify-between gap-2">
 							<div className="flex items-center gap-1.5 font-mono text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-foreground">
-								<span className="flex size-4.5 sm:size-5 items-center justify-center rounded-xs border-[length:var(--border-width-sm)] border-border bg-warning text-warning-foreground shadow-brutal-xs">
+								<span className="flex size-4.5 sm:size-5 items-center justify-center rounded-xs border-(length:--border-width-sm) border-border bg-warning text-warning-foreground shadow-brutal-xs">
 									<Bot className="size-3 sm:size-3.5" strokeWidth={2.5} />
 								</span>
 								<span>Smile AI Reaction</span>
 								<span className="inline-block size-1.5 rounded-full bg-success animate-pulse" />
 							</div>
-							<span className="rounded-xs border-[length:var(--border-width-sm)] border-border bg-card px-1.5 py-0.5 font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-muted-foreground shadow-brutal-xs">
+							<span className="rounded-xs border-(length:--border-width-sm) border-border bg-card px-1.5 py-0.5 font-mono text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-muted-foreground shadow-brutal-xs">
 								{aiReaction.mood}
 							</span>
 						</div>
@@ -343,7 +365,7 @@ export function SmileResultScreen({
 								<Button
 									size="lg"
 									onClick={onRevealReward}
-									className="group h-auto w-full gap-2 border-[length:var(--border-width)] border-border bg-warning text-warning-foreground py-2.5 sm:py-3.5 font-mono text-sm sm:text-base font-black tracking-wider uppercase shadow-brutal brutal-lift hover:bg-warning/90">
+									className="group h-auto w-full gap-2 border-(length:--border-width) border-border bg-warning text-warning-foreground py-2.5 sm:py-3.5 font-mono text-sm sm:text-base font-black tracking-wider uppercase shadow-brutal brutal-lift hover:bg-warning/90">
 									Reveal My Reward
 									<ArrowRight className="size-4 sm:size-5 transition-transform group-hover:translate-x-1" />
 								</Button>
@@ -351,7 +373,7 @@ export function SmileResultScreen({
 									You earned a surprise scratch card
 								</p>
 							</>
-						:	<div className="flex items-center justify-between border-[length:var(--border-width-sm)] border-border rounded-lg bg-muted/60 p-2.5 sm:p-3 shadow-brutal-xs">
+						:	<div className="flex items-center justify-between border-(length:--border-width-sm) border-border rounded-lg bg-muted/60 p-2.5 sm:p-3 shadow-brutal-xs">
 								<div className="flex items-center gap-2 font-mono text-[11px] sm:text-xs font-bold text-foreground">
 									<Coins
 										className="size-3.5 sm:size-4 text-accent"
@@ -372,7 +394,7 @@ export function SmileResultScreen({
 						}
 
 						{shareMessage && (
-							<div className="rounded-md border-[length:var(--border-width-sm)] border-black bg-accent/30 px-2.5 py-1.5 text-center font-mono text-xs font-bold shadow-brutal-xs">
+							<div className="rounded-md border-(length:--border-width-sm) border-black bg-accent/30 px-2.5 py-1.5 text-center font-mono text-xs font-bold shadow-brutal-xs">
 								{shareMessage}
 							</div>
 						)}
@@ -383,7 +405,7 @@ export function SmileResultScreen({
 									variant="outline"
 									disabled={isSharingToExplore || isSharedToExplore}
 									className={cn(
-										"h-9 sm:h-10 px-2 sm:px-3 gap-1.5 border-[length:var(--border-width)] border-border font-mono text-[11px] sm:text-xs font-bold uppercase tracking-normal sm:tracking-wider shadow-brutal-xs brutal-lift cursor-pointer",
+										"h-9 sm:h-10 px-2 sm:px-3 gap-1.5 border-(length:--border-width) border-border font-mono text-[11px] sm:text-xs font-bold uppercase tracking-normal sm:tracking-wider shadow-brutal-xs brutal-lift cursor-pointer",
 										isSharedToExplore && "bg-success text-success-foreground hover:bg-success"
 									)}
 									onClick={() => {
@@ -405,7 +427,7 @@ export function SmileResultScreen({
 									type="button"
 									variant="outline"
 									onClick={() => setIsSocialShareModalOpen(true)}
-									className="h-9 sm:h-10 px-2 sm:px-3 gap-1.5 border-[length:var(--border-width)] border-border bg-accent/35 hover:bg-accent text-foreground font-mono text-[11px] sm:text-xs font-black uppercase tracking-normal sm:tracking-wider shadow-brutal-xs brutal-lift cursor-pointer">
+									className="h-9 sm:h-10 px-2 sm:px-3 gap-1.5 border-(length:--border-width) border-border bg-accent/35 hover:bg-accent text-foreground font-mono text-[11px] sm:text-xs font-black uppercase tracking-normal sm:tracking-wider shadow-brutal-xs brutal-lift cursor-pointer">
 									<Share2 className="size-3.5 shrink-0 text-primary" strokeWidth={2.5} />
 									<span className="truncate">Social Share</span>
 								</Button>
@@ -415,7 +437,7 @@ export function SmileResultScreen({
 								<Button
 									variant="default"
 									onClick={onRetake}
-									className="h-9 sm:h-10 w-full gap-2 border-[length:var(--border-width)] border-border bg-warning text-warning-foreground font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-xs brutal-lift hover:bg-warning/90">
+									className="h-9 sm:h-10 w-full gap-2 border-(length:--border-width) border-border bg-warning text-warning-foreground font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-xs brutal-lift hover:bg-warning/90">
 									<Camera className="size-4" />
 									Capture Again
 								</Button>
@@ -423,7 +445,7 @@ export function SmileResultScreen({
 								<Link href="/dashboard" className="w-full">
 									<Button
 										variant="default"
-										className="h-9 sm:h-10 w-full gap-2 border-[length:var(--border-width)] border-border bg-primary text-primary-foreground font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-xs brutal-lift">
+										className="h-9 sm:h-10 w-full gap-2 border-(length:--border-width) border-border bg-primary text-primary-foreground font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-xs brutal-lift">
 										Return to Dashboard
 									</Button>
 								</Link>
@@ -435,6 +457,7 @@ export function SmileResultScreen({
 						</p>
 					</div>
 				</motion.div>
+			</div>
 			</div>
 
 			<ShareExploreModal

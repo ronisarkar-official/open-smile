@@ -64,14 +64,14 @@ export function NeubrutalistPhotoCard({
 			transition={{ type: 'spring', damping: 18, stiffness: 240 }}
 			whileHover={{ rotate: 0, y: -5 }}
 			className={cn(
-				'group relative w-full overflow-visible rounded-xl border-[length:var(--border-width)] border-border bg-card p-3.5 text-card-foreground shadow-brutal-lg transition-transform sm:p-4',
+				'group relative w-full overflow-visible rounded-xl border-(length:--border-width) border-border bg-card p-3.5 text-card-foreground shadow-brutal-lg transition-transform sm:p-4',
 				className,
 			)}>
 			{/* Decorative floating stickers */}
 			<motion.div
 				animate={{ rotate: [2, -4, 2], y: [0, -3, 0] }}
 				transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-				className="absolute -right-3 -top-5 z-30 flex items-center gap-1 rounded-md border-[length:var(--border-width-sm)] border-border bg-warning px-2.5 py-1 font-mono text-[10px] font-black uppercase shadow-brutal-xs">
+				className="absolute -right-3 -top-5 z-30 flex items-center gap-1 rounded-md border-(length:--border-width-sm) border-border bg-warning px-2.5 py-1 font-mono text-[10px] font-black uppercase shadow-brutal-xs">
 				<Sparkles
 					className="size-3"
 					strokeWidth={3}
@@ -82,7 +82,7 @@ export function NeubrutalistPhotoCard({
 			<motion.div
 				animate={{ rotate: [0, 8, 0, -8, 0] }}
 				transition={{ duration: 4, repeat: Infinity }}
-				className="absolute -bottom-3 -left-3 z-30 flex size-9 items-center justify-center rounded-full border-[length:var(--border-width-sm)] border-border bg-accent shadow-brutal-xs">
+				className="absolute -bottom-3 -left-3 z-30 flex size-9 items-center justify-center rounded-full border-(length:--border-width-sm) border-border bg-accent shadow-brutal-xs">
 				<Heart
 					className="size-4 fill-current"
 					strokeWidth={3}
@@ -90,10 +90,10 @@ export function NeubrutalistPhotoCard({
 			</motion.div>
 
 			{/* Tape */}
-			<div className="absolute -top-3 left-1/2 z-20 h-5 w-24 -translate-x-1/2 rotate-[-2deg] rounded-xs border-[length:var(--border-width-sm)] border-border bg-warning/90 shadow-brutal-xs" />
+			<div className="absolute -top-3 left-1/2 z-20 h-5 w-24 -translate-x-1/2 -rotate-2 rounded-xs border-(length:--border-width-sm) border-border bg-warning/90 shadow-brutal-xs" />
 
 			{/* Photo / capture area */}
-			<div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border-[length:var(--border-width)] border-border bg-muted">
+			<div className="relative aspect-4/3 w-full overflow-hidden rounded-lg border-(length:--border-width) border-border bg-muted">
 				{imageSrc ?
 					<>
 						{/* Image */}
@@ -105,7 +105,7 @@ export function NeubrutalistPhotoCard({
 						/>
 
 						{/* Soft overlay */}
-						<div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-transparent" />
+						<div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/35 via-transparent to-transparent" />
 
 						{/* Corner camera brackets */}
 						<div className="pointer-events-none absolute inset-3">
@@ -116,7 +116,7 @@ export function NeubrutalistPhotoCard({
 						</div>
 
 						{/* Verified badge */}
-						<div className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-md border-[length:var(--border-width-sm)] border-border bg-accent px-2 py-1 font-mono text-[10px] font-black uppercase shadow-brutal-xs">
+						<div className="absolute right-2.5 top-2.5 flex items-center gap-1 rounded-md border-(length:--border-width-sm) border-border bg-accent px-2 py-1 font-mono text-[10px] font-black uppercase shadow-brutal-xs">
 							<CheckCircle
 								className="size-3"
 								strokeWidth={3}
@@ -130,7 +130,7 @@ export function NeubrutalistPhotoCard({
 						<motion.div
 							animate={{ y: [0, -5, 0], rotate: [0, 3, 0] }}
 							transition={{ duration: 2.5, repeat: Infinity }}
-							className="flex size-16 items-center justify-center rounded-full border-[length:var(--border-width)] border-border bg-warning shadow-brutal">
+							className="flex size-16 items-center justify-center rounded-full border-(length:--border-width) border-border bg-warning shadow-brutal">
 							<Camera
 								className="size-8"
 								strokeWidth={2.5}
@@ -171,7 +171,7 @@ export function NeubrutalistPhotoCard({
 			
 
 			{/* Footer */}
-			<div className="mt-3 flex items-center justify-between border-t-[length:var(--border-width-sm)] border-border/20 pt-2.5">
+			<div className="mt-3 flex items-center justify-between border-t-(length:--border-width-sm) border-border/20 pt-2.5">
 				<div className="flex items-center gap-1.5">
 					<motion.div
 						animate={{ rotate: [0, -5, 5, 0] }}

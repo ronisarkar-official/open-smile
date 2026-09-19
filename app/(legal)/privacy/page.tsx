@@ -94,9 +94,9 @@ export default function PrivacyPolicyPage() {
 
       <main id="main-content" className="flex-1">
         {/* Hero Section */}
-        <section className="relative w-full border-b-[length:var(--border-width)] border-black bg-[#E5D4F8] py-12 sm:py-16 dark:border-white dark:bg-[#1E1727]">
+        <section className="relative w-full border-b-(length:--border-width) border-black bg-[#E5D4F8] py-12 sm:py-16 dark:border-white dark:bg-[#1E1727]">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-md bg-[#181829] px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider text-accent shadow-brutal-xs dark:border-white">
+            <div className="mb-4 inline-flex items-center gap-2 border-(length:--border-width) border-black rounded-md bg-[#181829] px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider text-accent shadow-brutal-xs dark:border-white">
               <ShieldCheck className="size-3.5 text-accent" />
               <span>Biometric Protection &amp; Compliance</span>
             </div>
@@ -109,23 +109,23 @@ export default function PrivacyPolicyPage() {
               Our core promise is simple: <strong>we do not retain your face</strong>. Your camera feed is processed directly inside your browser and never touches our servers.
             </p>
 
-            <div className="mt-6 inline-flex items-center gap-2 rounded-lg border-[length:var(--border-width)] border-black bg-card px-3 py-1 font-mono text-xs font-bold text-foreground shadow-brutal-xs dark:border-white">
+            <div className="mt-6 inline-flex items-center gap-2 rounded-lg border-(length:--border-width) border-black bg-card px-3 py-1 font-mono text-xs font-bold text-foreground shadow-brutal-xs dark:border-white">
               <span>Last updated: {lastUpdated}</span>
             </div>
           </div>
         </section>
 
         {/* Core Privacy Pillars Bento */}
-        <section className="border-b-[length:var(--border-width)] border-black bg-card py-10 dark:border-white">
+        <section className="border-b-(length:--border-width) border-black bg-card py-10 dark:border-white">
           <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
             <h2 className="text-center font-heading text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground mb-8">
               The 4 Open Smile Privacy Pillars
             </h2>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="flex flex-col justify-between rounded-xl border-[length:var(--border-width)] border-black bg-[#BEE4F8] p-5 shadow-brutal-sm dark:border-white dark:bg-[#152535]">
+              <div className="flex flex-col justify-between rounded-xl border-(length:--border-width) border-black bg-[#BEE4F8] p-5 shadow-brutal-sm dark:border-white dark:bg-[#152535]">
                 <div>
-                  <div className="flex size-10 items-center justify-center rounded-lg border-[length:var(--border-width)] border-black bg-white shadow-brutal-xs dark:border-white dark:bg-black">
+                  <div className="flex size-10 items-center justify-center rounded-lg border-(length:--border-width) border-black bg-white shadow-brutal-xs dark:border-white dark:bg-black">
                     <EyeOff className="size-5 text-primary" />
                   </div>
                   <h3 className="mt-4 font-heading text-base font-black uppercase tracking-tight text-foreground">
@@ -135,14 +135,14 @@ export default function PrivacyPolicyPage() {
                     MediaPipe WASM processes 478 3D facial landmarks locally in your browser. Raw camera frames never leave your device.
                   </p>
                 </div>
-                <div className="mt-4 border-t-[length:var(--border-width)] border-black/20 pt-2 font-mono text-[10px] font-bold text-foreground/70 uppercase">
+                <div className="mt-4 border-t-(length:--border-width) border-black/20 pt-2 font-mono text-[10px] font-bold text-foreground/70 uppercase">
                   Zero Cloud Biometrics
                 </div>
               </div>
 
-              <div className="flex flex-col justify-between rounded-xl border-[length:var(--border-width)] border-black bg-[#FDF8D4] p-5 shadow-brutal-sm dark:border-white dark:bg-[#2A2615]">
+              <div className="flex flex-col justify-between rounded-xl border-(length:--border-width) border-black bg-[#FDF8D4] p-5 shadow-brutal-sm dark:border-white dark:bg-[#2A2615]">
                 <div>
-                  <div className="flex size-10 items-center justify-center rounded-lg border-[length:var(--border-width)] border-black bg-white shadow-brutal-xs dark:border-white dark:bg-black">
+                  <div className="flex size-10 items-center justify-center rounded-lg border-(length:--border-width) border-black bg-white shadow-brutal-xs dark:border-white dark:bg-black">
                     <Clock className="size-5 text-warning" />
                   </div>
                   <h3 className="mt-4 font-heading text-base font-black uppercase tracking-tight text-foreground">
@@ -152,14 +152,14 @@ export default function PrivacyPolicyPage() {
                     Photos shared to the opt-in Explore community feed automatically self-destruct after 24 hours via strict cloud storage lifecycle policies.
                   </p>
                 </div>
-                <div className="mt-4 border-t-[length:var(--border-width)] border-black/20 pt-2 font-mono text-[10px] font-bold text-foreground/70 uppercase">
+                <div className="mt-4 border-t-(length:--border-width) border-black/20 pt-2 font-mono text-[10px] font-bold text-foreground/70 uppercase">
                   Ephemeral Media
                 </div>
               </div>
 
-              <div className="flex flex-col justify-between rounded-xl border-[length:var(--border-width)] border-black bg-[#C6EED5] p-5 shadow-brutal-sm dark:border-white dark:bg-[#142A1D]">
+              <div className="flex flex-col justify-between rounded-xl border-(length:--border-width) border-black bg-[#C6EED5] p-5 shadow-brutal-sm dark:border-white dark:bg-[#142A1D]">
                 <div>
-                  <div className="flex size-10 items-center justify-center rounded-lg border-[length:var(--border-width)] border-black bg-white shadow-brutal-xs dark:border-white dark:bg-black">
+                  <div className="flex size-10 items-center justify-center rounded-lg border-(length:--border-width) border-black bg-white shadow-brutal-xs dark:border-white dark:bg-black">
                     <Lock className="size-5 text-success" />
                   </div>
                   <h3 className="mt-4 font-heading text-base font-black uppercase tracking-tight text-foreground">
@@ -169,14 +169,14 @@ export default function PrivacyPolicyPage() {
                     Anti-cheat prevents duplicate uploads using 64-bit perceptual hashes (pHash). It is mathematically impossible to reconstruct a face from a pHash.
                   </p>
                 </div>
-                <div className="mt-4 border-t-[length:var(--border-width)] border-black/20 pt-2 font-mono text-[10px] font-bold text-foreground/70 uppercase">
+                <div className="mt-4 border-t-(length:--border-width) border-black/20 pt-2 font-mono text-[10px] font-bold text-foreground/70 uppercase">
                   Mathematical Non-Reversibility
                 </div>
               </div>
 
-              <div className="flex flex-col justify-between rounded-xl border-[length:var(--border-width)] border-black bg-[#F6CCD6] p-5 shadow-brutal-sm dark:border-white dark:bg-[#30161E]">
+              <div className="flex flex-col justify-between rounded-xl border-(length:--border-width) border-black bg-[#F6CCD6] p-5 shadow-brutal-sm dark:border-white dark:bg-[#30161E]">
                 <div>
-                  <div className="flex size-10 items-center justify-center rounded-lg border-[length:var(--border-width)] border-black bg-white shadow-brutal-xs dark:border-white dark:bg-black">
+                  <div className="flex size-10 items-center justify-center rounded-lg border-(length:--border-width) border-black bg-white shadow-brutal-xs dark:border-white dark:bg-black">
                     <CheckCircle2 className="size-5 text-accent" />
                   </div>
                   <h3 className="mt-4 font-heading text-base font-black uppercase tracking-tight text-foreground">
@@ -186,7 +186,7 @@ export default function PrivacyPolicyPage() {
                     Every smile capture is strictly private by default. Nothing is published or shared unless you explicitly click the Post to Explore button.
                   </p>
                 </div>
-                <div className="mt-4 border-t-[length:var(--border-width)] border-black/20 pt-2 font-mono text-[10px] font-bold text-foreground/70 uppercase">
+                <div className="mt-4 border-t-(length:--border-width) border-black/20 pt-2 font-mono text-[10px] font-bold text-foreground/70 uppercase">
                   User Sovereignty
                 </div>
               </div>
@@ -200,7 +200,7 @@ export default function PrivacyPolicyPage() {
             <div className="prose prose-neutral dark:prose-invert max-w-none space-y-10 text-sm sm:text-base leading-relaxed">
               
               {/* Section 1 */}
-              <div className="rounded-2xl border-[length:var(--border-width)] border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
+              <div className="rounded-2xl border-(length:--border-width) border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
                 <h2 className="font-heading text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground flex items-center gap-2">
                   <FileText className="size-5 text-primary" />
                   1. Overview &amp; Our Privacy Commitment
@@ -214,7 +214,7 @@ export default function PrivacyPolicyPage() {
               </div>
 
               {/* Section 2 */}
-              <div className="rounded-2xl border-[length:var(--border-width)] border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
+              <div className="rounded-2xl border-(length:--border-width) border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
                 <h2 className="font-heading text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground flex items-center gap-2">
                   <EyeOff className="size-5 text-primary" />
                   2. Biometric Data &amp; Facial AI Processing
@@ -224,7 +224,7 @@ export default function PrivacyPolicyPage() {
                     Under laws such as the <strong>Illinois Biometric Information Privacy Act (BIPA)</strong>, <strong>Texas Capture or Use of Biometric Identifier Act (CUBI)</strong>, and <strong>GDPR Article 9</strong>, facial geometry data is classified as sensitive biometric data. Here is exactly how Open Smile handles it:
                   </p>
                   
-                  <div className="my-4 rounded-xl border-[length:var(--border-width)] border-black bg-[#FDF8D4] p-4 text-black dark:border-white">
+                  <div className="my-4 rounded-xl border-(length:--border-width) border-black bg-[#FDF8D4] p-4 text-black dark:border-white">
                     <p className="font-mono text-xs font-bold uppercase tracking-wider text-black">
                       Key Technical Invariant:
                     </p>
@@ -251,7 +251,7 @@ export default function PrivacyPolicyPage() {
               </div>
 
               {/* Section 3 */}
-              <div className="rounded-2xl border-[length:var(--border-width)] border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
+              <div className="rounded-2xl border-(length:--border-width) border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
                 <h2 className="font-heading text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground flex items-center gap-2">
                   <Lock className="size-5 text-primary" />
                   3. Information We Collect
@@ -260,28 +260,28 @@ export default function PrivacyPolicyPage() {
                   <p>We only collect the minimum data necessary to operate our service, manage accounts, prevent fraud, and fulfill rewards:</p>
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div className="rounded-lg border-[length:var(--border-width)] border-black bg-muted/40 p-3.5 dark:border-white/20">
+                    <div className="rounded-lg border-(length:--border-width) border-black bg-muted/40 p-3.5 dark:border-white/20">
                       <h4 className="font-mono text-xs font-bold uppercase text-primary">Account Credentials</h4>
                       <p className="mt-1 text-xs">
                         Email address, display name/username, and password hash (managed securely via Better Auth). If you use social sign-in (Google/GitHub), we receive your basic public profile identifier.
                       </p>
                     </div>
 
-                    <div className="rounded-lg border-[length:var(--border-width)] border-black bg-muted/40 p-3.5 dark:border-white/20">
+                    <div className="rounded-lg border-(length:--border-width) border-black bg-muted/40 p-3.5 dark:border-white/20">
                       <h4 className="font-mono text-xs font-bold uppercase text-primary">Economy &amp; Gameplay Ledger</h4>
                       <p className="mt-1 text-xs">
                         Smile score (0–100), capture timestamps, active habit streaks, coin transaction rows in our append-only <code>coin_ledger</code>, and claimed voucher codes.
                       </p>
                     </div>
 
-                    <div className="rounded-lg border-[length:var(--border-width)] border-black bg-muted/40 p-3.5 dark:border-white/20">
+                    <div className="rounded-lg border-(length:--border-width) border-black bg-muted/40 p-3.5 dark:border-white/20">
                       <h4 className="font-mono text-xs font-bold uppercase text-primary">Security &amp; Rate Limiting</h4>
                       <p className="mt-1 text-xs">
                         Hashed one-time passwords (OTPs), rate-limit counters, IP addresses for session abuse prevention, and client user-agent strings.
                       </p>
                     </div>
 
-                    <div className="rounded-lg border-[length:var(--border-width)] border-black bg-muted/40 p-3.5 dark:border-white/20">
+                    <div className="rounded-lg border-(length:--border-width) border-black bg-muted/40 p-3.5 dark:border-white/20">
                       <h4 className="font-mono text-xs font-bold uppercase text-primary">Opt-In Explore Posts</h4>
                       <p className="mt-1 text-xs">
                         If and only if you explicitly choose to publish a capture, we host the WebP image preview on ImageKit under a mandatory 24-hour auto-deletion policy.
@@ -292,7 +292,7 @@ export default function PrivacyPolicyPage() {
               </div>
 
               {/* Section 4 */}
-              <div className="rounded-2xl border-[length:var(--border-width)] border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
+              <div className="rounded-2xl border-(length:--border-width) border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
                 <h2 className="font-heading text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground flex items-center gap-2">
                   <Clock className="size-5 text-primary" />
                   4. Ephemeral Media Storage &amp; 24h Purge Policy
@@ -311,7 +311,7 @@ export default function PrivacyPolicyPage() {
               </div>
 
               {/* Section 5 */}
-              <div className="rounded-2xl border-[length:var(--border-width)] border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
+              <div className="rounded-2xl border-(length:--border-width) border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
                 <h2 className="font-heading text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground flex items-center gap-2">
                   <ShieldCheck className="size-5 text-primary" />
                   5. How We Share &amp; Disclose Information
@@ -330,7 +330,7 @@ export default function PrivacyPolicyPage() {
               </div>
 
               {/* Section 6 */}
-              <div className="rounded-2xl border-[length:var(--border-width)] border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
+              <div className="rounded-2xl border-(length:--border-width) border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
                 <h2 className="font-heading text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground flex items-center gap-2">
                   <CheckCircle2 className="size-5 text-primary" />
                   6. Your Privacy Rights (GDPR, CCPA &amp; Global)
@@ -347,7 +347,7 @@ export default function PrivacyPolicyPage() {
               </div>
 
               {/* Section 7 */}
-              <div className="rounded-2xl border-[length:var(--border-width)] border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
+              <div className="rounded-2xl border-(length:--border-width) border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
                 <h2 className="font-heading text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground flex items-center gap-2">
                   <AlertTriangle className="size-5 text-primary" />
                   7. Children&apos;s Privacy
@@ -360,7 +360,7 @@ export default function PrivacyPolicyPage() {
               </div>
 
               {/* Section 8 */}
-              <div className="rounded-2xl border-[length:var(--border-width)] border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
+              <div className="rounded-2xl border-(length:--border-width) border-black bg-card p-6 sm:p-8 shadow-brutal-md dark:border-white">
                 <h2 className="font-heading text-xl sm:text-2xl font-black uppercase tracking-tight text-foreground flex items-center gap-2">
                   <HelpCircle className="size-5 text-primary" />
                   8. Contact Our Privacy Team
@@ -372,7 +372,7 @@ export default function PrivacyPolicyPage() {
                   <div className="mt-4 inline-flex flex-wrap items-center gap-4">
                     <Link
                       href="/contact"
-                      className="inline-flex items-center gap-2 rounded-xl border-[length:var(--border-width)] border-black bg-primary px-5 py-2.5 font-mono text-xs font-black uppercase text-primary-foreground shadow-brutal-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-brutal-xs transition-all dark:border-white"
+                      className="inline-flex items-center gap-2 rounded-xl border-(length:--border-width) border-black bg-primary px-5 py-2.5 font-mono text-xs font-black uppercase text-primary-foreground shadow-brutal-sm hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-brutal-xs transition-all dark:border-white"
                     >
                       Contact Support &amp; DPO
                     </Link>

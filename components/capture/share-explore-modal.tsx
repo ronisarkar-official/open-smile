@@ -38,10 +38,10 @@ export function ShareExploreModal({
 
 	return (
 		<Dialog open={isOpen} onOpenChange={(open) => !open && !isSharing && onClose()}>
-			<DialogContent className="w-[calc(100%-2rem)] sm:max-w-md max-h-[90vh] overflow-y-auto p-4 sm:p-6 border-[length:var(--border-width)] border-border rounded-xl bg-card shadow-brutal-lg">
+			<DialogContent className="w-[calc(100%-2rem)] sm:max-w-md max-h-[90vh] overflow-y-auto p-4 sm:p-6 border-(length:--border-width) border-border rounded-xl bg-card shadow-brutal-lg">
 				<DialogHeader className="text-left space-y-1">
 					<div className="flex items-center gap-2.5">
-						<div className="flex size-8 shrink-0 items-center justify-center rounded-md border-[length:var(--border-width)] border-border bg-accent text-accent-foreground shadow-brutal-xs">
+						<div className="flex size-8 shrink-0 items-center justify-center rounded-md border-(length:--border-width) border-border bg-accent text-accent-foreground shadow-brutal-xs">
 							<Share2 className="size-4" strokeWidth={2.5} />
 						</div>
 						<DialogTitle className="font-title text-lg sm:text-xl font-black tracking-tight text-foreground">
@@ -54,7 +54,7 @@ export function ShareExploreModal({
 				</DialogHeader>
 
 				<form onSubmit={handleFormSubmit} className="space-y-4 mt-2">
-					<div className="relative w-full aspect-[4/3] max-h-52 sm:max-h-60 overflow-hidden rounded-lg border-[length:var(--border-width)] border-border bg-muted shadow-brutal-xs">
+					<div className="relative w-full aspect-4/3 max-h-52 sm:max-h-60 overflow-hidden rounded-lg border-(length:--border-width) border-border bg-muted shadow-brutal-xs">
 						{imageSrc ? (
 							<>
 								{/* eslint-disable-next-line @next/next/no-img-element */}
@@ -63,12 +63,12 @@ export function ShareExploreModal({
 									alt="Your smile capture"
 									className="size-full object-cover"
 								/>
-								<div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-								<div className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-md border-[length:var(--border-width-sm)] border-border bg-accent px-2 py-0.5 font-mono text-[10px] font-black uppercase shadow-brutal-xs">
+								<div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent" />
+								<div className="absolute top-2.5 right-2.5 flex items-center gap-1 rounded-md border-(length:--border-width-sm) border-border bg-accent px-2 py-0.5 font-mono text-[10px] font-black uppercase shadow-brutal-xs">
 									<ShieldCheck className="size-3" strokeWidth={3} />
 									VERIFIED
 								</div>
-								<div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-md border-[length:var(--border-width-sm)] border-border bg-card/95 px-2.5 py-1 font-mono text-xs font-black shadow-brutal-xs">
+								<div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-md border-(length:--border-width-sm) border-border bg-card/95 px-2.5 py-1 font-mono text-xs font-black shadow-brutal-xs">
 									<Sparkles className="size-3 text-primary" />
 									<span>{score}/100</span>
 								</div>
@@ -103,7 +103,7 @@ export function ShareExploreModal({
 						/>
 					</div>
 
-					<div className="space-y-2 rounded-lg border-[length:var(--border-width-sm)] border-border bg-warning/15 p-3 shadow-brutal-xs">
+					<div className="space-y-2 rounded-lg border-(length:--border-width-sm) border-border bg-warning/15 p-3 shadow-brutal-xs">
 						<div className="flex items-start gap-2">
 							<Coins className="size-4 shrink-0 text-warning mt-0.5" strokeWidth={2.5} />
 							<div className="space-y-0.5 text-left">
@@ -127,13 +127,13 @@ export function ShareExploreModal({
 							variant="outline"
 							onClick={onClose}
 							disabled={isSharing}
-							className="border-[length:var(--border-width)] border-border font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-xs brutal-lift">
+							className="border-(length:--border-width) border-border font-mono text-xs font-bold uppercase tracking-wider shadow-brutal-xs brutal-lift">
 							Cancel
 						</Button>
 						<Button
 							type="submit"
 							disabled={isSharing}
-							className="gap-2 border-[length:var(--border-width)] border-border bg-primary text-primary-foreground font-mono text-xs font-black uppercase tracking-wider shadow-brutal brutal-lift hover:bg-primary/90">
+							className="gap-2 border-(length:--border-width) border-border bg-primary text-primary-foreground font-mono text-xs font-black uppercase tracking-wider shadow-brutal brutal-lift hover:bg-primary/90">
 							{isSharing ? (
 								<>
 									<Loader2 className="size-4 animate-spin" />

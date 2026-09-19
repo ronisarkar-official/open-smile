@@ -472,10 +472,10 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 		return (
 			<div
 				className={cn(
-					'relative overflow-hidden rounded-xl border-[length:var(--border-width)] border-border bg-card shadow-brutal-lg',
+					'relative overflow-hidden rounded-xl border-(length:--border-width) border-border bg-card shadow-brutal-lg',
 					className
 				)}>
-				<div className="flex flex-wrap items-center justify-between gap-2 border-b-[length:var(--border-width)] border-border bg-muted px-4 py-2.5">
+				<div className="flex flex-wrap items-center justify-between gap-2 border-b-(length:--border-width) border-border bg-muted px-4 py-2.5">
 					<div className="flex items-center gap-2 font-mono text-xs font-bold tracking-wider uppercase">
 						<Camera className="size-4" strokeWidth={2.5} />
 						Camera Feed
@@ -486,7 +486,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 								type="button"
 								onClick={() => setUserMeshToggled((prev) => (prev !== null ? !prev : !activeDrawingSpec.enabled))}
 								className={cn(
-									'relative flex size-7 items-center justify-center rounded-md border-[length:var(--border-width-sm)] border-border transition-all shadow-brutal-xs cursor-pointer active:scale-90',
+									'relative flex size-7 items-center justify-center rounded-md border-(length:--border-width-sm) border-border transition-all shadow-brutal-xs cursor-pointer active:scale-90',
 									activeDrawingSpec.enabled
 										? 'bg-success/20 text-success border-success/60 hover:bg-success/30'
 										: 'bg-muted/60 text-muted-foreground/50 border-border/50 hover:text-muted-foreground hover:bg-muted'
@@ -504,7 +504,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 								type="button"
 								onClick={() => setUserPalmToggled((prev) => (prev !== null ? !prev : !isPalmActive))}
 								className={cn(
-									'relative flex size-7 items-center justify-center rounded-md border-[length:var(--border-width-sm)] border-border transition-all shadow-brutal-xs cursor-pointer active:scale-90',
+									'relative flex size-7 items-center justify-center rounded-md border-(length:--border-width-sm) border-border transition-all shadow-brutal-xs cursor-pointer active:scale-90',
 									isPalmActive
 										? 'bg-primary/20 text-primary border-primary/60 hover:bg-primary/30'
 										: 'bg-muted/60 text-muted-foreground/50 border-border/50 hover:text-muted-foreground hover:bg-muted'
@@ -536,7 +536,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 					</div>
 				</div>
 
-				<div className="relative flex min-h-80 items-center justify-center bg-foreground/5 sm:min-h-[28rem]">
+				<div className="relative flex min-h-80 items-center justify-center bg-foreground/5 sm:min-h-112">
 					<video
 						ref={videoRef}
 						className={cn(
@@ -563,7 +563,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 						<>
 							{palmHudStatus === 'detected' && (
 								<div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none animate-in fade-in zoom-in-95 duration-150">
-									<div className="inline-flex items-center gap-2 rounded-xl border-[length:var(--border-width)] border-border bg-accent text-accent-foreground px-3.5 py-1.5 font-mono text-xs font-black uppercase tracking-wider shadow-brutal animate-bounce">
+									<div className="inline-flex items-center gap-2 rounded-xl border-(length:--border-width) border-border bg-accent text-accent-foreground px-3.5 py-1.5 font-mono text-xs font-black uppercase tracking-wider shadow-brutal animate-bounce">
 										<span className="text-base leading-none">✋</span>
 										<span>Palm Ready! Close hand to snap ✊</span>
 									</div>
@@ -572,7 +572,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 
 							{palmHudStatus === 'triggered' && (
 								<div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none animate-in fade-in zoom-in-95 duration-150">
-									<div className="inline-flex items-center gap-2 rounded-xl border-[length:var(--border-width)] border-border bg-success text-success-foreground px-3.5 py-1.5 font-mono text-xs font-black uppercase tracking-wider shadow-brutal">
+									<div className="inline-flex items-center gap-2 rounded-xl border-(length:--border-width) border-border bg-success text-success-foreground px-3.5 py-1.5 font-mono text-xs font-black uppercase tracking-wider shadow-brutal">
 										<span className="text-base leading-none">✊</span>
 										<span>Snap Triggered! Get Ready!</span>
 									</div>
@@ -581,14 +581,14 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 						</>
 					)}
 
-					<div className="absolute left-5 top-5 size-5 border-l-[length:var(--border-width-lg)] border-t-[length:var(--border-width-lg)] border-border/40 pointer-events-none" />
-					<div className="absolute right-5 top-5 size-5 border-r-[length:var(--border-width-lg)] border-t-[length:var(--border-width-lg)] border-border/40 pointer-events-none" />
-					<div className="absolute bottom-5 left-5 size-5 border-l-[length:var(--border-width-lg)] border-b-[length:var(--border-width-lg)] border-border/40 pointer-events-none" />
-					<div className="absolute bottom-5 right-5 size-5 border-r-[length:var(--border-width-lg)] border-b-[length:var(--border-width-lg)] border-border/40 pointer-events-none" />
+					<div className="absolute left-5 top-5 size-5 border-l-(length:--border-width-lg) border-t-(length:--border-width-lg) border-border/40 pointer-events-none" />
+					<div className="absolute right-5 top-5 size-5 border-r-(length:--border-width-lg) border-t-(length:--border-width-lg) border-border/40 pointer-events-none" />
+					<div className="absolute bottom-5 left-5 size-5 border-l-(length:--border-width-lg) border-b-(length:--border-width-lg) border-border/40 pointer-events-none" />
+					<div className="absolute bottom-5 right-5 size-5 border-r-(length:--border-width-lg) border-b-(length:--border-width-lg) border-border/40 pointer-events-none" />
 
 					{status === 'loading' && (
 						<div className="flex flex-col items-center gap-4 text-center z-10 p-6">
-							<div className="flex size-16 items-center justify-center rounded-xl border-[length:var(--border-width)] border-border bg-accent text-accent-foreground shadow-brutal animate-pulse">
+							<div className="flex size-16 items-center justify-center rounded-xl border-(length:--border-width) border-border bg-accent text-accent-foreground shadow-brutal animate-pulse">
 								<ScanFace className="size-8" strokeWidth={1.75} />
 							</div>
 							<p className="max-w-[28ch] text-sm font-bold text-muted-foreground">
@@ -599,7 +599,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 
 					{status === 'error' && (
 						<div className="flex flex-col items-center gap-4 text-center z-10 p-6 max-w-lg">
-							<div className="flex size-16 items-center justify-center rounded-xl border-[length:var(--border-width)] border-border bg-destructive/20 text-destructive shadow-brutal">
+							<div className="flex size-16 items-center justify-center rounded-xl border-(length:--border-width) border-border bg-destructive/20 text-destructive shadow-brutal">
 								{errorType === 'permission' ? (
 									<ShieldAlert className="size-8 text-destructive" strokeWidth={2} />
 								) : (
@@ -617,7 +617,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 							</div>
 
 							{errorType === 'permission' && (
-								<div className="w-full text-left rounded-lg border-[length:var(--border-width)] border-border bg-card p-4 shadow-brutal-sm text-xs font-semibold space-y-2">
+								<div className="w-full text-left rounded-lg border-(length:--border-width) border-border bg-card p-4 shadow-brutal-sm text-xs font-semibold space-y-2">
 									<p className="font-bold text-foreground flex items-center gap-1.5 font-mono uppercase">
 										<Settings className="size-3.5" /> How to allow camera on Windows:
 									</p>
@@ -652,16 +652,16 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 					{status === 'ready' && !isFrozen && (
 						<div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 w-auto max-w-[calc(100%-2rem)] pointer-events-none">
 							{hasFace ? (
-								<div className="pointer-events-auto inline-flex items-center gap-2.5 sm:gap-3 rounded-lg border-[length:var(--border-width)] border-border bg-card/95 backdrop-blur-sm px-3 py-1.5 shadow-brutal-sm select-none">
+								<div className="pointer-events-auto inline-flex items-center gap-2.5 sm:gap-3 rounded-lg border-(length:--border-width) border-border bg-card/95 backdrop-blur-sm px-3 py-1.5 shadow-brutal-sm select-none">
 									{isLiveVerified ? (
-										<div className="inline-flex items-center gap-1.5 rounded-md border-[length:var(--border-width-sm)] border-border bg-success px-2 py-0.5 text-success-foreground font-mono text-[10px] font-black uppercase tracking-wider shadow-brutal-xs">
+										<div className="inline-flex items-center gap-1.5 rounded-md border-(length:--border-width-sm) border-border bg-success px-2 py-0.5 text-success-foreground font-mono text-[10px] font-black uppercase tracking-wider shadow-brutal-xs">
 											<span className="size-1.5 rounded-full bg-current animate-pulse" />
 											<span>Verified ✓</span>
 										</div>
 									) : (
 										<div
 											className={cn(
-												'inline-flex items-center gap-1.5 rounded-md border-[length:var(--border-width-sm)] border-border px-2 py-0.5 font-mono text-[10px] font-black uppercase tracking-wider shadow-brutal-xs select-none',
+												'inline-flex items-center gap-1.5 rounded-md border-(length:--border-width-sm) border-border px-2 py-0.5 font-mono text-[10px] font-black uppercase tracking-wider shadow-brutal-xs select-none',
 												cleanLivenessPrompt.includes('Real') || cleanLivenessPrompt.includes('Changed')
 													? 'bg-destructive text-destructive-foreground'
 													: 'bg-warning text-warning-foreground'
@@ -677,7 +677,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 										<span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
 											Smile
 										</span>
-										<div className="w-14 sm:w-20 h-2.5 overflow-hidden rounded-xs border-[length:var(--border-width-sm)] border-border bg-muted">
+										<div className="w-14 sm:w-20 h-2.5 overflow-hidden rounded-xs border-(length:--border-width-sm) border-border bg-muted">
 											<div
 												className={cn(
 													'h-full transition-all duration-150',
@@ -692,7 +692,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 									</div>
 								</div>
 							) : (
-								<div className="pointer-events-auto inline-flex items-center gap-2 rounded-lg border-[length:var(--border-width)] border-border bg-card/95 backdrop-blur-sm px-3 py-1.5 shadow-brutal-xs">
+								<div className="pointer-events-auto inline-flex items-center gap-2 rounded-lg border-(length:--border-width) border-border bg-card/95 backdrop-blur-sm px-3 py-1.5 shadow-brutal-xs">
 									<ScanFace className="size-3.5 text-muted-foreground animate-pulse" />
 									<span className="font-mono text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
 										Position face in frame

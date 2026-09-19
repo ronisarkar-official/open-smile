@@ -169,7 +169,7 @@ export function CaptureCelebrationOverlay({
 							ease: [0.25, 1, 0.5, 1],
 						}}
 						style={{ willChange: 'transform, opacity' }}
-						className="absolute flex items-center justify-center rounded-full border-[length:var(--border-width-sm)] border-border bg-warning text-warning-foreground p-2 shadow-brutal-sm">
+						className="absolute flex items-center justify-center rounded-full border-(length:--border-width-sm) border-border bg-warning text-warning-foreground p-2 shadow-brutal-sm">
 						<CoinIcon className="size-6 text-warning-foreground" strokeWidth={2.5} />
 					</motion.div>
 				))}
@@ -188,12 +188,12 @@ export function CaptureCelebrationOverlay({
 					}}
 					style={{ willChange: 'transform, opacity' }}
 					className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-					<div className="relative flex size-24 items-center justify-center border-[length:var(--border-width)] border-border bg-accent rounded-2xl shadow-brutal-lg">
+					<div className="relative flex size-24 items-center justify-center border-(length:--border-width) border-border bg-accent rounded-2xl shadow-brutal-lg">
 						<span className="text-4xl select-none">😆</span>
 						<motion.div
 							animate={{ scale: [1, 1.15, 1] }}
 							transition={{ repeat: 2, duration: 0.4 }}
-							className="absolute -top-3 -right-3 flex size-8 items-center justify-center border-[length:var(--border-width-sm)] border-border bg-primary text-primary-foreground rounded-lg shadow-brutal-xs">
+							className="absolute -top-3 -right-3 flex size-8 items-center justify-center border-(length:--border-width-sm) border-border bg-primary text-primary-foreground rounded-lg shadow-brutal-xs">
 							<Star className="size-4 fill-primary-foreground text-primary-foreground" />
 						</motion.div>
 					</div>
@@ -202,7 +202,7 @@ export function CaptureCelebrationOverlay({
 						initial={{ opacity: 0, y: 10, scale: 0.8 }}
 						animate={{ opacity: 1, y: 0, scale: 1 }}
 						transition={{ delay: 0.15, duration: 0.3 }}
-						className="mt-3 flex items-center gap-1.5 border-[length:var(--border-width-sm)] border-border bg-warning text-warning-foreground rounded-lg px-3.5 py-1 font-mono text-xs font-black tracking-wider uppercase shadow-brutal-sm">
+						className="mt-3 flex items-center gap-1.5 border-(length:--border-width-sm) border-border bg-warning text-warning-foreground rounded-lg px-3.5 py-1 font-mono text-xs font-black tracking-wider uppercase shadow-brutal-sm">
 						<Zap className="size-3.5 fill-warning-foreground" />
 						+SMILE POWER
 						<Sparkles className="size-3.5" />

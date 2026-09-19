@@ -784,9 +784,9 @@ export function CaptureFlow({
 		return (
 			<main
 				id="main-content"
-				className="mx-auto w-full max-w-[1280px] px-2 pb-12 pt-6 sm:px-4 sm:pt-10">
-				<div className="mx-auto max-w-xl text-center py-16 px-6 border-[length:var(--border-width)] border-border rounded-2xl bg-card shadow-brutal space-y-4 mt-6">
-					<div className="size-16 mx-auto rounded-2xl border-[length:var(--border-width)] border-border bg-destructive/20 text-destructive flex items-center justify-center shadow-brutal-xs">
+				className="mx-auto w-full max-w-7xl px-2 pb-12 pt-6 sm:px-4 sm:pt-10">
+				<div className="mx-auto max-w-xl text-center py-16 px-6 border-(length:--border-width) border-border rounded-2xl bg-card shadow-brutal space-y-4 mt-6">
+					<div className="size-16 mx-auto rounded-2xl border-(length:--border-width) border-border bg-destructive/20 text-destructive flex items-center justify-center shadow-brutal-xs">
 						<Lock className="size-8" strokeWidth={2.5} />
 					</div>
 					<h1 className="text-3xl font-black font-title tracking-tight text-foreground">
@@ -797,7 +797,7 @@ export function CaptureFlow({
 					</p>
 					<div className="pt-4">
 						<Link href="/dashboard">
-							<Button className="font-mono text-xs font-black uppercase border-[length:var(--border-width)] border-border shadow-brutal-xs brutal-lift">
+							<Button className="font-mono text-xs font-black uppercase border-(length:--border-width) border-border shadow-brutal-xs brutal-lift">
 								Return to Dashboard
 							</Button>
 						</Link>
@@ -817,9 +817,9 @@ export function CaptureFlow({
 		return (
 			<main
 				id="main-content"
-				className="mx-auto w-full max-w-[1280px] px-2 pb-12 pt-6 sm:px-4 sm:pt-10">
-				<div className="mx-auto max-w-xl text-center py-16 px-6 border-[length:var(--border-width)] border-border rounded-2xl bg-card shadow-brutal space-y-5 mt-6">
-					<div className="size-16 mx-auto rounded-2xl border-[length:var(--border-width)] border-border bg-warning text-warning-foreground flex items-center justify-center shadow-brutal-xs">
+				className="mx-auto w-full max-w-7xl px-2 pb-12 pt-6 sm:px-4 sm:pt-10">
+				<div className="mx-auto max-w-xl text-center py-16 px-6 border-(length:--border-width) border-border rounded-2xl bg-card shadow-brutal space-y-5 mt-6">
+					<div className="size-16 mx-auto rounded-2xl border-(length:--border-width) border-border bg-warning text-warning-foreground flex items-center justify-center shadow-brutal-xs">
 						<Clock className="size-8" strokeWidth={2.5} />
 					</div>
 					<h1 className="text-3xl font-black font-title tracking-tight text-foreground">
@@ -828,7 +828,7 @@ export function CaptureFlow({
 					<p className="font-mono text-xs text-muted-foreground leading-relaxed max-w-md mx-auto">
 						You have used all <strong className="text-foreground">{captureStatus.max_daily_captures} / {captureStatus.max_daily_captures}</strong> smile captures for today. Your daily quota automatically refreshes tonight at <strong className="text-foreground">12:00 AM IST (midnight)</strong>, matching the daily leaderboard reset!
 					</p>
-					<div className="border-[length:var(--border-width)] border-border rounded-xl bg-muted/60 p-6 shadow-brutal-sm space-y-3">
+					<div className="border-(length:--border-width) border-border rounded-xl bg-muted/60 p-6 shadow-brutal-sm space-y-3">
 						<div className="flex items-center justify-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-muted-foreground">
 							<Clock className="size-4 text-warning" />
 							<span>Daily Quota Refreshes In (IST)</span>
@@ -843,7 +843,7 @@ export function CaptureFlow({
 					</div>
 					<div className="pt-3">
 						<Link href="/dashboard">
-							<Button className="font-mono text-xs font-black uppercase border-[length:var(--border-width)] border-border shadow-brutal-xs brutal-lift">
+							<Button className="font-mono text-xs font-black uppercase border-(length:--border-width) border-border shadow-brutal-xs brutal-lift">
 								Return to Dashboard
 							</Button>
 						</Link>
@@ -856,7 +856,7 @@ export function CaptureFlow({
 	return (
 		<main
 			id="main-content"
-			className="mx-auto w-full max-w-[1280px] px-2 pb-12 pt-3 sm:px-4 sm:pt-6">
+			className="mx-auto w-full max-w-7xl px-2 pb-12 pt-3 sm:px-4 sm:pt-6">
 			<CaptureCelebrationOverlay
 				isActive={phase === 'CELEBRATING'}
 				onAnimationComplete={handleCelebrationComplete}
@@ -877,7 +877,7 @@ export function CaptureFlow({
 							)}
 					</div>
 					{captureStatus && (
-						<div className="flex items-center gap-2 border-[length:var(--border-width)] border-border rounded-lg bg-card px-3 py-1.5 font-mono text-xs font-bold shadow-brutal-xs">
+						<div className="flex items-center gap-2 border-(length:--border-width) border-border rounded-lg bg-card px-3 py-1.5 font-mono text-xs font-bold shadow-brutal-xs">
 							<Clock className="size-3.5 text-warning" />
 							<span>Captures Today: {captureStatus.daily_captures_used} / {captureStatus.max_daily_captures}</span>
 							<span className="text-muted-foreground">• Refreshes 12:00 AM IST</span>
@@ -892,8 +892,8 @@ export function CaptureFlow({
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
-							className="shadow-brutal-lg border-[length:var(--border-width)] border-border rounded-xl overflow-hidden bg-card">
-							<div className="flex items-center justify-between border-b-[length:var(--border-width)] border-border bg-muted px-4 py-3">
+							className="shadow-brutal-lg border-(length:--border-width) border-border rounded-xl overflow-hidden bg-card">
+							<div className="flex items-center justify-between border-b-(length:--border-width) border-border bg-muted px-4 py-3">
 								<div className="flex items-center gap-2 font-mono text-xs font-bold tracking-wider uppercase">
 									<Camera
 										className="size-4"
@@ -903,7 +903,7 @@ export function CaptureFlow({
 								</div>
 							</div>
 
-							<div className="flex min-h-80 flex-col items-center justify-center gap-6 p-8 sm:min-h-[28rem]">
+							<div className="flex min-h-80 flex-col items-center justify-center gap-6 p-8 sm:min-h-112">
 								{/* Icon with a soft looping pulse behind it, so the screen feels
 			    like it's waiting for you rather than sitting static. */}
 								<div className="relative flex size-24 items-center justify-center">
@@ -916,7 +916,7 @@ export function CaptureFlow({
 										}}
 										className="absolute inset-0 rounded-xl bg-accent"
 									/>
-									<div className="relative flex size-24 items-center justify-center border-[length:var(--border-width)] border-border rounded-xl bg-accent text-accent-foreground shadow-brutal">
+									<div className="relative flex size-24 items-center justify-center border-(length:--border-width) border-border rounded-xl bg-accent text-accent-foreground shadow-brutal">
 										<Camera
 											className="size-12"
 											strokeWidth={1.5}
@@ -932,7 +932,7 @@ export function CaptureFlow({
 										Show your brightest smile — the AI takes it from there.
 									</p>
 									{!isLoggedIn && (
-										<p className="mt-3 inline-flex items-center gap-1.5 rounded-md border-[length:var(--border-width-sm)] border-border/40 bg-success/10 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wide text-success">
+										<p className="mt-3 inline-flex items-center gap-1.5 rounded-md border-(length:--border-width-sm) border-border/40 bg-success/10 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wide text-success">
 											<Sparkles
 												className="size-3.5"
 												strokeWidth={2.5}
@@ -944,7 +944,7 @@ export function CaptureFlow({
 
 								<Button
 									size="lg"
-									className="gap-2 text-base px-8 py-6 font-mono font-bold uppercase tracking-wider bg-warning text-warning-foreground hover:bg-warning/90 border-[length:var(--border-width)] border-border shadow-brutal brutal-lift"
+									className="gap-2 text-base px-8 py-6 font-mono font-bold uppercase tracking-wider bg-warning text-warning-foreground hover:bg-warning/90 border-(length:--border-width) border-border shadow-brutal brutal-lift"
 									disabled={isConnecting}
 									onClick={handleStartCamera}>
 									<Camera className="size-5" />
@@ -954,7 +954,7 @@ export function CaptureFlow({
 						</motion.div>
 
 						{isQuotaFinished && (
-							<div className="mt-6 border-[length:var(--border-width)] border-border rounded-xl bg-card p-6 shadow-brutal text-center space-y-3">
+							<div className="mt-6 border-(length:--border-width) border-border rounded-xl bg-card p-6 shadow-brutal text-center space-y-3">
 								<div className="flex items-center justify-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-muted-foreground">
 									<Clock className="size-4 text-warning" />
 									<span>Daily Quota Refreshes In (IST)</span>
@@ -1015,7 +1015,7 @@ export function CaptureFlow({
 													damping: 14,
 													stiffness: 280,
 												}}
-												className="border-[length:var(--border-width)] border-border bg-accent px-6 py-2 font-mono text-lg font-black tracking-wider text-accent-foreground uppercase shadow-brutal-lg rounded-lg sm:text-2xl">
+												className="border-(length:--border-width) border-border bg-accent px-6 py-2 font-mono text-lg font-black tracking-wider text-accent-foreground uppercase shadow-brutal-lg rounded-lg sm:text-2xl">
 												{countdownText}
 											</motion.div>
 
@@ -1030,7 +1030,7 @@ export function CaptureFlow({
 														damping: 12,
 														stiffness: 250,
 													}}
-													className="mt-6 flex size-32 items-center justify-center border-[length:var(--border-width-lg)] border-border bg-warning font-display text-8xl font-black text-warning-foreground shadow-brutal-xl rounded-2xl sm:size-40 sm:text-9xl">
+													className="mt-6 flex size-32 items-center justify-center border-(length:--border-width-lg) border-border bg-warning font-display text-8xl font-black text-warning-foreground shadow-brutal-xl rounded-2xl sm:size-40 sm:text-9xl">
 													{countdownNumber}
 												</motion.div>
 											)}
@@ -1043,7 +1043,7 @@ export function CaptureFlow({
 						</div>
 
 						{phase === 'CAMERA_ACTIVE' && (
-							<div className="flex items-center gap-2 border-[length:var(--border-width)] border-border rounded-lg bg-accent/30 px-4 py-3">
+							<div className="flex items-center gap-2 border-(length:--border-width) border-border rounded-lg bg-accent/30 px-4 py-3">
 								<Sparkles
 									className="size-4 shrink-0 text-accent-foreground"
 									strokeWidth={2.5}
@@ -1060,7 +1060,7 @@ export function CaptureFlow({
 							<div className="flex flex-col gap-3 sm:flex-row">
 								<Button
 									size="lg"
-									className="flex-1 gap-2 text-base font-mono font-bold uppercase tracking-wider bg-warning text-warning-foreground hover:bg-warning/90 border-[length:var(--border-width)] border-border shadow-brutal brutal-lift"
+									className="flex-1 gap-2 text-base font-mono font-bold uppercase tracking-wider bg-warning text-warning-foreground hover:bg-warning/90 border-(length:--border-width) border-border shadow-brutal brutal-lift"
 									disabled={!cameraReady}
 									onClick={handleManualCapture}>
 									<Sparkles className="size-5" />
@@ -1069,7 +1069,7 @@ export function CaptureFlow({
 								<Button
 									variant="outline"
 									size="lg"
-									className="gap-2 font-mono font-bold uppercase tracking-wider border-[length:var(--border-width)] border-border shadow-brutal-sm brutal-lift"
+									className="gap-2 font-mono font-bold uppercase tracking-wider border-(length:--border-width) border-border shadow-brutal-sm brutal-lift"
 									onClick={handleCaptureAgain}>
 									<CircleDot className="size-5" />
 									Cancel

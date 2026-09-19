@@ -116,11 +116,11 @@ export function ContactForm() {
 		return (
 			<div className="border-(length:--border-width) border-black rounded-2xl bg-card p-6 sm:p-10 shadow-brutal-lg text-center dark:border-white">
 				<div className="flex flex-col items-center">
-					<div className="mb-4 flex size-14 items-center justify-center border-[length:var(--border-width)] border-black rounded-full bg-success text-success-foreground shadow-brutal-xs dark:border-white">
+					<div className="mb-4 flex size-14 items-center justify-center border-(length:--border-width) border-black rounded-full bg-success text-success-foreground shadow-brutal-xs dark:border-white">
 						<CheckCircle2 className="size-8 stroke-[2.5]" />
 					</div>
 
-					<div className="mb-3 inline-flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-[#181829] px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider text-accent shadow-brutal-xs dark:border-white">
+					<div className="mb-3 inline-flex items-center gap-1.5 border-(length:--border-width) border-black rounded-md bg-[#181829] px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider text-accent shadow-brutal-xs dark:border-white">
 						<Sparkles className="size-3 text-accent" />
 						<span>Message Dispatched</span>
 					</div>
@@ -150,8 +150,8 @@ export function ContactForm() {
 	}
 
 	return (
-		<div className="border-[length:var(--border-width)] border-black rounded-2xl bg-card p-6 sm:p-8 lg:p-10 shadow-brutal-lg dark:border-white">
-			<div className="mb-8 flex items-center justify-between border-b-[length:var(--border-width)] border-border pb-5">
+		<div className="border-(length:--border-width) border-black rounded-2xl bg-card p-6 sm:p-8 lg:p-10 shadow-brutal-lg dark:border-white">
+			<div className="mb-8 flex items-center justify-between border-b-(length:--border-width) border-border pb-5">
 				<div>
 					<h2 className="font-heading text-xl sm:text-2xl font-black text-foreground uppercase tracking-tight">
 						Send A Message
@@ -160,7 +160,7 @@ export function ContactForm() {
 						Delivered directly to our engineering &amp; support team.
 					</p>
 				</div>
-				<div className="hidden sm:inline-flex items-center gap-1.5 border-[length:var(--border-width)] border-black rounded-md bg-[#181829] px-3 py-1 text-xs font-mono font-bold uppercase tracking-wider text-accent shadow-brutal-xs dark:border-white">
+				<div className="hidden sm:inline-flex items-center gap-1.5 border-(length:--border-width) border-black rounded-md bg-[#181829] px-3 py-1 text-xs font-mono font-bold uppercase tracking-wider text-accent shadow-brutal-xs dark:border-white">
 					<Mail className="size-3.5" />
 					<span>Quick Dispatch</span>
 				</div>
@@ -169,7 +169,7 @@ export function ContactForm() {
 			{status === "error" && errorMessage && (
 				<div
 					role="alert"
-					className="mb-6 flex items-start gap-3 border-[length:var(--border-width)] border-destructive rounded-lg bg-destructive/10 p-4 text-destructive shadow-brutal-xs"
+					className="mb-6 flex items-start gap-3 border-(length:--border-width) border-destructive rounded-lg bg-destructive/10 p-4 text-destructive shadow-brutal-xs"
 				>
 					<AlertCircle className="size-5 shrink-0 mt-0.5" />
 					<div className="text-sm font-bold leading-snug">{errorMessage}</div>
@@ -293,7 +293,7 @@ export function ContactForm() {
 						maxLength={3000}
 						onChange={(e) => setMessage(e.target.value)}
 						disabled={status === "loading"}
-						className="border-black text-sm font-semibold rounded-lg shadow-brutal-xs focus-visible:outline-primary dark:border-white min-h-[140px] resize-y"
+						className="border-black text-sm font-semibold rounded-lg shadow-brutal-xs focus-visible:outline-primary dark:border-white min-h-35 resize-y"
 					/>
 				</div>
 
