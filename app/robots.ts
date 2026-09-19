@@ -10,7 +10,23 @@ export default function robots(): MetadataRoute.Robots {
 		rules: [
 			{
 				userAgent: '*',
-				allow: ['/', '/try', '/join', '/u/', '/login', '/signup', '/llms.txt', '/llms-full.txt'],
+				allow: [
+					'/',
+					'/about',
+					'/contact',
+					'/try',
+					'/join',
+					'/privacy',
+					'/terms',
+					'/rules',
+					'/cookies',
+					'/security',
+					'/u/',
+					'/login',
+					'/signup',
+					'/llms.txt',
+					'/llms-full.txt',
+				],
 				disallow: [
 					'/admin/',
 					'/api/',
@@ -35,7 +51,21 @@ export default function robots(): MetadataRoute.Robots {
 			},
 			{
 				userAgent: ['ChatGPT-User', 'PerplexityBot'],
-				allow: ['/', '/try', '/join', '/u/', '/llms.txt', '/llms-full.txt'],
+				allow: [
+					'/',
+					'/about',
+					'/contact',
+					'/try',
+					'/join',
+					'/privacy',
+					'/terms',
+					'/rules',
+					'/cookies',
+					'/security',
+					'/u/',
+					'/llms.txt',
+					'/llms-full.txt',
+				],
 				disallow: [
 					'/admin/',
 					'/api/',

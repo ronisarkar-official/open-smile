@@ -11,6 +11,12 @@ export async function GET() {
 		{ url: `${baseUrl}`, lastmod: staticLastModified, changefreq: 'daily', priority: '1.0' },
 		{ url: `${baseUrl}/about`, lastmod: staticLastModified, changefreq: 'weekly', priority: '0.8' },
 		{ url: `${baseUrl}/try`, lastmod: staticLastModified, changefreq: 'weekly', priority: '0.9' },
+		{ url: `${baseUrl}/contact`, lastmod: staticLastModified, changefreq: 'monthly', priority: '0.7' },
+		{ url: `${baseUrl}/privacy`, lastmod: staticLastModified, changefreq: 'monthly', priority: '0.6' },
+		{ url: `${baseUrl}/terms`, lastmod: staticLastModified, changefreq: 'monthly', priority: '0.6' },
+		{ url: `${baseUrl}/rules`, lastmod: staticLastModified, changefreq: 'monthly', priority: '0.7' },
+		{ url: `${baseUrl}/cookies`, lastmod: staticLastModified, changefreq: 'monthly', priority: '0.5' },
+		{ url: `${baseUrl}/security`, lastmod: staticLastModified, changefreq: 'monthly', priority: '0.6' },
 		{ url: `${baseUrl}/login`, lastmod: staticLastModified, changefreq: 'monthly', priority: '0.5' },
 		{ url: `${baseUrl}/signup`, lastmod: staticLastModified, changefreq: 'monthly', priority: '0.8' },
 	];

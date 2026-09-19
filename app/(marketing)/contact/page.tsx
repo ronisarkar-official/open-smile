@@ -97,7 +97,7 @@ export default function ContactPage() {
 			<main id="main-content" className="flex-1">
 				{/* Top Header Hero */}
 				<section className="relative w-full border-b-[length:var(--border-width)] border-black bg-[#FDF8D4] py-12 sm:py-16 dark:border-white dark:bg-[#1E1B18]">
-					<div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+					<div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
 						<div className="mb-4 inline-flex items-center gap-2 border-[length:var(--border-width)] border-black rounded-md bg-[#181829] px-3.5 py-1 text-xs font-mono font-bold uppercase tracking-wider text-accent shadow-brutal-xs dark:border-white">
 							<Sparkles className="size-3.5 text-accent" />
 							<span>Support &amp; Inquiries</span>
@@ -139,7 +139,7 @@ export default function ContactPage() {
 
 				{/* Centered Form Section */}
 				<section className="w-full py-12 sm:py-16">
-					<div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+					<div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
 						<ContactForm />
 					</div>
 				</section>

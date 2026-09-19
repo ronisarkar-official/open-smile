@@ -47,24 +47,25 @@ export const defaultFooterColumns: FooterColumn[] = [
     ],
   },
   {
-    title: "Privacy & AI",
+    title: "Trust & Legal",
     links: [
-      { label: "On-Device Scoring", href: "/#privacy" },
-      { label: "24h Auto-Expiry", href: "/#privacy" },
-      { label: "Anti-Cheat Checks", href: "/#how-it-works" },
-      { label: "Zero Cloud Retention", href: "/#privacy" },
+      { label: "Privacy Policy", href: "/privacy" },
+      { label: "Terms & Conditions", href: "/terms" },
+      { label: "Game Rules & Fair Play", href: "/rules" },
+      { label: "Cookie & Storage", href: "/cookies" },
+      { label: "Security & Disclosure", href: "/security" },
     ],
   },
 ];
 
 export const defaultBottomLinks: FooterLinkItem[] = [
-  { label: "About Us", href: "/about" },
-  { label: "How it works", href: "/#how-it-works" },
-  { label: "Why it’s private", href: "/#privacy" },
-  { label: "Team", href: "/about#team" },
+  { label: "Privacy", href: "/privacy" },
+  { label: "Terms", href: "/terms" },
+  { label: "Rules", href: "/rules" },
+  { label: "Cookies", href: "/cookies" },
+  { label: "Security", href: "/security" },
+  { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
-  { label: "Sign Up", href: "/signup" },
-  { label: "Start Smiling", href: "/try" },
 ];
 
 export function Footer({

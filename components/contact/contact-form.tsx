@@ -5,6 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
+import {
 	Send,
 	CheckCircle2,
 	AlertCircle,
@@ -107,7 +114,7 @@ export function ContactForm() {
 
 	if (status === "success") {
 		return (
-			<div className="border-[length:var(--border-width)] border-black rounded-2xl bg-card p-6 sm:p-10 shadow-brutal-lg text-center dark:border-white">
+			<div className="border-(length:--border-width) border-black rounded-2xl bg-card p-6 sm:p-10 shadow-brutal-lg text-center dark:border-white">
 				<div className="flex flex-col items-center">
 					<div className="mb-4 flex size-14 items-center justify-center border-[length:var(--border-width)] border-black rounded-full bg-success text-success-foreground shadow-brutal-xs dark:border-white">
 						<CheckCircle2 className="size-8 stroke-[2.5]" />
@@ -219,31 +226,35 @@ export function ContactForm() {
 					</div>
 				</div>
 
-				{/* Subject Category Presets */}
-				<div className="flex flex-col gap-2">
-					<label className="flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-foreground">
+				{/* Subject Category Dropdown */}
+				<div className="flex flex-col gap-1.5">
+					<label htmlFor="contact-category" className="flex items-center gap-1.5 text-xs font-mono font-bold uppercase tracking-wider text-foreground">
 						<Tag className="size-3.5 text-accent-foreground" />
 						<span>Topic Category</span>
 					</label>
-					<div className="flex flex-wrap gap-2">
-						{SUBJECT_PRESETS.map((preset) => {
-							const isSelected = selectedPreset === preset;
-							return (
-								<button
+					<Select
+						value={selectedPreset}
+						onValueChange={(value) => setSelectedPreset(value)}
+						disabled={status === "loading"}
+					>
+						<SelectTrigger
+							id="contact-category"
+							className="border-black text-sm font-semibold rounded-lg shadow-brutal-xs focus-visible:outline-secondary dark:border-white"
+						>
+							<SelectValue placeholder="Select topic category" />
+						</SelectTrigger>
+						<SelectContent>
+							{SUBJECT_PRESETS.map((preset) => (
+								<SelectItem
 									key={preset}
-									type="button"
-									onClick={() => setSelectedPreset(preset)}
-									className={`border-[length:var(--border-width)] border-black px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-md transition-all duration-150 cursor-pointer ${
-										isSelected
-											? "bg-[#181829] text-accent shadow-brutal-xs scale-[1.02] dark:border-white"
-											: "bg-muted/70 text-foreground hover:bg-muted shadow-none dark:border-white/40"
-									}`}
+									value={preset}
+									className="text-sm font-semibold cursor-pointer"
 								>
 									{preset}
-								</button>
-							);
-						})}
-					</div>
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
 				</div>
 
 				{/* Custom Subject Specifics */}
