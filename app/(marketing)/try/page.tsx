@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { getServerUser } from '@/lib/auth/session';
 import { Sparkles, UserPlus, LogIn, ShieldCheck, Zap } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
@@ -73,7 +74,12 @@ const tryToolSchema = {
 	],
 };
 
-export default function TryCapturePage() {
+export default async function TryCapturePage() {
+	const user = await getServerUser();
+	if (user) {
+		redirect('/capture');
+	}
+
 	return (
 		<div className="min-h-screen bg-background text-foreground flex flex-col">
 			<script
@@ -83,7 +89,7 @@ export default function TryCapturePage() {
 			<Navbar/>
 
 			{/* Sub-header Banner */}
-			<div className="border-b-[length:var(--border-width-sm)] border-border bg-accent/25 px-4 py-2.5 text-center">
+			<div className="border-b-(length:--border-width-sm) border-border bg-accent/25 px-4 py-2.5 text-center">
 				<div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-4 gap-y-1 font-mono text-xs font-bold text-foreground uppercase">
 					<span className="flex items-center gap-1.5 text-accent-foreground">
 						<Sparkles className="size-3.5" /> On-device AI (Private & Fast)

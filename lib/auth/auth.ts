@@ -10,6 +10,10 @@ import {
 	openAPI,
 } from "better-auth/plugins";
 
+const effectiveBaseUrl =
+	process.env.BETTER_AUTH_URL ||
+	(process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
+
 if (process.env.NODE_ENV === "production") {
 	if (!process.env.DATABASE_URL) {
 		throw new Error(
@@ -21,9 +25,9 @@ if (process.env.NODE_ENV === "production") {
 			"BETTER_AUTH_SECRET is required in production. Sessions would be insecure without a signing secret."
 		);
 	}
-	if (!process.env.BETTER_AUTH_URL) {
+	if (!effectiveBaseUrl) {
 		throw new Error(
-			"BETTER_AUTH_URL is required in production. Set it to your deployed origin (e.g. https://app.example.com)."
+			"BETTER_AUTH_URL or VERCEL_URL is required in production. Set BETTER_AUTH_URL to your deployed origin (e.g. https://app.example.com)."
 		);
 	}
 }
@@ -33,7 +37,13 @@ export const auth = betterAuth({
 		? getPool()
 		: (undefined as never),
 	secret: process.env.BETTER_AUTH_SECRET,
-	baseURL: process.env.BETTER_AUTH_URL,
+	baseURL: effectiveBaseUrl,
+	trustedOrigins: [
+		process.env.BETTER_AUTH_URL,
+		process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
+		process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+		"https://*.vercel.app",
+	].filter(Boolean) as string[],
 
 	user: {
 		deleteUser: {
@@ -57,7 +67,7 @@ export const auth = betterAuth({
 		autoSignIn: true,
 		minPasswordLength: 8,
 		sendResetPassword: async ({ user, token }) => {
-			const base = (process.env.BETTER_AUTH_URL || "").replace(/\/+$/, "");
+			const base = (effectiveBaseUrl || "").replace(/\/+$/, "");
 			if (!base) return;
 			const resetUrl =
 				`${base}/reset-password` +

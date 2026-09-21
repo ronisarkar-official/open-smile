@@ -74,6 +74,12 @@ function VerifyOTPContent() {
       }
 
       sessionStorage.removeItem("pending_auth");
+      if (flowParam === "signup") {
+        sessionStorage.setItem("opensmile_is_new_signup", "true");
+      } else {
+        sessionStorage.removeItem("opensmile_pending_capture");
+        sessionStorage.removeItem("opensmile_is_new_signup");
+      }
       setSuccess(true);
 
       const destination = data.redirectTo || redirectToParam || "/dashboard";

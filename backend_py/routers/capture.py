@@ -30,6 +30,17 @@ async def submit_capture(
                 detail="Platform maintenance mode is active. Capture submissions are temporarily paused."
             )
 
+        if payload.is_try_conversion:
+            capture_count = await conn.fetchval(
+                "SELECT COUNT(*) FROM smile_captures WHERE user_id = $1",
+                user_id
+            )
+            if capture_count and int(capture_count) > 0:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Try demo conversion is only available for brand new signups."
+                )
+
         async with conn.transaction():
             await validate_anti_cheat(
                 conn=conn,

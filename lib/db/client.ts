@@ -17,7 +17,8 @@ export function getPool(): Pool {
 
 	if (_pool) return _pool;
 
-	if (!DATABASE_URL) {
+	const dbUrl = process.env.DATABASE_URL || DATABASE_URL;
+	if (!dbUrl) {
 		throw new Error(
 			"DATABASE_URL is not set. " +
 				"Please add it to your .env.local file.\n" +
@@ -28,7 +29,7 @@ export function getPool(): Pool {
 	const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
 
 	_pool = new Pool({
-		connectionString: DATABASE_URL,
+		connectionString: dbUrl,
 		ssl: { rejectUnauthorized: false },
 		max: isServerless ? 3 : 10,
 		idleTimeoutMillis: 10000,

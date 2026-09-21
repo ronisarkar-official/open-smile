@@ -6,6 +6,7 @@ class CaptureSubmitRequest(BaseModel):
     phash: Optional[str] = None
     liveness_verified: bool = True
     image_url: Optional[str] = None
+    is_try_conversion: Optional[bool] = False
 
 class CaptureRewardBreakdown(BaseModel):
     base_coins: int

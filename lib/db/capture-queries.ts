@@ -193,3 +193,25 @@ export async function getUserRecentSmiles(
 		};
 	});
 }
+
+export async function isUserEligibleForTryConversion(
+	userId: string,
+): Promise<boolean> {
+	const pool = getPool();
+	const captureCheck = await pool.query(
+		`SELECT COUNT(*) FROM smile_captures WHERE user_id = $1`,
+		[userId],
+	);
+	const captureCount = parseInt(captureCheck.rows[0]?.count || '0', 10);
+	if (captureCount > 0) return false;
+
+	const userCheck = await pool.query(
+		`SELECT "createdAt" FROM "user" WHERE id = $1`,
+		[userId],
+	);
+	if (userCheck.rows.length === 0) return false;
+	const createdAt = new Date(userCheck.rows[0].createdAt);
+	const ageInMs = Date.now() - createdAt.getTime();
+	return ageInMs <= 24 * 60 * 60 * 1000;
+}
+

@@ -73,7 +73,14 @@ export function AuthGateOverlay({
 						</Link>
 					</Button>
 					<Button asChild variant="outline" size="default" className="w-full gap-2 font-mono text-xs font-bold uppercase tracking-wider border-(length:--border-width) border-border shadow-brutal-sm brutal-lift">
-						<Link href={loginHref}>
+						<Link
+							href={loginHref}
+							onClick={() => {
+								try {
+									sessionStorage.removeItem('opensmile_pending_capture');
+									sessionStorage.removeItem('opensmile_is_new_signup');
+								} catch {}
+							}}>
 							<LogIn className="size-4" />
 							Log in to existing account
 						</Link>

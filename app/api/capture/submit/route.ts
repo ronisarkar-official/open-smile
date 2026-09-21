@@ -7,6 +7,7 @@ import {
 	getSystemSettingsMap,
 	recordCaptureStreak,
 	createNotification,
+	isUserEligibleForTryConversion,
 } from '@/lib/db';
 
 import { calculateSmileCoins } from '@/lib/reward-calculator';
@@ -19,6 +20,17 @@ export async function POST(request: NextRequest) {
 		const body = await request.json();
 		const smileScore = body.smile_score;
 		const phash = typeof body.phash === 'string' ? body.phash : null;
+		const isTryConversion = Boolean(body.is_try_conversion);
+
+		if (isTryConversion) {
+			const eligible = await isUserEligibleForTryConversion(user.id);
+			if (!eligible) {
+				return NextResponse.json(
+					{ error: 'Try demo conversion is only available for brand new signups.', not_eligible: true },
+					{ status: 403 }
+				);
+			}
+		}
 
 		if (
 			typeof smileScore !== 'number' ||

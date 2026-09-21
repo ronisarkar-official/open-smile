@@ -729,14 +729,14 @@ export default function AdminVouchersPage() {
 	return (
 		<div className="space-y-6 pb-12">
 			{/* Page Header */}
-			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b-[length:var(--border-width)] border-border/30 pb-4">
+			<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b-(length:--border-width) border-border/30 pb-4">
 				<div>
 					<h1 className="text-2xl sm:text-3xl font-black font-title tracking-tight text-foreground flex items-center gap-2">
-						Vouchers & Economy
+						Vouchers &amp; Economy
 						<Sparkles className="size-5 text-primary fill-primary" />
 					</h1>
 					<p className="font-mono text-xs font-semibold text-muted-foreground mt-0.5">
-						Coupons, OTT passes, cash vouchers, inventory restocker & redemption
+						Coupons, OTT passes, cash vouchers, inventory restocker &amp; redemption
 						audit logs
 					</p>
 				</div>
@@ -744,20 +744,20 @@ export default function AdminVouchersPage() {
 				<div className="flex flex-wrap items-center gap-2">
 					<Button
 						onClick={() => setCreateModalOpen(true)}
-						className="min-h-0 h-9 px-3.5 border-[length:var(--border-width)] border-black dark:border-outline bg-primary text-primary-foreground font-mono text-xs font-black uppercase shadow-brutal-xs brutal-lift rounded-lg active:scale-[0.96] transition-transform">
+						className="min-h-0 h-9 px-3.5 border-(length:--border-width) border-black dark:border-outline bg-primary text-primary-foreground font-mono text-xs font-black uppercase shadow-brutal-xs brutal-lift rounded-lg active:scale-[0.96] transition-transform">
 						<Plus className="size-3.5 mr-1.5" />
 						Add Voucher
 					</Button>
 					<Button
 						onClick={() => setSeedModalOpen(true)}
-						className="min-h-0 h-9 px-3.5 border-[length:var(--border-width)] border-black dark:border-outline bg-accent text-accent-foreground font-mono text-xs font-black uppercase shadow-brutal-xs brutal-lift rounded-lg active:scale-[0.96] transition-transform">
+						className="min-h-0 h-9 px-3.5 border-(length:--border-width) border-black dark:border-outline bg-accent text-accent-foreground font-mono text-xs font-black uppercase shadow-brutal-xs brutal-lift rounded-lg active:scale-[0.96] transition-transform">
 						<Gift className="size-3.5 mr-1.5" />
 						Seed Codes
 					</Button>
 					<Button
 						onClick={fetchData}
 						disabled={loading}
-						className="min-h-0 size-9 p-0 border-[length:var(--border-width)] border-black dark:border-outline bg-card hover:bg-muted text-foreground font-mono text-xs font-bold uppercase shadow-brutal-xs brutal-lift rounded-lg active:scale-[0.96] transition-transform"
+						className="min-h-0 size-9 p-0 border-(length:--border-width) border-black dark:border-outline bg-card hover:bg-muted text-foreground font-mono text-xs font-bold uppercase shadow-brutal-xs brutal-lift rounded-lg active:scale-[0.96] transition-transform"
 						title="Refresh data">
 						<RefreshCw className={cn('size-3.5', loading && 'animate-spin')} />
 					</Button>
@@ -766,7 +766,7 @@ export default function AdminVouchersPage() {
 
 			{/* KPI Summary Tiles */}
 			<div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-				<div className="p-3.5 border-[length:var(--border-width)] border-black dark:border-outline bg-card shadow-brutal-xs rounded-xl flex items-center justify-between">
+				<div className="p-3.5 border-(length:--border-width) border-black dark:border-outline bg-card shadow-brutal-xs rounded-xl flex items-center justify-between">
 					<div>
 						<div className="font-mono text-[10px] font-black uppercase text-muted-foreground">
 							Catalog Vouchers
@@ -782,12 +782,12 @@ export default function AdminVouchersPage() {
 							<span>{pausedVouchersCount} hidden</span>
 						</div>
 					</div>
-					<div className="size-10 rounded-lg border-[length:var(--border-width)] border-black dark:border-outline bg-primary/20 flex items-center justify-center shrink-0">
+					<div className="size-10 rounded-lg border-(length:--border-width) border-black dark:border-outline bg-primary/20 flex items-center justify-center shrink-0">
 						<Gift className="size-5 text-primary" />
 					</div>
 				</div>
 
-				<div className="p-3.5 border-[length:var(--border-width)] border-black dark:border-outline bg-card shadow-brutal-xs rounded-xl flex items-center justify-between">
+				<div className="p-3.5 border-(length:--border-width) border-black dark:border-outline bg-card shadow-brutal-xs rounded-xl flex items-center justify-between">
 					<div>
 						<div className="font-mono text-[10px] font-black uppercase text-muted-foreground">
 							Available Stock
@@ -799,12 +799,12 @@ export default function AdminVouchersPage() {
 							Secret voucher codes
 						</div>
 					</div>
-					<div className="size-10 rounded-lg border-[length:var(--border-width)] border-black dark:border-outline bg-accent/30 flex items-center justify-center shrink-0">
+					<div className="size-10 rounded-lg border-(length:--border-width) border-black dark:border-outline bg-accent/30 flex items-center justify-center shrink-0">
 						<Ticket className="size-5 text-accent-foreground" />
 					</div>
 				</div>
 
-				<div className="p-3.5 border-[length:var(--border-width)] border-black dark:border-outline bg-card shadow-brutal-xs rounded-xl flex items-center justify-between">
+				<div className="p-3.5 border-(length:--border-width) border-black dark:border-outline bg-card shadow-brutal-xs rounded-xl flex items-center justify-between">
 					<div>
 						<div className="font-mono text-[10px] font-black uppercase text-muted-foreground">
 							Total Claims
@@ -816,12 +816,12 @@ export default function AdminVouchersPage() {
 							User redemptions
 						</div>
 					</div>
-					<div className="size-10 rounded-lg border-[length:var(--border-width)] border-black dark:border-outline bg-secondary/25 flex items-center justify-center shrink-0">
+					<div className="size-10 rounded-lg border-(length:--border-width) border-black dark:border-outline bg-secondary/25 flex items-center justify-center shrink-0">
 						<CheckCircle2 className="size-5 text-secondary" />
 					</div>
 				</div>
 
-				<div className="p-3.5 border-[length:var(--border-width)] border-black dark:border-outline bg-card shadow-brutal-xs rounded-xl flex items-center justify-between">
+				<div className="p-3.5 border-(length:--border-width) border-black dark:border-outline bg-card shadow-brutal-xs rounded-xl flex items-center justify-between">
 					<div>
 						<div className="font-mono text-[10px] font-black uppercase text-muted-foreground">
 							Coins Circulated
@@ -834,14 +834,14 @@ export default function AdminVouchersPage() {
 							Claimed by smilers
 						</div>
 					</div>
-					<div className="size-10 rounded-lg border-[length:var(--border-width)] border-black dark:border-outline bg-amber-400/20 flex items-center justify-center shrink-0">
+					<div className="size-10 rounded-lg border-(length:--border-width) border-black dark:border-outline bg-amber-400/20 flex items-center justify-center shrink-0">
 						<CoinIcon size={22} />
 					</div>
 				</div>
 			</div>
 
 			{/* Search & Filters Toolbar */}
-			<div className="flex flex-col gap-3 p-3.5 border-[length:var(--border-width)] border-black dark:border-outline bg-card shadow-brutal-xs rounded-xl">
+			<div className="flex flex-col gap-3 p-3.5 border-(length:--border-width) border-black dark:border-outline bg-card shadow-brutal-xs rounded-xl">
 				<div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-2.5">
 					<div className="relative flex-1">
 						<Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
@@ -849,7 +849,7 @@ export default function AdminVouchersPage() {
 							placeholder="Search brand, coupon code, or benefit (e.g. Apple, Domino's, Flat ₹150)..."
 							value={searchQuery}
 							onChange={(e) => setSearchQuery(e.target.value)}
-							className="pl-8 h-9 min-h-0 border-[length:var(--border-width)] border-black dark:border-outline font-mono text-xs bg-background rounded-lg shadow-brutal-xs"
+							className="pl-8 h-9 min-h-0 border-(length:--border-width) border-black dark:border-outline font-mono text-xs bg-background rounded-lg shadow-brutal-xs"
 						/>
 						{searchQuery && (
 							<button
@@ -866,7 +866,7 @@ export default function AdminVouchersPage() {
 						<select
 							value={statusFilter}
 							onChange={(e) => setStatusFilter(e.target.value as any)}
-							className="h-9 min-h-0 px-2.5 border-[length:var(--border-width)] border-black dark:border-outline bg-background font-mono text-[11px] font-bold uppercase rounded-lg shadow-brutal-xs cursor-pointer">
+							className="h-9 min-h-0 px-2.5 border-(length:--border-width) border-black dark:border-outline bg-background font-mono text-[11px] font-bold uppercase rounded-lg shadow-brutal-xs cursor-pointer">
 							<option value="all">All Status</option>
 							<option value="active">🟢 Live / Visible Only</option>
 							<option value="paused">⏸️ Hidden / Paused Only</option>
@@ -876,7 +876,7 @@ export default function AdminVouchersPage() {
 						<select
 							value={typeFilter}
 							onChange={(e) => setTypeFilter(e.target.value)}
-							className="h-9 min-h-0 px-2.5 border-[length:var(--border-width)] border-black dark:border-outline bg-background font-mono text-[11px] font-bold uppercase rounded-lg shadow-brutal-xs cursor-pointer">
+							className="h-9 min-h-0 px-2.5 border-(length:--border-width) border-black dark:border-outline bg-background font-mono text-[11px] font-bold uppercase rounded-lg shadow-brutal-xs cursor-pointer">
 							<option value="all">All Reward Types</option>
 							<option value="discount">🏷️ Discount / Coupon</option>
 							<option value="subscription">📺 OTT / Subscription</option>
@@ -888,7 +888,7 @@ export default function AdminVouchersPage() {
 						<select
 							value={categoryFilter}
 							onChange={(e) => setCategoryFilter(e.target.value)}
-							className="h-9 min-h-0 px-2.5 border-[length:var(--border-width)] border-black dark:border-outline bg-background font-mono text-[11px] font-bold uppercase rounded-lg shadow-brutal-xs cursor-pointer">
+							className="h-9 min-h-0 px-2.5 border-(length:--border-width) border-black dark:border-outline bg-background font-mono text-[11px] font-bold uppercase rounded-lg shadow-brutal-xs cursor-pointer">
 							<option value="all">All Categories</option>
 							{CATEGORIES.map((c) => (
 								<option
@@ -903,7 +903,7 @@ export default function AdminVouchersPage() {
 						<select
 							value={stockFilter}
 							onChange={(e) => setStockFilter(e.target.value)}
-							className="h-9 min-h-0 px-2.5 border-[length:var(--border-width)] border-black dark:border-outline bg-background font-mono text-[11px] font-bold uppercase rounded-lg shadow-brutal-xs cursor-pointer">
+							className="h-9 min-h-0 px-2.5 border-(length:--border-width) border-black dark:border-outline bg-background font-mono text-[11px] font-bold uppercase rounded-lg shadow-brutal-xs cursor-pointer">
 							<option value="all">All Stock Status</option>
 							<option value="in_stock">In Stock (&gt; 0)</option>
 							<option value="low_stock">Low Stock (1-5)</option>
@@ -926,7 +926,7 @@ export default function AdminVouchersPage() {
 									setTypeFilter('all');
 									setStockFilter('all');
 								}}
-								className="h-9 min-h-0 border-[length:var(--border-width)] border-black dark:border-outline font-mono text-[11px] font-bold text-muted-foreground hover:text-foreground px-2.5 rounded-lg shadow-brutal-xs">
+								className="h-9 min-h-0 border-(length:--border-width) border-black dark:border-outline font-mono text-[11px] font-bold text-muted-foreground hover:text-foreground px-2.5 rounded-lg shadow-brutal-xs">
 								<RotateCcw className="size-3 mr-1" />
 								Reset
 							</Button>
@@ -954,7 +954,7 @@ export default function AdminVouchersPage() {
 				</div>
 
 				{filteredCatalog.length === 0 ?
-					<div className="p-10 border-[length:var(--border-width)] border-black dark:border-outline bg-card text-center space-y-2 shadow-brutal rounded-xl">
+					<div className="p-10 border-(length:--border-width) border-black dark:border-outline bg-card text-center space-y-2 shadow-brutal rounded-xl">
 						<AlertTriangle className="size-8 text-secondary mx-auto" />
 						<h4 className="font-black font-title text-base text-foreground">
 							No Matching Vouchers
@@ -973,7 +973,7 @@ export default function AdminVouchersPage() {
 								setTypeFilter('all');
 								setStockFilter('all');
 							}}
-							className="mt-2 min-h-0 border-[length:var(--border-width)] border-black dark:border-outline font-mono text-xs font-bold">
+							className="mt-2 min-h-0 border-(length:--border-width) border-black dark:border-outline font-mono text-xs font-bold">
 							Clear All Filters
 						</Button>
 					</div>
@@ -989,29 +989,29 @@ export default function AdminVouchersPage() {
 								<div
 									key={voucher.id}
 									className={cn(
-										'border-[length:var(--border-width)] border-black dark:border-outline bg-card p-4 shadow-brutal flex flex-col justify-between gap-3.5 relative transition-all rounded-xl',
+										'border-(length:--border-width) border-black dark:border-outline bg-card p-4 shadow-brutal flex flex-col justify-between gap-3.5 relative transition-all rounded-xl',
 										!isActive && 'opacity-80 bg-muted/20 border-dashed',
 									)}>
 									{/* Top Header Strip */}
-									<div className="flex items-center justify-between gap-2 border-b-[length:var(--border-width)] border-border/20 pb-2.5">
+									<div className="flex items-center justify-between gap-2 border-b-(length:--border-width) border-border/20 pb-2.5">
 										<div className="flex items-center gap-1.5 flex-wrap">
-											<span className="font-mono text-[10px] font-black uppercase text-foreground border-[length:var(--border-width)] border-black dark:border-outline bg-primary px-2 py-0.5 rounded-md shadow-brutal-xs">
+											<span className="font-mono text-[10px] font-black uppercase text-foreground border-(length:--border-width) border-black dark:border-outline bg-primary px-2 py-0.5 rounded-md shadow-brutal-xs">
 												{voucher.brandName}
 											</span>
-											<span className="font-mono text-[9px] font-bold uppercase text-muted-foreground bg-muted/60 border-[length:var(--border-width)] border-border/40 px-1.5 py-0.5 rounded">
+											<span className="font-mono text-[9px] font-bold uppercase text-muted-foreground bg-muted/60 border-(length:--border-width) border-border/40 px-1.5 py-0.5 rounded">
 												{voucher.category}
 											</span>
 										</div>
 
 										<div className="flex items-center gap-1.5">
 											{voucher.highlightTag && (
-												<span className="border-[length:var(--border-width)] border-black dark:border-outline bg-secondary px-2 py-0.5 font-mono text-[9px] font-black uppercase text-secondary-foreground rounded-md shadow-brutal-xs">
+												<span className="border-(length:--border-width) border-black dark:border-outline bg-secondary px-2 py-0.5 font-mono text-[9px] font-black uppercase text-secondary-foreground rounded-md shadow-brutal-xs">
 													{voucher.highlightTag}
 												</span>
 											)}
 											<span
 												className={cn(
-													'border-[length:var(--border-width)] border-black dark:border-outline px-2 py-0.5 font-mono text-[9px] font-black uppercase rounded-md shadow-brutal-xs flex items-center gap-1',
+													'border-(length:--border-width) border-black dark:border-outline px-2 py-0.5 font-mono text-[9px] font-black uppercase rounded-md shadow-brutal-xs flex items-center gap-1',
 													isActive ?
 														'bg-success/20 text-success border-success/40'
 													:	'bg-muted text-muted-foreground border-border/40',
@@ -1956,7 +1956,7 @@ export default function AdminVouchersPage() {
 													onChange={(e) =>
 														setEditDiscountMode(e.target.value as any)
 													}
-													className="h-9 min-h-0 w-28 px-2 border-[length:var(--border-width)] border-black dark:border-outline rounded-md bg-background font-mono text-xs font-bold shrink-0 shadow-brutal-xs">
+													className="h-9 min-h-0 w-28 px-2 border-(length:--border-width) border-black dark:border-outline rounded-md bg-background font-mono text-xs font-bold shrink-0 shadow-brutal-xs">
 													<option value="percent">% Off</option>
 													<option value="flat">₹ Off</option>
 												</select>
@@ -1972,7 +1972,7 @@ export default function AdminVouchersPage() {
 																setEditDiscountPercent(e.target.value)
 															}
 															placeholder="65"
-															className="h-9 min-h-0 pr-7 text-xs border-[length:var(--border-width)] border-black dark:border-outline font-bold rounded-md shadow-brutal-xs tabular-nums"
+															className="h-9 min-h-0 pr-7 text-xs border-(length:--border-width) border-black dark:border-outline font-bold rounded-md shadow-brutal-xs tabular-nums"
 														/>
 														<span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-black text-muted-foreground">
 															%
@@ -1991,7 +1991,7 @@ export default function AdminVouchersPage() {
 																setEditFlatDiscount(e.target.value)
 															}
 															placeholder="150"
-															className="h-9 min-h-0 pl-6 text-xs border-[length:var(--border-width)] border-black dark:border-outline font-bold rounded-md shadow-brutal-xs tabular-nums"
+															className="h-9 min-h-0 pl-6 text-xs border-(length:--border-width) border-black dark:border-outline font-bold rounded-md shadow-brutal-xs tabular-nums"
 														/>
 													</div>
 												}
@@ -2002,7 +2002,7 @@ export default function AdminVouchersPage() {
 												placeholder="e.g. 1 Month, 3 Months VIP, 1 Year Plan"
 												value={editSubDuration}
 												onChange={(e) => setEditSubDuration(e.target.value)}
-												className="h-9 min-h-0 text-xs border-[length:var(--border-width)] border-black dark:border-outline font-bold rounded-md shadow-brutal-xs"
+												className="h-9 min-h-0 text-xs border-(length:--border-width) border-black dark:border-outline font-bold rounded-md shadow-brutal-xs"
 											/>
 										: editType === 'perk' ?
 											<Input
@@ -2010,7 +2010,7 @@ export default function AdminVouchersPage() {
 												placeholder="e.g. Free Garlic Bread with Cheese"
 												value={editPerkTitle}
 												onChange={(e) => setEditPerkTitle(e.target.value)}
-												className="h-9 min-h-0 text-xs border-[length:var(--border-width)] border-black dark:border-outline font-bold rounded-md shadow-brutal-xs"
+												className="h-9 min-h-0 text-xs border-(length:--border-width) border-black dark:border-outline font-bold rounded-md shadow-brutal-xs"
 											/>
 										:	<div className="relative">
 												<span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-black text-muted-foreground">
@@ -2022,7 +2022,7 @@ export default function AdminVouchersPage() {
 													min="1"
 													value={editMoney}
 													onChange={(e) => setEditMoney(e.target.value)}
-													className="h-9 min-h-0 pl-6 text-xs border-[length:var(--border-width)] border-black dark:border-outline font-bold rounded-md shadow-brutal-xs tabular-nums"
+													className="h-9 min-h-0 pl-6 text-xs border-(length:--border-width) border-black dark:border-outline font-bold rounded-md shadow-brutal-xs tabular-nums"
 												/>
 											</div>
 										}
@@ -2030,8 +2030,8 @@ export default function AdminVouchersPage() {
 								</div>
 
 								{/* Right Column */}
-								<div className="space-y-3 p-4 border-[length:var(--border-width)] border-black dark:border-outline rounded-lg bg-background shadow-brutal-xs">
-									<div className="font-mono text-xs font-black uppercase text-foreground border-b-[length:var(--border-width)] border-border/20 pb-2 flex items-center gap-1.5">
+								<div className="space-y-3 p-4 border-(length:--border-width) border-black dark:border-outline rounded-lg bg-background shadow-brutal-xs">
+									<div className="font-mono text-xs font-black uppercase text-foreground border-b-(length:--border-width) border-border/20 pb-2 flex items-center gap-1.5">
 										<CoinIcon size={15} />
 										Pricing & Store Visibility
 									</div>
@@ -2057,7 +2057,7 @@ export default function AdminVouchersPage() {
 									</div>
 
 									{/* Store Visibility Toggle with Switch */}
-									<div className="flex items-center justify-between p-3 border-[length:var(--border-width)] border-black dark:border-outline rounded-lg bg-card shadow-brutal-xs">
+									<div className="flex items-center justify-between p-3 border-(length:--border-width) border-black dark:border-outline rounded-lg bg-card shadow-brutal-xs">
 										<div>
 											<label
 												htmlFor="edit-store-visibility"
@@ -2098,7 +2098,7 @@ export default function AdminVouchersPage() {
 											placeholder="e.g. Hot Coupon, Best Seller"
 											value={editHighlight}
 											onChange={(e) => setEditHighlight(e.target.value)}
-											className="h-9 min-h-0 text-xs border-[length:var(--border-width)] border-black dark:border-outline rounded-md shadow-brutal-xs"
+											className="h-9 min-h-0 text-xs border-(length:--border-width) border-black dark:border-outline rounded-md shadow-brutal-xs"
 										/>
 									</div>
 
@@ -2112,7 +2112,7 @@ export default function AdminVouchersPage() {
 											placeholder="e.g. https://lenskart.com/offers or https://apple.com/shop"
 											value={editRedirectUrl}
 											onChange={(e) => setEditRedirectUrl(e.target.value)}
-											className="h-9 min-h-0 text-xs border-[length:var(--border-width)] border-black dark:border-outline font-mono rounded-md shadow-brutal-xs"
+											className="h-9 min-h-0 text-xs border-(length:--border-width) border-black dark:border-outline font-mono rounded-md shadow-brutal-xs"
 										/>
 										<p className="font-mono text-[9px] text-muted-foreground mt-1">
 											Target page opened when user clicks &quot;Use Now&quot; on their claimed voucher.
@@ -2129,15 +2129,15 @@ export default function AdminVouchersPage() {
 											value={editDescription}
 											onChange={(e) => setEditDescription(e.target.value)}
 											placeholder="Describe terms, minimum order amount, or checkout steps..."
-											className="w-full p-2.5 border-[length:var(--border-width)] border-black dark:border-outline rounded-md bg-background font-mono text-xs shadow-brutal-xs"
+											className="w-full p-2.5 border-(length:--border-width) border-black dark:border-outline rounded-md bg-background font-mono text-xs shadow-brutal-xs"
 										/>
 									</div>
 								</div>
 							</div>
 
 							{/* Offer Details & Terms (Markdown - Google Pay Style) */}
-							<div className="p-4 border-[length:var(--border-width)] border-black dark:border-outline rounded-lg bg-background shadow-brutal-xs space-y-2.5">
-								<div className="flex flex-wrap items-center justify-between gap-2 border-b-[length:var(--border-width)] border-border/20 pb-2">
+							<div className="p-4 border-(length:--border-width) border-black dark:border-outline rounded-lg bg-background shadow-brutal-xs space-y-2.5">
+								<div className="flex flex-wrap items-center justify-between gap-2 border-b-(length:--border-width) border-border/20 pb-2">
 									<div className="flex items-center gap-1.5 font-mono text-xs font-black uppercase text-foreground">
 										<FileText className="size-3.5 text-primary" />
 										Offer Details & Terms (Markdown - GPay Style)
@@ -2150,7 +2150,7 @@ export default function AdminVouchersPage() {
 											<Sparkles className="size-3" />
 											Insert GPay Template
 										</button>
-										<div className="flex items-center border-[length:var(--border-width)] border-black dark:border-outline rounded overflow-hidden">
+										<div className="flex items-center border-(length:--border-width) border-black dark:border-outline rounded overflow-hidden">
 											<button
 												type="button"
 												onClick={() => setEditDetailsTab('write')}
@@ -2184,13 +2184,13 @@ export default function AdminVouchersPage() {
 											value={editDetails}
 											onChange={(e) => setEditDetails(e.target.value)}
 											placeholder={`### Offer Details\n- Valid on all orders above ₹499\n- Valid once per user\n\n### How to Redeem\n1. Copy secret code\n2. Apply on merchant checkout`}
-											className="w-full p-2.5 border-[length:var(--border-width)] border-black dark:border-outline rounded-md bg-background font-mono text-xs shadow-brutal-xs leading-relaxed"
+											className="w-full p-2.5 border-(length:--border-width) border-black dark:border-outline rounded-md bg-background font-mono text-xs shadow-brutal-xs leading-relaxed"
 										/>
 										<p className="font-mono text-[9px] text-muted-foreground">
 											Shown in the user voucher claim modal. Supports Markdown headings (###), bullet points (-), numbered lists (1.), and bold (**text**).
 										</p>
 									</div>
-								:	<div className="min-h-[100px] max-h-48 overflow-y-auto p-3 border-[length:var(--border-width)] border-black dark:border-outline rounded-md bg-muted/30 text-xs">
+								:	<div className="min-h-25 max-h-48 overflow-y-auto p-3 border-(length:--border-width) border-black dark:border-outline rounded-md bg-muted/30 text-xs">
 										{editDetails.trim() ?
 											<div className="space-y-1.5">
 												<ReactMarkdown
@@ -2256,7 +2256,7 @@ export default function AdminVouchersPage() {
 						</div>
 
 						{/* Footer Bar */}
-						<div className="flex items-center justify-between border-t-[length:var(--border-width)] border-black dark:border-outline p-4 bg-muted/40 shrink-0">
+						<div className="flex items-center justify-between border-t-(length:--border-width) border-black dark:border-outline p-4 bg-muted/40 shrink-0">
 							<span className="font-mono text-[11px] text-muted-foreground hidden sm:inline">
 								Changes will update immediately across catalog.
 							</span>
@@ -2265,13 +2265,13 @@ export default function AdminVouchersPage() {
 								<Button
 									type="button"
 									onClick={() => setEditModalOpen(false)}
-									className="min-h-0 border-[length:var(--border-width)] border-black dark:border-outline bg-card font-mono text-xs font-bold text-foreground h-9 px-4 rounded-md shadow-brutal-xs brutal-lift active:scale-[0.96] transition-transform">
+									className="min-h-0 border-(length:--border-width) border-black dark:border-outline bg-card font-mono text-xs font-bold text-foreground h-9 px-4 rounded-md shadow-brutal-xs brutal-lift active:scale-[0.96] transition-transform">
 									Cancel
 								</Button>
 								<Button
 									type="submit"
 									disabled={editing || editUploadingLogo}
-									className="min-h-0 border-[length:var(--border-width)] border-black dark:border-outline bg-primary text-primary-foreground font-mono text-xs font-black uppercase shadow-brutal-xs h-9 px-5 rounded-md brutal-lift active:scale-[0.96] transition-transform">
+									className="min-h-0 border-(length:--border-width) border-black dark:border-outline bg-primary text-primary-foreground font-mono text-xs font-black uppercase shadow-brutal-xs h-9 px-5 rounded-md brutal-lift active:scale-[0.96] transition-transform">
 									{editing ? 'Saving...' : 'Save Changes'}
 								</Button>
 							</div>
@@ -2285,9 +2285,9 @@ export default function AdminVouchersPage() {
 			{/* ========================================================= */}
 			{deleteModalOpen && voucherToDelete && (
 				<div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-					<div className="w-full max-w-md border-[length:var(--border-width)] border-black dark:border-outline rounded-xl bg-card p-6 shadow-brutal-xl space-y-4">
+					<div className="w-full max-w-md border-(length:--border-width) border-black dark:border-outline rounded-xl bg-card p-6 shadow-brutal-xl space-y-4">
 						<div className="flex items-center gap-3 text-destructive">
-							<div className="p-2 border-[length:var(--border-width)] border-black dark:border-outline rounded-lg bg-destructive/10">
+							<div className="p-2 border-(length:--border-width) border-black dark:border-outline rounded-lg bg-destructive/10">
 								<AlertTriangle
 									className="size-6"
 									strokeWidth={2.5}
@@ -2313,7 +2313,7 @@ export default function AdminVouchersPage() {
 							safely recorded.
 						</p>
 
-						<div className="flex items-center justify-end gap-2 pt-2 border-t-[length:var(--border-width)] border-border/20">
+						<div className="flex items-center justify-end gap-2 pt-2 border-t-(length:--border-width) border-border/20">
 							<Button
 								type="button"
 								variant="outline"
@@ -2322,7 +2322,7 @@ export default function AdminVouchersPage() {
 									setDeleteModalOpen(false);
 									setVoucherToDelete(null);
 								}}
-								className="min-h-0 border-[length:var(--border-width)] border-black dark:border-outline font-mono text-xs font-bold h-9 px-3.5 rounded-md shadow-brutal-xs">
+								className="min-h-0 border-(length:--border-width) border-black dark:border-outline font-mono text-xs font-bold h-9 px-3.5 rounded-md shadow-brutal-xs">
 								Cancel
 							</Button>
 							<Button
@@ -2331,7 +2331,7 @@ export default function AdminVouchersPage() {
 								size="sm"
 								onClick={handleConfirmDelete}
 								disabled={deleting}
-								className="min-h-0 border-[length:var(--border-width)] border-black dark:border-outline font-mono text-xs font-black uppercase shadow-brutal-xs h-9 px-4 rounded-md brutal-lift active:scale-[0.96] transition-transform">
+								className="min-h-0 border-(length:--border-width) border-black dark:border-outline font-mono text-xs font-black uppercase shadow-brutal-xs h-9 px-4 rounded-md brutal-lift active:scale-[0.96] transition-transform">
 								{deleting ? 'Deleting...' : 'Permanently Delete'}
 							</Button>
 						</div>
@@ -2346,8 +2346,8 @@ export default function AdminVouchersPage() {
 				<div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
 					<form
 						onSubmit={handleSeedVouchers}
-						className="w-full max-w-md border-[length:var(--border-width)] border-black dark:border-outline rounded-xl bg-card p-6 shadow-brutal-xl space-y-4">
-						<div className="flex items-center justify-between border-b-[length:var(--border-width)] border-border/20 pb-2.5">
+						className="w-full max-w-md border-(length:--border-width) border-black dark:border-outline rounded-xl bg-card p-6 shadow-brutal-xl space-y-4">
+						<div className="flex items-center justify-between border-b-(length:--border-width) border-border/20 pb-2.5">
 							<div className="flex items-center gap-2">
 								<Gift className="size-5 text-accent" />
 								<h3 className="font-black font-title text-lg text-foreground">
@@ -2357,7 +2357,7 @@ export default function AdminVouchersPage() {
 							<button
 								type="button"
 								onClick={() => setSeedModalOpen(false)}
-								className="size-7 min-h-0 border-[length:var(--border-width)] border-black dark:border-outline rounded-md flex items-center justify-center font-bold text-xs bg-card hover:bg-muted shadow-brutal-xs active:scale-[0.96] transition-transform cursor-pointer">
+								className="size-7 min-h-0 border-(length:--border-width) border-black dark:border-outline rounded-md flex items-center justify-center font-bold text-xs bg-card hover:bg-muted shadow-brutal-xs active:scale-[0.96] transition-transform cursor-pointer">
 								✕
 							</button>
 						</div>
@@ -2370,7 +2370,7 @@ export default function AdminVouchersPage() {
 								<select
 									value={selectedVoucherId}
 									onChange={(e) => setSelectedVoucherId(e.target.value)}
-									className="w-full h-9 min-h-0 px-2.5 border-[length:var(--border-width)] border-black dark:border-outline rounded-md bg-background font-mono text-xs font-bold shadow-brutal-xs">
+									className="w-full h-9 min-h-0 px-2.5 border-(length:--border-width) border-black dark:border-outline rounded-md bg-background font-mono text-xs font-bold shadow-brutal-xs">
 									{catalog.map((v) => (
 										<option
 											key={v.id}
@@ -2392,22 +2392,22 @@ export default function AdminVouchersPage() {
 									value={codesInput}
 									onChange={(e) => setCodesInput(e.target.value)}
 									placeholder={`DOM-65OFF-9912\nDOM-65OFF-8812`}
-									className="w-full p-2.5 border-[length:var(--border-width)] border-black dark:border-outline rounded-md bg-background font-mono text-xs shadow-brutal-xs"
+									className="w-full p-2.5 border-(length:--border-width) border-black dark:border-outline rounded-md bg-background font-mono text-xs shadow-brutal-xs"
 								/>
 							</div>
 						</div>
 
-						<div className="flex justify-end gap-2 pt-2 border-t-[length:var(--border-width)] border-border/20">
+						<div className="flex justify-end gap-2 pt-2 border-t-(length:--border-width) border-border/20">
 							<Button
 								type="button"
 								onClick={() => setSeedModalOpen(false)}
-								className="min-h-0 border-[length:var(--border-width)] border-black dark:border-outline bg-card font-mono text-xs font-bold text-foreground h-9 px-3.5 rounded-md shadow-brutal-xs">
+								className="min-h-0 border-(length:--border-width) border-black dark:border-outline bg-card font-mono text-xs font-bold text-foreground h-9 px-3.5 rounded-md shadow-brutal-xs">
 								Cancel
 							</Button>
 							<Button
 								type="submit"
 								disabled={seeding}
-								className="min-h-0 border-[length:var(--border-width)] border-black dark:border-outline bg-accent text-accent-foreground font-mono text-xs font-black uppercase shadow-brutal-xs h-9 px-4 rounded-md brutal-lift active:scale-[0.96] transition-transform">
+								className="min-h-0 border-(length:--border-width) border-black dark:border-outline bg-accent text-accent-foreground font-mono text-xs font-black uppercase shadow-brutal-xs h-9 px-4 rounded-md brutal-lift active:scale-[0.96] transition-transform">
 								{seeding ? 'Seeding...' : 'Seed into Stock'}
 							</Button>
 						</div>

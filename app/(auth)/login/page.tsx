@@ -23,6 +23,10 @@ function LoginForm() {
 
   async function handleSocialSignIn(provider: "github" | "google") {
     try {
+      sessionStorage.removeItem("opensmile_pending_capture");
+      sessionStorage.removeItem("opensmile_is_new_signup");
+    } catch {}
+    try {
       setSocialLoading(provider);
       setError("");
       await signIn.social({
@@ -64,6 +68,10 @@ function LoginForm() {
         const redirectQuery = redirectTo ? `&redirectTo=${encodeURIComponent(redirectTo)}` : "";
         router.push(`/verify-otp?email=${encodeURIComponent(email)}&flow=login${redirectQuery}`);
       } else {
+        try {
+          sessionStorage.removeItem("opensmile_pending_capture");
+          sessionStorage.removeItem("opensmile_is_new_signup");
+        } catch {}
         const destination = data.redirectTo || redirectTo || "/dashboard";
         window.location.href = destination;
       }

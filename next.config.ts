@@ -17,6 +17,11 @@ const connectSrc = [
 	'https://avatars.githubusercontent.com',
 	'https://cdn.jsdelivr.net',
 	'https://storage.googleapis.com',
+	'https://*.supabase.co',
+	'wss://*.supabase.co',
+	'https://*.vercel-insights.com',
+	'https://vitals.vercel-insights.com',
+	'https://*.vercel.app',
 ];
 if (isDev) connectSrc.push('ws:', 'wss:'); // dev HMR websockets
 
@@ -70,6 +75,14 @@ const nextConfig: NextConfig = {
 			{
 				protocol: 'https',
 				hostname: 'ik.imagekit.io',
+			},
+			{
+				protocol: 'https',
+				hostname: '*.imagekit.io',
+			},
+			{
+				protocol: 'https',
+				hostname: '*.vercel.app',
 			},
 			{
 				protocol: 'https',

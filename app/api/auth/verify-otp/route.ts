@@ -103,6 +103,7 @@ export async function POST(req: NextRequest) {
       );
 
       setSessionCookie(response, session.token, session.expiresAt);
+      response.cookies.delete("opensmile_new_signup");
       return response;
     }
 
@@ -135,7 +136,6 @@ export async function POST(req: NextRequest) {
         passwordHash,
       });
 
-      // Link pending referral if signed up via referral code or cookie
       const effectiveReferralCode = referralCode || req.cookies.get("ref_code")?.value;
       if (effectiveReferralCode) {
         try {
@@ -157,6 +157,12 @@ export async function POST(req: NextRequest) {
 
       setSessionCookie(response, session.token, session.expiresAt);
       response.cookies.delete("ref_code");
+      response.cookies.set("opensmile_new_signup", "true", {
+        path: "/",
+        maxAge: 600,
+        httpOnly: false,
+        sameSite: "lax",
+      });
       return response;
     }
 
