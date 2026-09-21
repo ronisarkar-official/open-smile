@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
 		let endDate: Date | undefined;
 		let resetAt: string | undefined;
 		let fromDateStr: string;
-		let toDateStr = formatISTDateString(now);
+		const toDateStr = formatISTDateString(now);
 		let title = 'Daily Top Smile Points';
 
 		if (period === 'daily') {

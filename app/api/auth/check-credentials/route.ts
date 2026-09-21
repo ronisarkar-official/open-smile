@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPassword } from "better-auth/crypto";
-import { findUserWithPasswordByEmail } from "@/lib/db";
+import { findUserWithPasswordByEmail, createSessionForUser } from "@/lib/db";
 import { rateLimit } from "@/lib/services";
-import { generateOTP, saveOTP, createAuthTicket } from "@/lib/auth";
-import { sendOTPEmail } from "@/lib/mailer";
+import {
+  generateOTP,
+  saveOTP,
+  createAuthTicket,
+  setSessionCookie,
+} from "@/lib/auth";
+import { sendOTPEmail, sendLoginNotificationEmail } from "@/lib/mailer";
 
 const WINDOW = 15 * 60 * 1000;
 const MAX_PER_EMAIL = 10;
@@ -14,9 +19,39 @@ function getClientIp(req: NextRequest): string {
   return forwarded ? forwarded.split(",")[0].trim() : "unknown_ip";
 }
 
+function resolveRedirectPath(redirectTo: unknown): string {
+  if (
+    typeof redirectTo === "string" &&
+    redirectTo.startsWith("/") &&
+    !redirectTo.startsWith("//")
+  ) {
+    return redirectTo;
+  }
+  return "/dashboard";
+}
+
+async function sendLoginNotification(email: string, req: NextRequest) {
+  try {
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      "Unknown IP";
+    const userAgent = req.headers.get("user-agent") || "Browser / Web Client";
+    const time = new Date().toLocaleString("en-US", {
+      dateStyle: "full",
+      timeStyle: "long",
+      timeZone: "UTC",
+    });
+
+    await sendLoginNotificationEmail(email, { time, ip, userAgent });
+  } catch (err) {
+    console.error("[check-credentials] Login notification failed:", err);
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const { email, password, redirectTo } = await req.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -54,20 +89,34 @@ export async function POST(req: NextRequest) {
       return invalidCredentials();
     }
 
-    const otp = generateOTP();
-    await saveOTP(normalizedEmail, otp);
-    await sendOTPEmail(normalizedEmail, otp);
+    if (Boolean(existingUser.twoFactorEnabled)) {
+      const otp = generateOTP();
+      await saveOTP(normalizedEmail, otp);
+      await sendOTPEmail(normalizedEmail, otp);
 
-    const loginTicket = createAuthTicket({
-      email: normalizedEmail,
-      type: "login",
-      userId: existingUser.id,
-    });
+      const loginTicket = createAuthTicket({
+        email: normalizedEmail,
+        type: "login",
+        userId: existingUser.id,
+      });
 
-    return NextResponse.json(
-      { success: true, loginTicket },
+      return NextResponse.json(
+        { success: true, twoFactorRequired: true, loginTicket },
+        { status: 200 }
+      );
+    }
+
+    const session = await createSessionForUser(existingUser.id, req);
+    await sendLoginNotification(normalizedEmail, req);
+
+    const destination = resolveRedirectPath(redirectTo);
+    const response = NextResponse.json(
+      { success: true, twoFactorRequired: false, redirectTo: destination },
       { status: 200 }
     );
+
+    setSessionCookie(response, session.token, session.expiresAt);
+    return response;
   } catch (error) {
     console.error("Error in check-credentials route:", error);
     return invalidCredentials();

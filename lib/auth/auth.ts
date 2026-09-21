@@ -1,5 +1,5 @@
 import { betterAuth } from "better-auth";
-import { Pool } from "pg";
+import { getPool } from "../db/client";
 import { sendWelcomeEmail, sendResetPasswordEmail } from "../mailer";
 import {
 	twoFactor,
@@ -30,7 +30,7 @@ if (process.env.NODE_ENV === "production") {
 
 export const auth = betterAuth({
 	database: process.env.DATABASE_URL
-		? new Pool({ connectionString: process.env.DATABASE_URL })
+		? getPool()
 		: (undefined as never),
 	secret: process.env.BETTER_AUTH_SECRET,
 	baseURL: process.env.BETTER_AUTH_URL,

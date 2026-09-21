@@ -46,7 +46,7 @@ function LoginForm() {
       const res = await fetch("/api/auth/check-credentials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, redirectTo }),
       });
 
       const data = await res.json();
@@ -55,13 +55,18 @@ function LoginForm() {
         throw new Error(data.error || "Invalid email or password");
       }
 
-      sessionStorage.setItem(
-        "pending_auth",
-        JSON.stringify({ email, ticket: data.loginTicket })
-      );
+      if (data.twoFactorRequired) {
+        sessionStorage.setItem(
+          "pending_auth",
+          JSON.stringify({ email, ticket: data.loginTicket })
+        );
 
-      const redirectQuery = redirectTo ? `&redirectTo=${encodeURIComponent(redirectTo)}` : "";
-      router.push(`/verify-otp?email=${encodeURIComponent(email)}&flow=login${redirectQuery}`);
+        const redirectQuery = redirectTo ? `&redirectTo=${encodeURIComponent(redirectTo)}` : "";
+        router.push(`/verify-otp?email=${encodeURIComponent(email)}&flow=login${redirectQuery}`);
+      } else {
+        const destination = data.redirectTo || redirectTo || "/dashboard";
+        window.location.href = destination;
+      }
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Something went wrong. Please try again.";

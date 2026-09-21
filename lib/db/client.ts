@@ -29,16 +29,39 @@ export function getPool(): Pool {
 
 	_pool = new Pool({
 		connectionString: DATABASE_URL,
-		max: isServerless ? 2 : 15,
-		idleTimeoutMillis: isServerless ? 5000 : 20000,
-		connectionTimeoutMillis: 25000,
+		ssl: { rejectUnauthorized: false },
+		max: isServerless ? 3 : 10,
+		idleTimeoutMillis: 10000,
+		connectionTimeoutMillis: 15000,
 		keepAlive: true,
-		keepAliveInitialDelayMillis: 10000,
+		keepAliveInitialDelayMillis: 5000,
 	});
 
 	_pool.on("error", (err) => {
-		console.error("[pg-pool] Idle client error:", err.message);
+		console.warn("[pg-pool] Idle client disconnected:", err.message);
 	});
+
+	const originalQuery = _pool.query.bind(_pool);
+	_pool.query = (async (...args: any[]) => {
+		try {
+			return await (originalQuery as any)(...args);
+		} catch (err: any) {
+			const isConnError =
+				err &&
+				(err.code === "ECONNRESET" ||
+					err.code === "EPIPE" ||
+					err.code === "ECONNREFUSED" ||
+					err.code === "ETIMEDOUT" ||
+					err.message?.includes("ECONNRESET") ||
+					err.message?.includes("Connection terminated unexpectedly") ||
+					err.message?.includes("connection closed"));
+
+			if (isConnError) {
+				return await (originalQuery as any)(...args);
+			}
+			throw err;
+		}
+	}) as typeof _pool.query;
 
 	if (process.env.NODE_ENV === "development") {
 		globalForPg._pgPool = _pool;

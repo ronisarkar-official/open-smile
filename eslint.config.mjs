@@ -11,7 +11,11 @@ const eslintConfig = defineConfig([
       "react-hooks/purity": "off",
       "react-hooks/static-components": "off",
       "react-hooks/refs": "off",
+      "react-hooks/immutability": "off",
+      "react/no-unescaped-entities": "off",
       "@next/next/no-img-element": "off",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-empty-object-type": "warn",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {

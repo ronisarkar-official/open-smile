@@ -59,7 +59,12 @@ function VerifyOTPContent() {
       const verifyRes = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, otp, ticket }),
+        body: JSON.stringify({
+          email,
+          otp,
+          ticket,
+          redirectTo: redirectToParam,
+        }),
       });
 
       const data = await verifyRes.json();
@@ -71,10 +76,11 @@ function VerifyOTPContent() {
       sessionStorage.removeItem("pending_auth");
       setSuccess(true);
 
+      const destination = data.redirectTo || redirectToParam || "/dashboard";
       setTimeout(() => {
-        router.push(data.redirectTo || redirectToParam);
-        router.refresh();
-      }, 1200);
+        window.location.href = destination;
+      }, 800);
+
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Verification failed. Please try again.";

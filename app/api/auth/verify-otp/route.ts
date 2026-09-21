@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyOTP, verifyAuthTicket } from "@/lib/auth";
+import { verifyOTP, verifyAuthTicket, setSessionCookie } from "@/lib/auth";
 import {
   updateUserEmailVerified,
   createSessionForUser,
@@ -20,15 +20,22 @@ function getClientIp(req: NextRequest): string {
   return forwarded ? forwarded.split(",")[0].trim() : "unknown_ip";
 }
 
-function getSessionCookieName(): string {
-  const isSecure = process.env.NODE_ENV === "production";
-  const prefix = isSecure ? "__Secure-" : "";
-  return `${prefix}better-auth.session_token`;
+function resolveRedirectPath(redirectTo: unknown): string {
+  if (
+    typeof redirectTo === "string" &&
+    redirectTo.startsWith("/") &&
+    !redirectTo.startsWith("//")
+  ) {
+    return redirectTo;
+  }
+  return "/dashboard";
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, otp, ticket } = await req.json();
+    const { email, otp, ticket, redirectTo } = await req.json();
+    const destination = resolveRedirectPath(redirectTo);
+
 
     if (!email || !otp || !ticket) {
       return NextResponse.json(
@@ -91,7 +98,7 @@ export async function POST(req: NextRequest) {
       void sendLoginNotification(normalizedEmail, req);
 
       const response = NextResponse.json(
-        { success: true, redirectTo: "/dashboard" },
+        { success: true, redirectTo: destination },
         { status: 200 }
       );
 
@@ -144,7 +151,7 @@ export async function POST(req: NextRequest) {
       const session = await createSessionForUser(user.id, req);
 
       const response = NextResponse.json(
-        { success: true, redirectTo: "/dashboard" },
+        { success: true, redirectTo: destination },
         { status: 200 }
       );
 
@@ -166,22 +173,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-function setSessionCookie(
-  response: NextResponse,
-  token: string,
-  expiresAt: Date
-) {
-  const cookieName = getSessionCookieName();
-  const isSecure = process.env.NODE_ENV === "production";
 
-  response.cookies.set(cookieName, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    secure: isSecure,
-    expires: expiresAt,
-  });
-}
 
 async function sendLoginNotification(email: string, req: NextRequest) {
   try {

@@ -26,6 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 
 interface ProfileContentProps {
 	userName: string;
@@ -94,6 +95,12 @@ export function ProfileContent({
 	const [deleteLoading, setDeleteLoading] = React.useState(false);
 	const [deleteError, setDeleteError] = React.useState<string | null>(null);
 
+	const [twoFactorEnabled, setTwoFactorEnabled] = React.useState(false);
+	const [twoFactorLoading, setTwoFactorLoading] = React.useState(true);
+	const [twoFactorToggling, setTwoFactorToggling] = React.useState(false);
+	const [twoFactorSuccess, setTwoFactorSuccess] = React.useState<string | null>(null);
+	const [twoFactorError, setTwoFactorError] = React.useState<string | null>(null);
+
 	React.useEffect(() => {
 		setAvatar(userAvatar || DEFAULT_AVATAR_URL);
 	}, [userAvatar]);
@@ -127,10 +134,54 @@ export function ProfileContent({
 		}
 	}, []);
 
+	const fetchTwoFactorStatus = React.useCallback(async () => {
+		setTwoFactorLoading(true);
+		try {
+			const res = await fetch('/api/user/2fa');
+			if (res.ok) {
+				const data = await res.json();
+				setTwoFactorEnabled(Boolean(data.enabled));
+			}
+		} catch (err) {
+			console.error('Failed to load 2FA status:', err);
+		} finally {
+			setTwoFactorLoading(false);
+		}
+	}, []);
+
+	const handleToggleTwoFactor = async (checked: boolean) => {
+		setTwoFactorToggling(true);
+		setTwoFactorError(null);
+		setTwoFactorSuccess(null);
+		try {
+			const res = await fetch('/api/user/2fa', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ enabled: checked }),
+			});
+			const data = await res.json();
+			if (!res.ok) {
+				throw new Error(data.error || 'Failed to update 2FA status');
+			}
+			setTwoFactorEnabled(Boolean(data.enabled));
+			setTwoFactorSuccess(
+				data.enabled
+					? 'Two-factor authentication enabled. An email OTP will be required on your next login.'
+					: 'Two-factor authentication disabled.'
+			);
+		} catch (err: unknown) {
+			const msg = err instanceof Error ? err.message : 'Failed to update 2FA setting';
+			setTwoFactorError(msg);
+		} finally {
+			setTwoFactorToggling(false);
+		}
+	};
+
 	React.useEffect(() => {
 		fetchAccounts();
 		fetchSessions();
-	}, [fetchAccounts, fetchSessions]);
+		fetchTwoFactorStatus();
+	}, [fetchAccounts, fetchSessions, fetchTwoFactorStatus]);
 
 	// Account derived info
 	const hasPasswordAccount = accounts.some(
@@ -617,6 +668,56 @@ export function ProfileContent({
 						</div>
 					</form>
 				)}
+			</div>
+
+			<div>
+				<div className="flex items-center justify-between gap-2 mb-3">
+					<h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">
+						Two-Factor Authentication (2FA)
+					</h3>
+				</div>
+				<div className="border-t border-border" />
+
+				{twoFactorError && (
+					<div className="my-3 flex items-center gap-2 bg-destructive/10 border-[length:var(--border-width)] border-black rounded-md p-2.5 text-xs font-bold text-destructive">
+						<XCircle className="h-3.5 w-3.5 shrink-0" strokeWidth={2.5} />
+						<span>{twoFactorError}</span>
+					</div>
+				)}
+
+				{twoFactorSuccess && (
+					<div className="my-3 flex items-center gap-2 bg-success/20 border-[length:var(--border-width)] border-black rounded-md p-2.5 text-xs font-bold text-success-foreground">
+						<CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-success" strokeWidth={2.5} />
+						<span>{twoFactorSuccess}</span>
+					</div>
+				)}
+
+				<SettingsRow
+					label="Email Verification"
+					description="Require a one-time verification code (OTP) sent to your email whenever you sign in."
+					action={
+						<div className="flex items-center gap-3">
+							<span
+								className={`inline-flex items-center px-2 py-0.5 font-mono text-[10px] font-bold uppercase border-[length:var(--border-width)] border-black rounded-md ${
+									twoFactorEnabled
+										? 'bg-success/20 text-success-foreground'
+										: 'bg-muted text-muted-foreground'
+								}`}>
+								{twoFactorEnabled ? 'Enabled' : 'Disabled'}
+							</span>
+							{twoFactorToggling ? (
+								<Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+							) : (
+								<Switch
+									checked={twoFactorEnabled}
+									disabled={twoFactorLoading || twoFactorToggling}
+									onCheckedChange={handleToggleTwoFactor}
+									aria-label="Toggle email two-factor authentication"
+								/>
+							)}
+						</div>
+					}
+				/>
 			</div>
 
 			{/* =================================================================== */}

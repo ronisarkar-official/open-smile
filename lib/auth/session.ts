@@ -1,9 +1,54 @@
+import crypto from "crypto";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { auth } from "./auth";
 import { getPool } from "../db/client";
 
+export function signSessionToken(token: string): string {
+	const secret = process.env.BETTER_AUTH_SECRET || process.env.AUTH_SECRET || "";
+	const signature = crypto
+		.createHmac("sha256", secret)
+		.update(token)
+		.digest("base64");
+	return `${token}.${signature}`;
+}
+
+export function getSessionCookieName(): string {
+	const isSecure = process.env.NODE_ENV === "production";
+	const prefix = isSecure ? "__Secure-" : "";
+	return `${prefix}better-auth.session_token`;
+}
+
+export function setSessionCookie(
+	response: NextResponse,
+	token: string,
+	expiresAt: Date
+) {
+	const cookieName = getSessionCookieName();
+	const signedToken = signSessionToken(token);
+	const isSecure = process.env.NODE_ENV === "production";
+
+	response.cookies.set(cookieName, signedToken, {
+		httpOnly: true,
+		sameSite: "lax",
+		path: "/",
+		secure: isSecure,
+		expires: expiresAt,
+	});
+
+	if (isSecure && cookieName !== "better-auth.session_token") {
+		response.cookies.set("better-auth.session_token", signedToken, {
+			httpOnly: true,
+			sameSite: "lax",
+			path: "/",
+			secure: true,
+			expires: expiresAt,
+		});
+	}
+}
+
 export interface ServerUser {
+
 	id: string;
 	email: string;
 	name?: string | null;

@@ -89,3 +89,23 @@ export async function updateUserEmailVerified(email: string) {
 		[email],
 	);
 }
+
+export async function getUserTwoFactorStatus(userId: string): Promise<boolean> {
+	const { rows } = await getPool().query(
+		'SELECT "twoFactorEnabled" FROM "user" WHERE id = $1 LIMIT 1',
+		[userId],
+	);
+	return Boolean(rows[0]?.twoFactorEnabled);
+}
+
+export async function updateUserTwoFactorStatus(
+	userId: string,
+	enabled: boolean,
+): Promise<boolean> {
+	const { rows } = await getPool().query(
+		'UPDATE "user" SET "twoFactorEnabled" = $1, "updatedAt" = NOW() WHERE id = $2 RETURNING "twoFactorEnabled"',
+		[enabled, userId],
+	);
+	return Boolean(rows[0]?.twoFactorEnabled);
+}
+
