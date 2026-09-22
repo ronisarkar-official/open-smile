@@ -44,13 +44,32 @@ function SignupForm() {
 
 	useEffect(() => {
 		if (refParam) {
-			setReferralCode(refParam.toUpperCase());
+			const cleanRef = decodeURIComponent(refParam).trim().toUpperCase();
+			setReferralCode(cleanRef);
 			setHasAutoRef(true);
+			if (typeof document !== 'undefined') {
+				const maxAge = 30 * 24 * 60 * 60;
+				document.cookie = `ref_code=${encodeURIComponent(cleanRef)}; max-age=${maxAge}; path=/; SameSite=Lax`;
+				try {
+					localStorage.setItem('opensmile_ref_code', cleanRef);
+				} catch {}
+			}
 		} else if (typeof document !== 'undefined') {
 			const match = document.cookie.match(/ref_code=([^;]+)/);
 			if (match?.[1]) {
-				setReferralCode(decodeURIComponent(match[1]).toUpperCase());
+				setReferralCode(decodeURIComponent(match[1]).trim().toUpperCase());
 				setHasAutoRef(true);
+			} else {
+				try {
+					const localRef = localStorage.getItem('opensmile_ref_code');
+					if (localRef) {
+						const cleanLocal = localRef.trim().toUpperCase();
+						setReferralCode(cleanLocal);
+						setHasAutoRef(true);
+						const maxAge = 30 * 24 * 60 * 60;
+						document.cookie = `ref_code=${encodeURIComponent(cleanLocal)}; max-age=${maxAge}; path=/; SameSite=Lax`;
+					}
+				} catch {}
 			}
 		}
 	}, [refParam]);
@@ -60,6 +79,14 @@ function SignupForm() {
 	async function handleSocialSignIn(provider: 'github' | 'google') {
 		try {
 			sessionStorage.setItem('opensmile_is_new_signup', 'true');
+			const codeToPreserve = (referralCode || refParam || '').trim().toUpperCase();
+			if (codeToPreserve && typeof document !== 'undefined') {
+				const maxAge = 30 * 24 * 60 * 60;
+				document.cookie = `ref_code=${encodeURIComponent(codeToPreserve)}; max-age=${maxAge}; path=/; SameSite=Lax`;
+				try {
+					localStorage.setItem('opensmile_ref_code', codeToPreserve);
+				} catch {}
+			}
 		} catch {}
 		try {
 			setSocialLoading(provider);

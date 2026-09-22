@@ -16,6 +16,17 @@ export async function GET(_request: NextRequest) {
 		const { user, error } = await requireServerUser();
 		if (!user) return error;
 
+		const refCodeCookie = _request.cookies.get('ref_code')?.value;
+		if (refCodeCookie) {
+			try {
+				const { createPendingReferral } = await import('@/lib/db');
+				await createPendingReferral({
+					referrerCode: decodeURIComponent(refCodeCookie).toUpperCase(),
+					newUserId: user.id,
+				});
+			} catch {}
+		}
+
 		const [balance, streak, rankData, recentSmiles] = await Promise.all([
 			getUserCoinBalance(user.id),
 			getUserStreak(user.id),

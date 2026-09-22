@@ -27,6 +27,15 @@ export async function GET(_request: NextRequest) {
 
 		const pool = getPool();
 
+		// Ensure any pending referral rewards for users with captures are processed
+		try {
+			const { processReferralRewardOnFirstCapture } = await import('@/lib/db');
+			await processReferralRewardOnFirstCapture({
+				userId: user.id,
+				reqCookieRefCode: _request.cookies.get('ref_code')?.value,
+			});
+		} catch {}
+
 		const { rows } = await pool.query(
 			`SELECT id, title, source, coins, voucher_id, voucher_title, voucher_code, voucher_brand, is_scratched, theme_color, badge, created_at, scratched_at
 			 FROM scratch_cards

@@ -60,6 +60,35 @@ async def process_first_capture_referral(
     )
 
     if not referral:
+        referred_by = await conn.fetchval(
+            """
+            SELECT referred_by
+            FROM "user"
+            WHERE id = $1
+            """,
+            user_id,
+        )
+        if referred_by:
+            await conn.execute(
+                """
+                INSERT INTO referrals (id, referrer_id, referred_id, status, created_at)
+                VALUES (gen_random_uuid(), $1, $2, 'pending', NOW())
+                ON CONFLICT (referred_id) DO NOTHING
+                """,
+                referred_by,
+                user_id,
+            )
+            referral = await conn.fetchrow(
+                """
+                SELECT id, referrer_id, referred_id, status
+                FROM referrals
+                WHERE referred_id = $1 AND status = 'pending'
+                LIMIT 1
+                """,
+                user_id,
+            )
+
+    if not referral:
         return False
 
     referrer_id = referral["referrer_id"]
@@ -82,11 +111,27 @@ async def process_first_capture_referral(
             referrer_id,
             REFERRER_BONUS,
         )
+        await conn.execute(
+            """
+            INSERT INTO scratch_cards (user_id, title, source, coins, is_scratched, theme_color, badge, created_at)
+            VALUES ($1, 'Referral Bonus Card', 'Referral Reward', $2, false, '#FF2D78', '🎁', NOW())
+            """,
+            referrer_id,
+            REFERRER_BONUS,
+        )
 
     await conn.execute(
         """
         INSERT INTO coin_ledger (user_id, coins, reason, created_at)
         VALUES ($1, $2, 'referral_bonus', NOW())
+        """,
+        user_id,
+        REFEREE_BONUS,
+    )
+    await conn.execute(
+        """
+        INSERT INTO scratch_cards (user_id, title, source, coins, is_scratched, theme_color, badge, created_at)
+        VALUES ($1, 'Welcome Bonus Card', 'Friend Referral', $2, false, '#C6F135', '🎉', NOW())
         """,
         user_id,
         REFEREE_BONUS,

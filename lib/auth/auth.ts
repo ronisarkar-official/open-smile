@@ -32,6 +32,44 @@ if (process.env.NODE_ENV === "production") {
 	}
 }
 
+function extractRefCodeFromContext(context: any): string | null {
+	if (!context) return null;
+	if (typeof context.getCookie === "function") {
+		const val = context.getCookie("ref_code");
+		if (val) return String(val).trim().toUpperCase();
+	}
+	const headers = context.headers || context.context?.headers || context.request?.headers;
+	if (headers) {
+		let cookieHeader = "";
+		if (typeof headers.get === "function") {
+			cookieHeader = headers.get("cookie") || "";
+		} else if (typeof headers.cookie === "string") {
+			cookieHeader = headers.cookie;
+		}
+		if (cookieHeader) {
+			const match = cookieHeader.match(/ref_code=([^;]+)/i);
+			if (match?.[1]) {
+				return decodeURIComponent(match[1]).trim().toUpperCase();
+			}
+		}
+	}
+	return null;
+}
+
+async function getReferralCode(context?: any): Promise<string | null> {
+	const fromCtx = extractRefCodeFromContext(context);
+	if (fromCtx) return fromCtx;
+
+	try {
+		const { cookies } = await import("next/headers");
+		const cookieStore = await cookies();
+		const val = cookieStore.get("ref_code")?.value;
+		if (val) return decodeURIComponent(val).trim().toUpperCase();
+	} catch {}
+
+	return null;
+}
+
 export const auth = betterAuth({
 	database: process.env.DATABASE_URL
 		? getPool()
@@ -124,19 +162,59 @@ export const auth = betterAuth({
 	databaseHooks: {
 		user: {
 			create: {
-				before: async (user) => {
+				before: async (user: any, context?: any) => {
+					let referredBy: string | null = null;
+					try {
+						const refCode = await getReferralCode(context);
+						if (refCode) {
+							const { findUserByReferralCode } = await import("../db/referral-queries");
+							const referrer = await findUserByReferralCode(refCode);
+							if (referrer && referrer.id !== user.id) {
+								referredBy = referrer.id;
+							}
+						}
+					} catch (e) {
+						console.error("[auth] Error resolving referral in user.create.before:", e);
+					}
+
+					const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+					const fallbackPrefix = (user.id || user.email || "SMILE").replace(/[^a-zA-Z0-9]/g, "").slice(0, 4).toUpperCase();
+					const userReferralCode = `SMILE-${fallbackPrefix}${randomSuffix}`;
+
 					return {
 						data: {
 							...user,
 							name: user.name || user.email?.split("@")[0] || "User",
 							image: user.image || "/icons/default-icon.webp",
+							referral_code: user.referral_code || userReferralCode,
+							referred_by: referredBy || user.referred_by || null,
 						},
 					};
 				},
-				after: async (user) => {
+				after: async (user: any, context?: any) => {
 					void sendWelcomeEmail(user.email, user.name ?? "").catch((err) => {
 						console.error("[auth] Welcome email failed:", err);
 					});
+
+					try {
+						const refCode = await getReferralCode(context);
+						if (user?.id) {
+							const { createPendingReferral } = await import("../db/referral-queries");
+							if (refCode) {
+								await createPendingReferral({
+									referrerCode: refCode,
+									newUserId: user.id,
+								});
+							} else if (user.referred_by) {
+								await createPendingReferral({
+									referrerId: user.referred_by,
+									newUserId: user.id,
+								});
+							}
+						}
+					} catch (refErr) {
+						console.error("[auth] Failed to link referral in user.create.after:", refErr);
+					}
 				},
 			},
 		},

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn } from "@/lib/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -20,11 +20,31 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectTo = searchParams.get("redirectTo");
+  const refParam = searchParams.get("ref");
+
+  useEffect(() => {
+    if (refParam && typeof document !== "undefined") {
+      const cleanRef = decodeURIComponent(refParam).trim().toUpperCase();
+      const maxAge = 30 * 24 * 60 * 60;
+      document.cookie = `ref_code=${encodeURIComponent(cleanRef)}; max-age=${maxAge}; path=/; SameSite=Lax`;
+      try {
+        localStorage.setItem("opensmile_ref_code", cleanRef);
+      } catch {}
+    }
+  }, [refParam]);
 
   async function handleSocialSignIn(provider: "github" | "google") {
     try {
       sessionStorage.removeItem("opensmile_pending_capture");
       sessionStorage.removeItem("opensmile_is_new_signup");
+      if (refParam && typeof document !== "undefined") {
+        const cleanRef = decodeURIComponent(refParam).trim().toUpperCase();
+        const maxAge = 30 * 24 * 60 * 60;
+        document.cookie = `ref_code=${encodeURIComponent(cleanRef)}; max-age=${maxAge}; path=/; SameSite=Lax`;
+        try {
+          localStorage.setItem("opensmile_ref_code", cleanRef);
+        } catch {}
+      }
     } catch {}
     try {
       setSocialLoading(provider);

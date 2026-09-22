@@ -13,19 +13,16 @@ const protectedRoutes = [
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const refQuery = request.nextUrl.searchParams.get("ref");
 
+  let refCodeToSet: string | null = null;
   if (pathname.startsWith("/join/")) {
     const parts = pathname.split("/");
-    const code = parts[2];
-    if (code) {
-      const response = NextResponse.next();
-      response.cookies.set("ref_code", code.toUpperCase(), {
-        maxAge: 30 * 24 * 60 * 60,
-        path: "/",
-        sameSite: "lax",
-      });
-      return response;
+    if (parts[2]) {
+      refCodeToSet = decodeURIComponent(parts[2]).trim().toUpperCase();
     }
+  } else if (refQuery) {
+    refCodeToSet = decodeURIComponent(refQuery).trim().toUpperCase();
   }
 
   const isProtected = protectedRoutes.some(
@@ -40,11 +37,27 @@ export function proxy(request: NextRequest) {
     if (!sessionCookie) {
       const loginUrl = new URL("/login", request.url);
       loginUrl.searchParams.set("redirectTo", pathname);
-      return NextResponse.redirect(loginUrl);
+      const redirectResponse = NextResponse.redirect(loginUrl);
+      if (refCodeToSet) {
+        redirectResponse.cookies.set("ref_code", refCodeToSet, {
+          maxAge: 30 * 24 * 60 * 60,
+          path: "/",
+          sameSite: "lax",
+        });
+      }
+      return redirectResponse;
     }
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  if (refCodeToSet) {
+    response.cookies.set("ref_code", refCodeToSet, {
+      maxAge: 30 * 24 * 60 * 60,
+      path: "/",
+      sameSite: "lax",
+    });
+  }
+  return response;
 }
 
 export const config = {

@@ -8,6 +8,7 @@ import {
 	recordCaptureStreak,
 	createNotification,
 	isUserEligibleForTryConversion,
+	processReferralRewardOnFirstCapture,
 } from '@/lib/db';
 
 import { calculateSmileCoins } from '@/lib/reward-calculator';
@@ -133,71 +134,12 @@ export async function POST(request: NextRequest) {
 		let referralBonusUnlocked = false;
 		let welcomeCardId: string | null = null;
 		try {
-			const countRes = await pool.query(
-				`SELECT COUNT(*) FROM smile_captures WHERE user_id = $1`,
-				[user.id]
-			);
-			if (parseInt(countRes.rows[0]?.count || '0', 10) === 1) {
-				const refRes = await pool.query(
-					`SELECT id, referrer_id FROM referrals WHERE referred_id = $1 AND status = 'pending' LIMIT 1`,
-					[user.id]
-				);
-				if (refRes.rows.length > 0) {
-					const referrerId = refRes.rows[0].referrer_id;
-					const referrerMin = Math.max(5, Number(settings.referral_referrer_min_coins) || 50);
-					const referrerMax = Math.max(referrerMin, Number(settings.referral_referrer_max_coins) || 200);
-					const refereeMin = Math.max(5, Number(settings.referral_referee_min_coins || settings.referee_bonus_coins) || 20);
-					const refereeMax = Math.max(refereeMin, Number(settings.referral_referee_max_coins) || 50);
-					const maxDailyRewards = Math.max(1, Number(settings.max_daily_referral_rewards) || 5);
-
-					const referrerCoinsWon = Math.floor(Math.random() * (referrerMax - referrerMin + 1)) + referrerMin;
-					const refereeCoinsWon = Math.floor(Math.random() * (refereeMax - refereeMin + 1)) + refereeMin;
-
-					// Check referrer daily cap
-					const referrerDailyRes = await pool.query(
-						`SELECT COUNT(*) FROM scratch_cards
-						 WHERE user_id = $1 AND source = 'Referral Reward'
-						   AND created_at AT TIME ZONE 'Asia/Kolkata' >= (NOW() AT TIME ZONE 'Asia/Kolkata')::date`,
-						[referrerId]
-					);
-					const referrerDailyCount = parseInt(referrerDailyRes.rows[0]?.count || '0', 10);
-
-					// Award Mystery Scratch Card to Referrer if under cap
-					if (referrerDailyCount < maxDailyRewards) {
-						await pool.query(
-							`INSERT INTO scratch_cards (user_id, title, source, coins, is_scratched, theme_color, badge, created_at)
-							 VALUES ($1, 'Referral Bonus Card', 'Referral Reward', $2, false, '#FF2D78', '🎁', NOW())`,
-							[referrerId, referrerCoinsWon]
-						);
-					}
-
-					// Award Welcome Scratch Card to Newly Referred Friend
-					const friendCardRes = await pool.query(
-						`INSERT INTO scratch_cards (user_id, title, source, coins, is_scratched, theme_color, badge, created_at)
-						 VALUES ($1, 'Welcome Bonus Card', 'Friend Referral', $2, false, '#C6F135', '🎉', NOW())
-						 RETURNING id`,
-						[user.id, refereeCoinsWon]
-					);
-					welcomeCardId = friendCardRes.rows[0]?.id ? String(friendCardRes.rows[0].id) : null;
-
-					// Mark referral completed
-					await pool.query(
-						`UPDATE referrals SET status = 'completed', completed_at = NOW() WHERE id = $1`,
-						[refRes.rows[0].id]
-					);
-					referralBonusUnlocked = true;
-
-					void createNotification({
-						userId: referrerId,
-						title: 'Friend Joined & Smiled! 🎁',
-						description: 'Your friend just completed their first smile! A referral bonus scratch card was awarded.',
-						category: 'social',
-						iconType: 'gift',
-						actionLabel: 'Claim Scratch Card',
-						actionUrl: '/rewards',
-					}).catch(() => {});
-				}
-			}
+			const refResult = await processReferralRewardOnFirstCapture({
+				userId: user.id,
+				reqCookieRefCode: request.cookies.get('ref_code')?.value,
+			});
+			referralBonusUnlocked = refResult.referralBonusUnlocked;
+			welcomeCardId = refResult.welcomeCardId;
 		} catch (e) {
 			console.error('Referral bonus error:', e);
 		}
