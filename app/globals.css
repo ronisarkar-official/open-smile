@@ -109,8 +109,8 @@
   --sidebar-ring: #7B61FF;
   --outline: #0f0f0f;
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-title: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
-  --font-impact: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  --font-title: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-impact: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
   --font-code: var(--font-space-mono), ui-monospace, monospace;
   --border-width: 1px;
   --border-width-sm: 1.5px;
@@ -124,6 +124,9 @@
   --brutal-shadow-md: var(--shadow-offset, 2px) var(--shadow-offset, 3px) 0 0 var(--outline);
   --brutal-shadow-lg: var(--shadow-offset-lg, 2px) var(--shadow-offset-lg, 2px) 0 0 var(--outline);
   --brutal-shadow-xl: var(--shadow-offset-xl, 2px) var(--shadow-offset-xl, 2px) 0 0 var(--outline);
+  --coin-face: #FF2D78;
+  --coin-side: #D81B60;
+  --coin-stroke: #0f0f0f;
 }
 
 .dark {
@@ -164,6 +167,36 @@
   --sidebar-border: #f5f3f0;
   --sidebar-ring: #9B85FF;
   --outline: #f5f3f0;
+  --coin-face: #FF4D8E;
+  --coin-side: #C2185B;
+  --coin-stroke: #000000;
+}
+
+@keyframes coin-float-1 {
+  0%, 100% {
+    transform: translateY(0px) rotate(var(--coin-rot, 0deg));
+  }
+  50% {
+    transform: translateY(-12px) rotate(calc(var(--coin-rot, 0deg) + 2deg));
+  }
+}
+
+@keyframes coin-float-2 {
+  0%, 100% {
+    transform: translateY(0px) rotate(var(--coin-rot, 0deg));
+  }
+  50% {
+    transform: translateY(-16px) rotate(calc(var(--coin-rot, 0deg) - 2.5deg));
+  }
+}
+
+@keyframes coin-float-3 {
+  0%, 100% {
+    transform: translateY(0px) rotate(var(--coin-rot, 0deg));
+  }
+  50% {
+    transform: translateY(-10px) rotate(calc(var(--coin-rot, 0deg) + 1.5deg));
+  }
 }
 
 @keyframes rise-in {

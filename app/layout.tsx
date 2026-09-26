@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Space_Grotesk, Space_Mono, Sora } from "next/font/google";
+import { Inter, Outfit, Space_Mono, Sora } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/session-provider";
 import { ToastProvider } from "@/hooks/use-toast";
@@ -111,9 +111,9 @@ const inter = Inter({
   display: "swap",
 });
 
-const spaceGrotesk = Space_Grotesk({
+const outfit = Outfit({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  variable: "--font-outfit",
   display: "swap",
 });
 
@@ -196,7 +196,7 @@ export default function RootLayout({
       lang="en"
       data-scroll-behavior="smooth"
       suppressHydrationWarning
-      className={`${inter.variable} ${spaceGrotesk.variable} ${spaceMono.variable} ${sora.variable} h-full font-sans antialiased`}
+      className={`${inter.variable} ${outfit.variable} ${spaceMono.variable} ${sora.variable} h-full font-sans antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />

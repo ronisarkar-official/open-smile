@@ -362,7 +362,7 @@ export function CaptureFlow({
 
 			try {
 				const data = JSON.parse(stored);
-				if (data.score && data.coins !== undefined) {
+				if (typeof data.score === 'number' && data.coins !== undefined) {
 					sessionStorage.removeItem(STORAGE_KEY);
 					sessionStorage.removeItem('opensmile_is_new_signup');
 
@@ -464,12 +464,19 @@ export function CaptureFlow({
 				setCapturedImage(snapshot);
 				setHasCapturedImage(true);
 
-				const finalScore =
-					Math.max(
-						currentResult?.score ?? 0,
-						peakScoreRef.current,
-						instantScore ?? 0,
-					) || Math.floor(Math.random() * 25) + 75;
+				const finalScore = Math.max(
+					0,
+					Math.min(
+						100,
+						Math.round(
+							Math.max(
+								currentResult?.score ?? 0,
+								peakScoreRef.current ?? 0,
+								instantScore ?? 0,
+							),
+						),
+					),
+				);
 				const rewardConfig = settings.capture_reward_config || {
 					min_smile_score_threshold:
 						Number(settings.min_smile_score_threshold) || 11,
@@ -675,8 +682,7 @@ export function CaptureFlow({
 			});
 			return;
 		}
-		const score =
-			lastResultRef.current?.score ?? Math.floor(Math.random() * 25) + 75;
+		const score = lastResultRef.current?.score ?? 0;
 		triggerCaptureSequence(score, 'MANUAL');
 	};
 

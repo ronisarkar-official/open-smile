@@ -198,9 +198,9 @@
     "semantic_hash": "4bb62e38a8764390312832294cefbaa6"
   },
   "app/layout.tsx": {
-    "mtime": 1789119778.1995938,
-    "seen": 1789119829.7185988,
-    "ast_hash": "07a59b5f9092dc474276ec53c0266413",
+    "mtime": 1790404571.1704743,
+    "seen": 1790404641.4636946,
+    "ast_hash": "86199c68356bbd7753f8f788c98082f2",
     "semantic_hash": ""
   },
   "app/loading.tsx": {
@@ -324,9 +324,9 @@
     "semantic_hash": ""
   },
   "components/capture/capture-flow.tsx": {
-    "mtime": 1790268643.0312326,
-    "seen": 1790268695.604061,
-    "ast_hash": "7c775554331cfd1b4a4f3c75c0ba5fdd",
+    "mtime": 1790397925.464199,
+    "seen": 1790398012.2145567,
+    "ast_hash": "f73bacd86c7863ff2f45674ad8f26a27",
     "semantic_hash": ""
   },
   "components/capture/neubrutalist-photo-card.tsx": {
@@ -390,15 +390,15 @@
     "semantic_hash": ""
   },
   "components/landing/footer.tsx": {
-    "mtime": 1789753758.8879473,
-    "seen": 1789753804.7053847,
+    "mtime": 1790404009.4973965,
+    "seen": 1790404080.5851758,
     "ast_hash": "655fadb44ace9e5265bedd016f7a6a98",
     "semantic_hash": ""
   },
   "components/landing/hero.tsx": {
-    "mtime": 1789798469.7232037,
-    "seen": 1789998406.4273853,
-    "ast_hash": "09b7f2926e9b19bc631b78f871c9d801",
+    "mtime": 1790403856.662642,
+    "seen": 1790404080.5851793,
+    "ast_hash": "7f256e04aee6a2c0274404ac42d04cee",
     "semantic_hash": ""
   },
   "components/landing/how-it-works.tsx": {
@@ -456,20 +456,20 @@
     "semantic_hash": ""
   },
   "components/landing/my-team.tsx": {
-    "mtime": 1787935099.779751,
-    "seen": 1788153908.5841413,
+    "mtime": 1790403856.7161734,
+    "seen": 1790404080.585192,
     "ast_hash": "ab1d326019ec47a59cae345902ec4f03",
-    "semantic_hash": "ab1d326019ec47a59cae345902ec4f03"
+    "semantic_hash": ""
   },
   "components/landing/trust-privacy.tsx": {
-    "mtime": 1789368901.8994458,
-    "seen": 1789382758.8578231,
+    "mtime": 1790403856.7063668,
+    "seen": 1790404080.5851946,
     "ast_hash": "c4c7da5138dc0378bd84c341c4f01d7f",
     "semantic_hash": ""
   },
   "components/landing/why-its-different-bento.tsx": {
-    "mtime": 1789489834.3536448,
-    "seen": 1789490906.463547,
+    "mtime": 1790403856.7063668,
+    "seen": 1790404080.5851955,
     "ast_hash": "de455430fa0621e53e0fa76a24978ee3",
     "semantic_hash": ""
   },
@@ -486,8 +486,8 @@
     "semantic_hash": ""
   },
   "components/navbar.tsx": {
-    "mtime": 1789752026.786826,
-    "seen": 1789753804.7053995,
+    "mtime": 1790403856.662642,
+    "seen": 1790404080.5851994,
     "ast_hash": "5303d26a84cd688ac46e254ec414d7d6",
     "semantic_hash": ""
   },
@@ -2088,8 +2088,8 @@
     "semantic_hash": ""
   },
   "components/landing/faq.tsx": {
-    "mtime": 1789367433.2102706,
-    "seen": 1789368568.2327218,
+    "mtime": 1790403856.7063668,
+    "seen": 1790404080.5851724,
     "ast_hash": "f488392e545c43e12b1f17a4e4e778dd",
     "semantic_hash": ""
   },
@@ -2451,6 +2451,18 @@
     "mtime": 1789999423.3524046,
     "seen": 1789999546.3895876,
     "ast_hash": "d81b50fddde37a9eada170a4b2572987",
+    "semantic_hash": ""
+  },
+  "components/landing/gumroad-coin.tsx": {
+    "mtime": 1790404209.3522806,
+    "seen": 1790404264.8211064,
+    "ast_hash": "4a5b83f22fa7397f3fec4c0e87768a6c",
+    "semantic_hash": ""
+  },
+  "components/landing/hero-floating-coins.tsx": {
+    "mtime": 1790403856.662642,
+    "seen": 1790404080.5851784,
+    "ast_hash": "97407ab0f14cb083d18d11d395023c69",
     "semantic_hash": ""
   }
 }
