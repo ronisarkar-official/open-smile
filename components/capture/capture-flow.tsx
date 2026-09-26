@@ -83,6 +83,8 @@ export function CaptureFlow({
 
 	const webcamRef = React.useRef<WebcamViewHandle>(null);
 	const [phase, setPhase] = React.useState<CapturePhase>('IDLE');
+	const phaseRef = React.useRef<CapturePhase>(phase);
+	phaseRef.current = phase;
 	const [smileScore, setSmileScore] = React.useState(0);
 	const [coinsAwarded, setCoinsAwarded] = React.useState(0);
 	const [lastResult, setLastResult] =
@@ -196,6 +198,7 @@ export function CaptureFlow({
 		instruction: 'Blink naturally to verify live presence',
 		statusMessage: 'Verifying live human...',
 	});
+	const prevLivenessRef = React.useRef<LivenessState | null>(null);
 
 	const [countdownText, setCountdownText] = React.useState<string>('');
 	const [countdownNumber, setCountdownNumber] = React.useState<number | null>(
@@ -525,6 +528,12 @@ export function CaptureFlow({
 		[cancelCountdown, settings.liveness_detection_enabled, saveEarnedCard],
 	);
 
+	const handlePalmShutterTrigger = React.useCallback(() => {
+		if (phaseRef.current === 'CAMERA_ACTIVE') {
+			triggerCaptureSequence(undefined, 'PALM');
+		}
+	}, [triggerCaptureSequence]);
+
 	const lastResultUiUpdateRef = React.useRef<number>(0);
 	const lastResultHadFaceRef = React.useRef<boolean>(false);
 
@@ -537,20 +546,9 @@ export function CaptureFlow({
 			}
 
 			const now = Date.now();
-			const hasFaceNow = Boolean(result?.hasFace);
-			const faceChanged = hasFaceNow !== lastResultHadFaceRef.current;
-			const isUiDue = now - lastResultUiUpdateRef.current >= 150;
 
-			if (faceChanged || isUiDue) {
-				lastResultHadFaceRef.current = hasFaceNow;
-				lastResultUiUpdateRef.current = now;
-				setLastResult(result);
-			}
-
-			const liveness = livenessDetectorRef.current.processFrame(result);
-			setLivenessState(liveness);
-
-			if (phase === 'COUNTDOWN') {
+			if (phaseRef.current === 'COUNTDOWN') {
+				const liveness = livenessDetectorRef.current.processFrame(result);
 				if (liveness.isStaticDetected) {
 					cancelCountdown('Static photo detected! Please use a real face.');
 					return;
@@ -575,7 +573,28 @@ export function CaptureFlow({
 				return;
 			}
 
-			if (phase !== 'CAMERA_ACTIVE' || isTriggeringRef.current) {
+			const hasFaceNow = Boolean(result?.hasFace);
+			const faceChanged = hasFaceNow !== lastResultHadFaceRef.current;
+			const isUiDue = now - lastResultUiUpdateRef.current >= 150;
+
+			if (faceChanged || isUiDue) {
+				lastResultHadFaceRef.current = hasFaceNow;
+				lastResultUiUpdateRef.current = now;
+				setLastResult(result);
+			}
+
+			const liveness = livenessDetectorRef.current.processFrame(result);
+			const prevLiveness = prevLivenessRef.current;
+			const livenessChanged = !prevLiveness ||
+				prevLiveness.isLiveVerified !== liveness.isLiveVerified ||
+				prevLiveness.isStaticDetected !== liveness.isStaticDetected ||
+				prevLiveness.instruction !== liveness.instruction;
+			if (livenessChanged) {
+				prevLivenessRef.current = liveness;
+				setLivenessState(liveness);
+			}
+
+			if (phaseRef.current !== 'CAMERA_ACTIVE' || isTriggeringRef.current) {
 				smileStartTimeRef.current = null;
 				return;
 			}
@@ -606,7 +625,6 @@ export function CaptureFlow({
 			}
 		},
 		[
-			phase,
 			cancelCountdown,
 			triggerCaptureSequence,
 			settings.liveness_detection_enabled,
@@ -1118,15 +1136,12 @@ export function CaptureFlow({
 								ref={webcamRef}
 								isActive={phase === 'CAMERA_ACTIVE' || phase === 'COUNTDOWN'}
 								isFrozen={phase !== 'CAMERA_ACTIVE' && phase !== 'COUNTDOWN'}
+								isCountdown={phase === 'COUNTDOWN'}
 								stream={cameraStream}
 								onStreamChange={setCameraStream}
 								onSmileUpdate={handleSmileUpdate}
 								onReady={handleCameraReady}
-								onPalmShutterTrigger={() => {
-									if (phase === 'CAMERA_ACTIVE') {
-										triggerCaptureSequence(undefined, 'PALM');
-									}
-								}}
+								onPalmShutterTrigger={handlePalmShutterTrigger}
 								isLiveVerified={
 									livenessState.isLiveVerified ||
 									settings.liveness_detection_enabled === false
@@ -1140,36 +1155,51 @@ export function CaptureFlow({
 										initial={{ opacity: 0 }}
 										animate={{ opacity: 1 }}
 										exit={{ opacity: 0 }}
-										className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/45 backdrop-blur-[2px] rounded-xl overflow-hidden p-4">
-										<div className="flex flex-col items-center text-center">
+										className="absolute inset-0 z-30 flex flex-col items-center justify-center rounded-xl overflow-hidden p-4 pointer-events-none">
+										{/* Separate backdrop layer cached by GPU compositor */}
+										<div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" />
+
+										<div className="relative z-10 flex flex-col items-center text-center">
 											<motion.div
 												key={countdownText}
-												initial={{ scale: 0.7, y: -20, opacity: 0 }}
+												initial={{ scale: 0.8, y: -16, opacity: 0 }}
 												animate={{ scale: 1, y: 0, opacity: 1 }}
 												transition={{
 													type: 'spring',
-													damping: 14,
-													stiffness: 280,
+													damping: 18,
+													stiffness: 320,
+													mass: 0.8,
 												}}
+												style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
 												className="border-(length:--border-width) border-border bg-accent px-6 py-2 font-mono text-lg font-black tracking-wider text-accent-foreground uppercase shadow-brutal-lg rounded-lg sm:text-2xl">
 												{countdownText}
 											</motion.div>
 
-											{countdownNumber !== null && (
-												<motion.div
-													key={countdownNumber}
-													initial={{ scale: 0.3, opacity: 0, rotate: -15 }}
-													animate={{ scale: 1, opacity: 1, rotate: 0 }}
-													exit={{ scale: 1.4, opacity: 0 }}
-													transition={{
-														type: 'spring',
-														damping: 12,
-														stiffness: 250,
-													}}
-													className="mt-6 flex size-32 items-center justify-center border-(length:--border-width-lg) border-border bg-warning font-display text-8xl font-black text-warning-foreground shadow-brutal-xl rounded-2xl sm:size-40 sm:text-9xl">
-													{countdownNumber}
-												</motion.div>
-											)}
+											<div className="relative mt-6 flex size-32 items-center justify-center sm:size-40">
+												<AnimatePresence mode="popLayout">
+													{countdownNumber !== null && (
+														<motion.div
+															key={countdownNumber}
+															initial={{ scale: 0.25, opacity: 0, rotate: -15 }}
+															animate={{ scale: 1, opacity: 1, rotate: 0 }}
+															exit={{
+																scale: 1.35,
+																opacity: 0,
+																transition: { duration: 0.16, ease: 'easeOut' },
+															}}
+															transition={{
+																type: 'spring',
+																damping: 18,
+																stiffness: 320,
+																mass: 0.8,
+															}}
+															style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+															className="flex size-32 items-center justify-center border-(length:--border-width-lg) border-border bg-warning font-display text-8xl font-black text-warning-foreground shadow-brutal-xl rounded-2xl sm:size-40 sm:text-9xl">
+															{countdownNumber}
+														</motion.div>
+													)}
+												</AnimatePresence>
+											</div>
 										</div>
 									</motion.div>
 								)}

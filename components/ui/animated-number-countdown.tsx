@@ -37,6 +37,9 @@ export default function AnimatedNumberCountdown({
     seconds: 0,
   });
 
+  const onCompleteRef = React.useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
   useEffect(() => {
     const calculateTimeLeft = () => {
       const start = startDate ? new Date(startDate) : new Date();
@@ -51,8 +54,8 @@ export default function AnimatedNumberCountdown({
         setTimeLeft({ hours, minutes, seconds });
       } else {
         setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
-        if (onComplete) {
-          onComplete();
+        if (onCompleteRef.current) {
+          onCompleteRef.current();
         }
       }
     };
@@ -61,7 +64,7 @@ export default function AnimatedNumberCountdown({
     const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, [endDate, startDate, onComplete]);
+  }, [endDate, startDate]);
 
   return (
     <div className={`flex items-center justify-center gap-4 ${className || ""}`}>

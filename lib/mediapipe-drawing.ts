@@ -35,7 +35,6 @@ export function renderFaceDrawingShape(
 	spec: MediaPipeDrawingSpec = DEFAULT_DRAWING_SPEC,
 ) {
 	if (!landmarks || landmarks.length === 0 || !spec.enabled) {
-		ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 		return;
 	}
 

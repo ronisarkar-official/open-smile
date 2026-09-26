@@ -324,9 +324,9 @@
     "semantic_hash": ""
   },
   "components/capture/capture-flow.tsx": {
-    "mtime": 1790013932.366181,
-    "seen": 1790060455.6358383,
-    "ast_hash": "df629c0aa8a103d3ec8d8bf0b54fa94b",
+    "mtime": 1790268643.0312326,
+    "seen": 1790268695.604061,
+    "ast_hash": "7c775554331cfd1b4a4f3c75c0ba5fdd",
     "semantic_hash": ""
   },
   "components/capture/neubrutalist-photo-card.tsx": {
@@ -348,9 +348,9 @@
     "semantic_hash": ""
   },
   "components/capture/webcam-view.tsx": {
-    "mtime": 1789798469.7152963,
-    "seen": 1789998406.427368,
-    "ast_hash": "363dcd07dd023dfc92ad7bc5f4a9e164",
+    "mtime": 1790397086.903147,
+    "seen": 1790397149.5601025,
+    "ast_hash": "900aeef23379d81dbc34c279651372a8",
     "semantic_hash": ""
   },
   "components/dashboard/leaderboard-view.tsx": {
@@ -1560,9 +1560,9 @@
     "semantic_hash": ""
   },
   "components/ui/animated-number-countdown.tsx": {
-    "mtime": 1789316060.9107347,
-    "seen": 1789316551.2260125,
-    "ast_hash": "3f0a25442d5f52812ba04cf0c5569769",
+    "mtime": 1790268013.0274005,
+    "seen": 1790268213.3926048,
+    "ast_hash": "8099aaa00b22f5524baf526c6816a4eb",
     "semantic_hash": ""
   },
   "app/api/rewards/catalog/route.ts": {
@@ -1950,9 +1950,9 @@
     "semantic_hash": ""
   },
   "lib/mediapipe-drawing.ts": {
-    "mtime": 1788531617.566026,
-    "seen": 1788532095.1042652,
-    "ast_hash": "841bbab4d701ee49644a7b4ce0dbc28f",
+    "mtime": 1790268009.0542417,
+    "seen": 1790268213.3927536,
+    "ast_hash": "4714ed7acd13c2626b23f29920b8cf44",
     "semantic_hash": ""
   },
   "lib/hand-gesture.ts": {

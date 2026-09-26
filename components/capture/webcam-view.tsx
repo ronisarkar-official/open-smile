@@ -68,6 +68,7 @@ interface WebcamViewProps {
 	onPalmShutterTrigger?: () => void;
 	palmShutterEnabled?: boolean;
 	showPalmToggle?: boolean;
+	isCountdown?: boolean;
 }
 
 export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
@@ -75,6 +76,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 		{
 			isActive,
 			isFrozen,
+			isCountdown = false,
 			stream: externalStream,
 			onStreamChange,
 			onSmileUpdate,
@@ -100,6 +102,9 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 		const localStreamRef = React.useRef<MediaStream | null>(null);
 		const [userMeshToggled, setUserMeshToggled] = React.useState<boolean | null>(null);
 		const [userPalmToggled, setUserPalmToggled] = React.useState<boolean | null>(null);
+
+		const isCountdownRef = React.useRef(isCountdown);
+		isCountdownRef.current = isCountdown;
 
 		const isPalmActive = userPalmToggled !== null ? userPalmToggled : (palmShutterProp ?? (settings.palm_shutter_enabled !== false));
 		const isPalmActiveRef = React.useRef(isPalmActive);
@@ -270,7 +275,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 			if (isActive && !isFrozen) {
 				startCamera();
 			} else {
-				if (rafRef.current) cancelAnimationFrame(rafRef.current);
+				if (rafRef.current) clearTimeout(rafRef.current);
 				if (localStreamRef.current) {
 					localStreamRef.current.getTracks().forEach((t) => t.stop());
 					localStreamRef.current = null;
@@ -281,7 +286,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 			}
 
 			return () => {
-				if (rafRef.current) cancelAnimationFrame(rafRef.current);
+				if (rafRef.current) clearTimeout(rafRef.current);
 				if (localStreamRef.current) {
 					localStreamRef.current.getTracks().forEach((t) => t.stop());
 					localStreamRef.current = null;
@@ -298,23 +303,19 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 			if (!video) return;
 
 			let running = true;
+			let canvasDirty = false;
 
 			function tick() {
 				if (!running || !video) return;
 
-				const now = performance.now();
-				const timeSinceLastInference = now - lastInferenceTimeRef.current;
-
 				if (
-					!isDetectingRef.current &&
-					timeSinceLastInference >= 38 &&
 					video.readyState >= 2 &&
 					video.currentTime !== lastVideoTimeRef.current &&
 					video.videoWidth > 0
 				) {
+					const now = performance.now();
 					lastVideoTimeRef.current = video.currentTime;
 					lastInferenceTimeRef.current = now;
-					isDetectingRef.current = true;
 
 					let faceLandmarks: NormalizedLandmark[] | undefined = undefined;
 					if (detectorRef.current) {
@@ -334,29 +335,24 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 							const isScoreSignificantlyChanged = Math.abs(scoreVal - currentScoreRef.current) >= 2;
 							const isUiUpdateDue = now - lastUiUpdateRef.current >= 75;
 
-							if (isFaceChanged || (isUiUpdateDue && isScoreSignificantlyChanged)) {
+							if (!isCountdownRef.current && (isFaceChanged || (isUiUpdateDue && isScoreSignificantlyChanged))) {
 								hasFaceRef.current = hasFaceVal;
 								currentScoreRef.current = scoreVal;
 								lastUiUpdateRef.current = now;
 								setHasFace(hasFaceVal);
 								setCurrentScore(scoreVal);
 							}
-						} finally {
-							isDetectingRef.current = false;
-						}
-					} else {
-						isDetectingRef.current = false;
+						} catch {}
 					}
 
 					let handLandmarks: NormalizedLandmark[] | undefined = undefined;
 					if (
+						!isCountdownRef.current &&
 						isPalmActiveRef.current &&
 						gestureRecognizerRef.current &&
-						!isRecognizingGestureRef.current &&
-						now - lastGestureCheckTimeRef.current >= 70
+						now - lastGestureCheckTimeRef.current >= 150
 					) {
 						lastGestureCheckTimeRef.current = now;
-						isRecognizingGestureRef.current = true;
 						try {
 							const gestureResult = detectHandGesture(
 								gestureRecognizerRef.current,
@@ -395,47 +391,57 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 									}
 								}
 							}
-						} finally {
-							isRecognizingGestureRef.current = false;
-						}
+						} catch {}
 					}
 
 					const canvas = canvasRef.current;
 					if (canvas) {
 						const ctx = canvas.getContext('2d');
 						if (ctx) {
-							const currentSpec = activeDrawingSpecRef.current;
-							const hasFaceToDraw = Boolean(faceLandmarks && faceLandmarks.length > 0 && currentSpec.enabled);
-							const hasHandToDraw = Boolean(handLandmarks && handLandmarks.length > 0 && currentSpec.enabled);
-
-							if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
-								canvas.width = video.videoWidth;
-								canvas.height = video.videoHeight;
-							}
-
-							if (hasFaceToDraw || hasHandToDraw) {
-								ctx.clearRect(0, 0, canvas.width, canvas.height);
-								if (hasFaceToDraw && faceLandmarks) {
-									renderFaceDrawingShape(ctx, faceLandmarks, currentSpec);
-								}
-								if (hasHandToDraw && handLandmarks) {
-									renderHandDrawingShape(ctx, handLandmarks, currentSpec);
+							if (isCountdownRef.current) {
+								if (canvasDirty) {
+									ctx.clearRect(0, 0, canvas.width, canvas.height);
+									canvasDirty = false;
 								}
 							} else {
-								ctx.clearRect(0, 0, canvas.width, canvas.height);
+								const currentSpec = activeDrawingSpecRef.current;
+								const hasFaceToDraw = Boolean(faceLandmarks && faceLandmarks.length > 0 && currentSpec.enabled);
+								const hasHandToDraw = Boolean(handLandmarks && handLandmarks.length > 0 && currentSpec.enabled);
+
+								if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+									canvas.width = video.videoWidth;
+									canvas.height = video.videoHeight;
+								}
+
+								if (hasFaceToDraw || hasHandToDraw) {
+									ctx.clearRect(0, 0, canvas.width, canvas.height);
+									if (hasFaceToDraw && faceLandmarks) {
+										renderFaceDrawingShape(ctx, faceLandmarks, currentSpec);
+									}
+									if (hasHandToDraw && handLandmarks) {
+										renderHandDrawingShape(ctx, handLandmarks, currentSpec);
+									}
+									canvasDirty = true;
+								} else if (canvasDirty) {
+									ctx.clearRect(0, 0, canvas.width, canvas.height);
+									canvasDirty = false;
+								}
 							}
 						}
 					}
 				}
 
-				rafRef.current = requestAnimationFrame(tick);
+				if (running) {
+					const tickInterval = isCountdownRef.current ? 120 : 38;
+					rafRef.current = window.setTimeout(tick, tickInterval);
+				}
 			}
 
-			rafRef.current = requestAnimationFrame(tick);
+			rafRef.current = window.setTimeout(tick, 0);
 
 			return () => {
 				running = false;
-				if (rafRef.current) cancelAnimationFrame(rafRef.current);
+				if (rafRef.current) clearTimeout(rafRef.current);
 			};
 		}, [status, isFrozen]);
 
@@ -673,11 +679,11 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 
 									<div className="h-3.5 w-px bg-border/40" />
 
-									<div className="flex items-center gap-2 font-mono">
-										<span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+									<div className="flex shrink-0 items-center gap-2 font-mono">
+										<span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
 											Smile
 										</span>
-										<div className="w-14 sm:w-20 h-2.5 overflow-hidden rounded-xs border-(length:--border-width-sm) border-border bg-muted">
+										<div className="w-14 sm:w-20 h-2.5 shrink-0 overflow-hidden rounded-xs border-(length:--border-width-sm) border-border bg-muted">
 											<div
 												className={cn(
 													'h-full transition-all duration-150',
@@ -686,7 +692,7 @@ export const WebcamView = React.forwardRef<WebcamViewHandle, WebcamViewProps>(
 												style={{ width: `${currentScore}%` }}
 											/>
 										</div>
-										<span className="text-xs font-black tabular-nums min-w-[2.2ch] text-foreground">
+										<span className="w-[4ch] shrink-0 text-right text-xs font-black tabular-nums text-foreground">
 											{currentScore}%
 										</span>
 									</div>

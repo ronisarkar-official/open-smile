@@ -26848,7 +26848,7 @@
       "file_type": "code",
       "norm_label": "webcamview",
       "source_file": "components/capture/webcam-view.tsx",
-      "source_location": "L73"
+      "source_location": "L74"
     },
     {
       "id": "hooks_use_system_settings",
@@ -40623,7 +40623,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L1014",
+      "source_location": "L1032",
       "weight": 1.0
     },
     {
@@ -40635,7 +40635,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L102",
+      "source_location": "L104",
       "weight": 1.0
     },
     {
@@ -40647,7 +40647,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L189",
+      "source_location": "L191",
       "weight": 1.0
     },
     {
@@ -40659,7 +40659,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L215",
+      "source_location": "L218",
       "weight": 1.0
     },
     {
@@ -40671,7 +40671,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L241",
+      "source_location": "L244",
       "weight": 1.0
     },
     {
@@ -40683,7 +40683,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L314",
+      "source_location": "L317",
       "weight": 1.0
     },
     {
@@ -40695,7 +40695,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L419",
+      "source_location": "L422",
       "weight": 1.0
     },
     {
@@ -40707,7 +40707,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L458",
+      "source_location": "L461",
       "weight": 1.0
     },
     {
@@ -40719,7 +40719,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L480",
+      "source_location": "L483",
       "weight": 1.0
     },
     {
@@ -40731,7 +40731,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L490",
+      "source_location": "L493",
       "weight": 1.0
     },
     {
@@ -40743,7 +40743,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L634",
+      "source_location": "L652",
       "weight": 1.0
     },
     {
@@ -40755,31 +40755,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L718",
-      "weight": 1.0
-    },
-    {
-      "source": "components_capture_capture_flow_captureflow",
-      "target": "lib_convert_to_webp_dataurltowebp",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L788",
-      "weight": 1.0
-    },
-    {
-      "source": "components_capture_capture_flow_captureflow",
-      "target": "lib_convert_to_webp_converttowebp",
-      "relation": "calls",
-      "_origin": "ast",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "context": "call",
-      "source_file": "components/capture/capture-flow.tsx",
-      "source_location": "L796",
+      "source_location": "L736",
       "weight": 1.0
     },
     {
@@ -40792,6 +40768,30 @@
       "context": "call",
       "source_file": "components/capture/capture-flow.tsx",
       "source_location": "L80",
+      "weight": 1.0
+    },
+    {
+      "source": "components_capture_capture_flow_captureflow",
+      "target": "lib_convert_to_webp_dataurltowebp",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "components/capture/capture-flow.tsx",
+      "source_location": "L806",
+      "weight": 1.0
+    },
+    {
+      "source": "components_capture_capture_flow_captureflow",
+      "target": "lib_convert_to_webp_converttowebp",
+      "relation": "calls",
+      "_origin": "ast",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "context": "call",
+      "source_file": "components/capture/capture-flow.tsx",
+      "source_location": "L814",
       "weight": 1.0
     },
     {
@@ -40899,7 +40899,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/webcam-view.tsx",
-      "source_location": "L199",
+      "source_location": "L204",
       "weight": 1.0
     },
     {
@@ -40911,7 +40911,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/webcam-view.tsx",
-      "source_location": "L235",
+      "source_location": "L240",
       "weight": 1.0
     },
     {
@@ -40923,7 +40923,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/webcam-view.tsx",
-      "source_location": "L242",
+      "source_location": "L247",
       "weight": 1.0
     },
     {
@@ -40935,7 +40935,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/webcam-view.tsx",
-      "source_location": "L322",
+      "source_location": "L323",
       "weight": 1.0
     },
     {
@@ -40947,7 +40947,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/webcam-view.tsx",
-      "source_location": "L361",
+      "source_location": "L357",
       "weight": 1.0
     },
     {
@@ -40983,7 +40983,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/webcam-view.tsx",
-      "source_location": "L474",
+      "source_location": "L480",
       "weight": 1.0
     },
     {
@@ -40995,7 +40995,7 @@
       "confidence_score": 1.0,
       "context": "call",
       "source_file": "components/capture/webcam-view.tsx",
-      "source_location": "L94",
+      "source_location": "L96",
       "weight": 1.0
     },
     {
@@ -84896,7 +84896,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "components/capture/webcam-view.tsx",
-      "source_location": "L73",
+      "source_location": "L74",
       "weight": 1.0
     },
     {
@@ -102828,5 +102828,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "bf97b9df125e9a0245d29e35bc5b667da3ed7352"
+  "built_at_commit": "35e3817bbbb114d590ca2b05d38128e01ee9ef8c"
 }
