@@ -87,17 +87,6 @@ export function Hero() {
 		<section className="relative overflow-hidden">
 			<HeroFloatingCoins />
 
-			<div
-				aria-hidden="true"
-				className="pointer-events-none absolute inset-0 -z-20 opacity-[0.06] dark:opacity-[0.12] mask-[radial-gradient(ellipse_75%_65%_at_50%_40%,#000_50%,transparent_100%)]"
-				style={{
-					backgroundImage: `
-            linear-gradient(to right, var(--outline) 1px, transparent 1px),
-            linear-gradient(to bottom, var(--outline) 1px, transparent 1px)
-          `,
-					backgroundSize: '36px 36px',
-				}}
-			/>
 
 			<div className="relative z-10 mx-auto grid w-full max-w-7xl gap-12 px-5 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:py-20">
 				<div className="max-w-2xl">

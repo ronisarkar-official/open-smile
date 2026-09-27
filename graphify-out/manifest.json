@@ -396,9 +396,9 @@
     "semantic_hash": ""
   },
   "components/landing/hero.tsx": {
-    "mtime": 1790403856.662642,
-    "seen": 1790404080.5851793,
-    "ast_hash": "7f256e04aee6a2c0274404ac42d04cee",
+    "mtime": 1790485172.8302097,
+    "seen": 1790485212.9445245,
+    "ast_hash": "83af8f0818985cc4f60c0c3de747b6d1",
     "semantic_hash": ""
   },
   "components/landing/how-it-works.tsx": {
@@ -648,10 +648,10 @@
     "semantic_hash": "c81215a68898ad9b44e2919b009c3da8"
   },
   "components/ui/coin-icon.tsx": {
-    "mtime": 1787899598.8338103,
-    "seen": 1788153908.5841753,
-    "ast_hash": "e4025a88f0b0cd39e434237ced1f49a9",
-    "semantic_hash": "e4025a88f0b0cd39e434237ced1f49a9"
+    "mtime": 1790486395.799085,
+    "seen": 1790486523.4937613,
+    "ast_hash": "66074e68430cd109e339b9a00f1d677e",
+    "semantic_hash": ""
   },
   "components/ui/combobox.tsx": {
     "mtime": 1787416006.5577407,
@@ -2460,9 +2460,9 @@
     "semantic_hash": ""
   },
   "components/landing/hero-floating-coins.tsx": {
-    "mtime": 1790403856.662642,
-    "seen": 1790404080.5851784,
-    "ast_hash": "97407ab0f14cb083d18d11d395023c69",
+    "mtime": 1790485506.8229883,
+    "seen": 1790485571.1126268,
+    "ast_hash": "708f38481e081b5be678a4411b430523",
     "semantic_hash": ""
   }
 }
