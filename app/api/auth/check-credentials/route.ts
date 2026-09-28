@@ -89,6 +89,21 @@ export async function POST(req: NextRequest) {
       return invalidCredentials();
     }
 
+    const isBanned = Boolean(existingUser.banned);
+    const banExpires = existingUser.banExpires ? new Date(existingUser.banExpires) : null;
+    const isExpired = isBanned && banExpires !== null && banExpires.getTime() <= Date.now();
+    const effectiveBanned = isBanned && !isExpired;
+
+    if (effectiveBanned) {
+      const session = await createSessionForUser(existingUser.id, req);
+      const response = NextResponse.json(
+        { success: true, twoFactorRequired: false, redirectTo: "/banned" },
+        { status: 200 }
+      );
+      setSessionCookie(response, session.token, session.expiresAt);
+      return response;
+    }
+
     if (Boolean(existingUser.twoFactorEnabled)) {
       const otp = generateOTP();
       await saveOTP(normalizedEmail, otp);

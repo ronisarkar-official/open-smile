@@ -356,6 +356,54 @@ export async function adminSetUserBan(
 	return { success: true, banned };
 }
 
+export async function getUserBanInfo(userId: string): Promise<{
+	banned: boolean;
+	banReason: string | null;
+	banExpires: Date | null;
+} | null> {
+	const pool = getPool();
+	const { rows } = await pool.query(
+		`SELECT banned, "banReason", "banExpires" FROM "user" WHERE id = $1 LIMIT 1`,
+		[userId],
+	);
+
+	if (!rows[0]) return null;
+
+	const isBanned = Boolean(rows[0].banned);
+	const banExpires = rows[0].banExpires ? new Date(rows[0].banExpires) : null;
+	const isExpired = isBanned && banExpires !== null && banExpires.getTime() <= Date.now();
+
+	if (isExpired) {
+		await pool
+			.query(
+				`UPDATE "user" SET banned = FALSE, "banReason" = NULL, "banExpires" = NULL WHERE id = $1`,
+				[userId],
+			)
+			.catch(() => {});
+		return {
+			banned: false,
+			banReason: null,
+			banExpires: null,
+		};
+	}
+
+	return {
+		banned: isBanned,
+		banReason: isBanned ? (rows[0].banReason as string | null) : null,
+		banExpires: isBanned ? banExpires : null,
+	};
+}
+
+export async function cleanupExpiredBans(): Promise<number> {
+	const pool = getPool();
+	const result = await pool.query(
+		`UPDATE "user"
+		 SET banned = FALSE, "banReason" = NULL, "banExpires" = NULL
+		 WHERE banned = TRUE AND "banExpires" IS NOT NULL AND "banExpires" <= NOW()`,
+	);
+	return result.rowCount || 0;
+}
+
 export async function getAdminCaptures(params: {
 	search?: string;
 	minScore?: number;

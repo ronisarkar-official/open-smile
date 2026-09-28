@@ -83,6 +83,10 @@ export const auth = betterAuth({
 		"https://*.vercel.app",
 	].filter(Boolean) as string[],
 
+	onAPIError: {
+		errorURL: "/banned",
+	},
+
 	user: {
 		deleteUser: {
 			enabled: true,

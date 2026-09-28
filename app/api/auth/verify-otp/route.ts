@@ -93,12 +93,20 @@ export async function POST(req: NextRequest) {
         console.error("[verify-otp] Failed to mark email verified:", err);
       }
 
+      const existing = await findUserByEmail(normalizedEmail);
+      const isBanned = Boolean(existing?.banned);
+      const banExpires = existing?.banExpires ? new Date(existing.banExpires) : null;
+      const isExpired = isBanned && banExpires !== null && banExpires.getTime() <= Date.now();
+      const effectiveBanned = isBanned && !isExpired;
+
+      const finalDestination = effectiveBanned ? "/banned" : destination;
+
       const session = await createSessionForUser(userId, req);
 
       void sendLoginNotification(normalizedEmail, req);
 
       const response = NextResponse.json(
-        { success: true, redirectTo: destination },
+        { success: true, redirectTo: finalDestination },
         { status: 200 }
       );
 

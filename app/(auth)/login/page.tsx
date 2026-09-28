@@ -52,6 +52,7 @@ function LoginForm() {
       await signIn.social({
         provider,
         callbackURL: redirectTo || "/dashboard",
+        errorCallbackURL: "/banned",
       });
     } catch (err: unknown) {
       const message =

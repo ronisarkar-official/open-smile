@@ -24,6 +24,10 @@ export default async function AdminLayout({
 		redirect('/login?redirectTo=/admin');
 	}
 
+	if (user.banned) {
+		redirect('/banned');
+	}
+
 	if (!isUserAdmin(user)) {
 		return <AdminBootstrapClient userEmail={user.email} />;
 	}
