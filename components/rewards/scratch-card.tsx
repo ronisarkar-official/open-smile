@@ -211,11 +211,11 @@ export function ScratchCard({
     if (now - checkThrottleRef.current > 120) {
       checkThrottleRef.current = now;
       const currentPercent = calculateScratchPercentage();
-      if (currentPercent >= 85) {
+      if (currentPercent >= finishPercent) {
         triggerCompletion();
       }
     }
-  }, [brushSize, calculateScratchPercentage, triggerCompletion]);
+  }, [brushSize, calculateScratchPercentage, finishPercent, triggerCompletion]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (completedRef.current) return;

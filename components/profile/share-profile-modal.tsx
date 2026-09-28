@@ -12,6 +12,7 @@ import {
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
@@ -87,9 +88,9 @@ export function ShareProfileModal({
 							Share Smiler Profile
 						</DialogTitle>
 					</div>
-					<p className="font-mono text-xs text-muted-foreground mt-1">
+					<DialogDescription className="font-mono text-xs text-muted-foreground mt-1">
 						Brag about your smile streak and invite friends to earn rewards.
-					</p>
+					</DialogDescription>
 				</DialogHeader>
 
 				{/* Tab Selector */}

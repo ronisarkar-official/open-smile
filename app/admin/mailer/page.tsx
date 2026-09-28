@@ -42,6 +42,7 @@ import {
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
@@ -1238,6 +1239,9 @@ export default function AdminMailerPage() {
 						<DialogTitle className="font-title font-black text-lg">
 							Email Delivery Audit Record
 						</DialogTitle>
+						<DialogDescription className="font-mono text-xs text-muted-foreground">
+							Detailed delivery audit parameters and response metrics for this message.
+						</DialogDescription>
 					</DialogHeader>
 					{selectedLogDetail && (
 						<div className="space-y-3 font-mono text-xs">

@@ -479,7 +479,9 @@ export function SmileResultScreen({
 				onClose={() => setIsSocialShareModalOpen(false)}
 				imageSrc={imageSrc}
 				score={score}
+				coinsAwarded={coinsAwarded}
 				userName={userName}
+				comment={aiReaction.comment}
 			/>
 		</motion.div>
 	);

@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 	DialogTrigger,
@@ -409,6 +410,9 @@ export default function ReferPage() {
 											<DialogTitle className="text-center font-black font-title text-lg uppercase tracking-tight">
 												Scan &amp; Join
 											</DialogTitle>
+											<DialogDescription className="text-center font-mono text-xs text-muted-foreground">
+												Scan with your device to sign up and join via referral.
+											</DialogDescription>
 										</DialogHeader>
 										<div className="flex flex-col items-center gap-4 py-2 text-center w-full">
 											<BrandedQrCode

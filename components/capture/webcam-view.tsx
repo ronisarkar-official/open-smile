@@ -33,7 +33,7 @@ export async function requestCameraStream(): Promise<MediaStream> {
 				facingMode: { ideal: 'user' },
 				width: { ideal: 1280, max: 1920 },
 				height: { ideal: 720, max: 1080 },
-				frameRate: { ideal: 30, max: 30 },
+				frameRate: { ideal: 30, max: 60 },
 			},
 			audio: false,
 		});
@@ -41,7 +41,7 @@ export async function requestCameraStream(): Promise<MediaStream> {
 		return await navigator.mediaDevices.getUserMedia({
 			video: {
 				facingMode: 'user',
-				frameRate: { ideal: 30, max: 30 },
+				frameRate: { ideal: 30, max: 60 },
 			},
 			audio: false,
 		});

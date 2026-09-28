@@ -7,6 +7,51 @@ import { X, Copy, Check, Gift } from 'lucide-react';
 import { ScratchCard } from '@/components/rewards/scratch-card';
 import { Button } from '@/components/ui/button';
 import { CoinIcon } from '../icons';
+import { playRewardChime } from '@/lib/capture-sfx';
+
+const CONFETTI_COLORS = ['#FFD23F', '#FF6B6B', '#4ECDC4', '#A78BFA', '#FF9F1C'];
+
+function ConfettiBurst() {
+	const pieces = React.useMemo(
+		() =>
+			Array.from({ length: 24 }, (_, i) => ({
+				id: i,
+				x: (Math.random() - 0.5) * 340,
+				y: Math.random() * -240 - 50,
+				rotate: Math.random() * 360,
+				delay: Math.random() * 0.15,
+				color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+				size: 7 + Math.random() * 6,
+			})),
+		[],
+	);
+
+	return (
+		<div className="pointer-events-none absolute inset-0 overflow-hidden z-25">
+			{pieces.map((p) => (
+				<motion.span
+					key={p.id}
+					initial={{ x: 0, y: 0, opacity: 0, rotate: 0 }}
+					animate={{ x: p.x, y: p.y, opacity: [0, 1, 1, 0], rotate: p.rotate }}
+					transition={{
+						duration: 1.2,
+						delay: p.delay,
+						ease: [0.22, 1, 0.36, 1],
+					}}
+					style={{
+						position: 'absolute',
+						left: '50%',
+						top: '40%',
+						width: p.size,
+						height: p.size * 0.45,
+						backgroundColor: p.color,
+						borderRadius: 1,
+					}}
+				/>
+			))}
+		</div>
+	);
+}
 
 function SparkleStar({ className }: { className?: string }) {
 	return (
@@ -109,6 +154,7 @@ export function ScratchCardModal({
 	const handleComplete = React.useCallback(() => {
 		if (!card) return;
 		setIsCompleted(true);
+		playRewardChime();
 		onCardScratched(card.id, card.coins);
 	}, [card, onCardScratched]);
 
@@ -192,6 +238,7 @@ export function ScratchCardModal({
 						transition={PANEL_TRANSITION}
 						onClick={stopPropagation}
 						className="relative z-10 flex flex-col items-center justify-center">
+						{isCompleted && card.coins > 0 && <ConfettiBurst />}
 						<span
 							id={titleId}
 							className="sr-only">
@@ -290,7 +337,7 @@ export function ScratchCardModal({
 							) : (
 								<div className="flex size-full flex-col items-center justify-between py-2 px-1 text-center">
 									<p className="font-mono text-xs font-bold tracking-tight text-muted-foreground">
-										🎉Congratulations! You have won
+										🎉 Congratulations! You have won
 									</p>
 									<div className="flex flex-col items-center justify-center my-auto gap-0.5">
 										<div className="flex items-center justify-center gap-2">

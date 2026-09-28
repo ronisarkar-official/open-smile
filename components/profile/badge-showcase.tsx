@@ -20,6 +20,7 @@ import type { ProfileBadgeItem } from '@/lib/db/collections';
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
@@ -236,9 +237,9 @@ export function BadgeShowcase({ badges }: BadgeShowcaseProps) {
 							<DialogTitle className="font-title text-2xl font-black">
 								{selectedBadge.name}
 							</DialogTitle>
-							<p className="font-mono text-xs text-muted-foreground uppercase tracking-widest mt-1">
+							<DialogDescription className="font-mono text-xs text-muted-foreground uppercase tracking-widest mt-1">
 								{categoryLabels[selectedBadge.category]?.label || 'Trophy'}
-							</p>
+							</DialogDescription>
 						</DialogHeader>
 
 						<div className="space-y-4 pt-2">

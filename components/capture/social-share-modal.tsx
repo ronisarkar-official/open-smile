@@ -7,17 +7,20 @@ import {
 	Copy,
 	Check,
 	Sparkles,
-	Camera,
-	ShieldCheck,
-	Flame,
 } from 'lucide-react';
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import {
+	PhotoCard,
+	renderPhotoCardCanvas,
+} from '@/components/capture/photo-card-canvas';
 
 function WhatsAppIcon({ className }: { className?: string }) {
 	return (
@@ -72,7 +75,10 @@ interface SocialShareModalProps {
 	onClose: () => void;
 	imageSrc: string | null;
 	score: number;
+	coinsAwarded?: number;
 	userName?: string;
+	comment?: string;
+	shareMessage?: string;
 }
 
 export function SocialShareModal({
@@ -80,188 +86,36 @@ export function SocialShareModal({
 	onClose,
 	imageSrc,
 	score,
+	coinsAwarded,
 	userName,
+	comment,
+	shareMessage: customShareMessage,
 }: SocialShareModalProps) {
+	const { toast } = useToast();
 	const [isGenerating, setIsGenerating] = React.useState(false);
 	const [copiedLink, setCopiedLink] = React.useState(false);
 
-	const canvasRef = React.useRef<HTMLCanvasElement | null>(null);
-
-	const cardConfig = React.useMemo(() => {
-		if (score >= 85) {
-			return {
-				bgHex: '#FFD23F',
-				accentHex: '#FF2D78',
-				vibe: 'SUPERSTAR SMILE ✨',
-				comment: 'Blinded the AI with pure joy!',
-			};
-		}
-		if (score >= 70) {
-			return {
-				bgHex: '#C6F135',
-				accentHex: '#7B61FF',
-				vibe: 'GENUINE SMILE 😄',
-				comment: 'Great energy & real smile!',
-			};
-		}
-		return {
-			bgHex: '#7B61FF',
-			accentHex: '#FFD23F',
-			vibe: 'SMILE CHECK COMPLETE ⚡',
-			comment: 'Daily smile check unlocked!',
-		};
-	}, [score]);
-
-	const origin = typeof window !== 'undefined' ? window.location.origin : 'https://opensmile.app';
-	const siteUrl = origin.includes('localhost') ? 'https://opensmile.app' : origin;
-	const shareMessage = `I scored ${score}/100 on Open Smile! 😄 Check out my genuine smile score & earn daily rewards: ${siteUrl}`;
+	const origin =
+		typeof window !== 'undefined' ?
+			window.location.origin
+		:	'https://opensmile.app';
+	const siteUrl =
+		origin.includes('localhost') ? 'https://opensmile.app' : origin;
+	const rewardCoins = coinsAwarded && coinsAwarded > 0 ? coinsAwarded : 10;
+	const shareMessage =
+		customShareMessage ||
+		`I scored ${score}/100 and won +${rewardCoins} Smile Coins on Open Smile! 😄 Check out my genuine smile score & earn daily rewards: ${siteUrl}`;
 	const shareTitle = `I scored ${score}/100 on Open Smile!`;
-
-	const renderCanvasImage = React.useCallback(async (): Promise<Blob | null> => {
-		const canvas = canvasRef.current || document.createElement('canvas');
-		canvas.width = 1080;
-		canvas.height = 1350;
-		const ctx = canvas.getContext('2d');
-		if (!ctx) return null;
-
-		ctx.fillStyle = cardConfig.bgHex;
-		ctx.fillRect(0, 0, 1080, 1350);
-
-		ctx.fillStyle = '#00000015';
-		for (let x = 0; x < 1080; x += 40) {
-			for (let y = 0; y < 1350; y += 40) {
-				ctx.beginPath();
-				ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-				ctx.fill();
-			}
-		}
-
-		ctx.fillStyle = '#0F0F0F';
-		ctx.fillRect(52, 52, 984, 1254);
-
-		ctx.fillStyle = '#FFFFFF';
-		ctx.fillRect(44, 44, 984, 1254);
-
-		ctx.lineWidth = 10;
-		ctx.strokeStyle = '#0F0F0F';
-		ctx.strokeRect(44, 44, 984, 1254);
-
-		ctx.fillStyle = cardConfig.bgHex;
-		ctx.fillRect(80, 80, 912, 100);
-		ctx.strokeRect(80, 80, 912, 100);
-
-		ctx.fillStyle = '#0F0F0F';
-		ctx.font = '900 38px monospace';
-		ctx.textAlign = 'left';
-		ctx.fillText('OPEN SMILE', 110, 144);
-
-		ctx.fillStyle = cardConfig.accentHex;
-		ctx.fillRect(720, 95, 240, 68);
-		ctx.strokeRect(720, 95, 240, 68);
-
-		ctx.fillStyle =
-			cardConfig.accentHex === '#FFD23F' || cardConfig.accentHex === '#C6F135'
-				? '#0F0F0F'
-				: '#FFFFFF';
-		ctx.font = '900 28px monospace';
-		ctx.textAlign = 'center';
-		ctx.fillText(`${score}/100 PTS`, 840, 140);
-
-		const photoX = 80;
-		const photoY = 210;
-		const photoW = 912;
-		const photoH = 750;
-
-		ctx.fillStyle = '#1A1A1A';
-		ctx.fillRect(photoX, photoY, photoW, photoH);
-
-		if (imageSrc) {
-			try {
-				const img = new Image();
-				if (!imageSrc.startsWith('data:')) {
-					img.crossOrigin = 'anonymous';
-				}
-				img.src = imageSrc;
-				await new Promise((resolve, reject) => {
-					if (img.complete && img.naturalWidth !== 0) {
-						resolve(null);
-					} else {
-						img.onload = () => resolve(null);
-						img.onerror = reject;
-					}
-				});
-
-				const imgRatio = img.width / img.height;
-				const boxRatio = photoW / photoH;
-				let sWidth = img.width;
-				let sHeight = img.height;
-				let sx = 0;
-				let sy = 0;
-
-				if (imgRatio > boxRatio) {
-					sWidth = img.height * boxRatio;
-					sx = (img.width - sWidth) / 2;
-				} else {
-					sHeight = img.width / boxRatio;
-					sy = (img.height - sHeight) / 2;
-				}
-
-				ctx.drawImage(img, sx, sy, sWidth, sHeight, photoX, photoY, photoW, photoH);
-			} catch {}
-		}
-
-		ctx.lineWidth = 10;
-		ctx.strokeStyle = '#0F0F0F';
-		ctx.strokeRect(photoX, photoY, photoW, photoH);
-
-		ctx.save();
-		ctx.translate(140, 240);
-		ctx.rotate((-4 * Math.PI) / 180);
-		ctx.fillStyle = cardConfig.accentHex;
-		ctx.fillRect(-10, -10, 360, 68);
-		ctx.strokeRect(-10, -10, 360, 68);
-		ctx.fillStyle =
-			cardConfig.accentHex === '#FFD23F' || cardConfig.accentHex === '#C6F135'
-				? '#0F0F0F'
-				: '#FFFFFF';
-		ctx.font = '900 26px monospace';
-		ctx.textAlign = 'center';
-		ctx.fillText(cardConfig.vibe, 170, 34);
-		ctx.restore();
-
-		ctx.fillStyle = '#0F0F0F';
-		ctx.fillRect(80, 990, 912, 180);
-
-		ctx.fillStyle = cardConfig.bgHex;
-		ctx.fillRect(80, 980, 912, 180);
-		ctx.strokeRect(80, 980, 912, 180);
-
-		ctx.fillStyle = '#0F0F0F';
-		ctx.font = '900 36px sans-serif';
-		ctx.textAlign = 'left';
-		ctx.fillText(`“${cardConfig.comment}”`, 110, 1050);
-
-		ctx.font = 'bold 24px monospace';
-		ctx.fillStyle = '#44403C';
-		const creatorLine = userName
-			? `SMILER: ${userName.toUpperCase()} • OPEN-SMILE.APP`
-			: 'OPEN-SMILE.APP • ON-DEVICE FACIAL AI';
-		ctx.fillText(creatorLine, 110, 1110);
-
-		ctx.font = 'bold 22px monospace';
-		ctx.fillStyle = '#78716C';
-		ctx.textAlign = 'center';
-		ctx.fillText('SMILE DAILY & WIN REWARDS — VERIFIED BY ON-DEVICE AI', 540, 1240);
-
-		return new Promise<Blob | null>((resolve) => {
-			canvas.toBlob((blob) => resolve(blob), 'image/png');
-		});
-	}, [cardConfig, imageSrc, score, userName]);
 
 	const handleDownload = async () => {
 		setIsGenerating(true);
 		try {
-			const blob = await renderCanvasImage();
+			const blob = await renderPhotoCardCanvas({
+				imageSrc,
+				score,
+				userName,
+				comment,
+			});
 			if (!blob) return;
 			const url = URL.createObjectURL(blob);
 			const a = document.createElement('a');
@@ -271,6 +125,11 @@ export function SocialShareModal({
 			a.click();
 			document.body.removeChild(a);
 			URL.revokeObjectURL(url);
+			toast({
+				title: 'Photo Card Downloaded',
+				description: 'Saved high-resolution photo card to your device.',
+				variant: 'success',
+			});
 		} finally {
 			setIsGenerating(false);
 		}
@@ -279,30 +138,50 @@ export function SocialShareModal({
 	const handleNativeShare = async () => {
 		setIsGenerating(true);
 		try {
-			const blob = await renderCanvasImage();
+			const blob = await renderPhotoCardCanvas({
+				imageSrc,
+				score,
+				userName,
+				comment,
+			});
 			if (blob && typeof navigator !== 'undefined' && navigator.share) {
-				const file = new File([blob], `opensmile-score-${score}.png`, { type: 'image/png' });
+				const file = new File(
+					[blob],
+					`opensmile-score-${score}.png`,
+					{ type: 'image/png' },
+				);
 				if (navigator.canShare && navigator.canShare({ files: [file] })) {
-					await navigator.share({
-						title: shareTitle,
-						text: shareMessage,
-						files: [file],
-					});
-					return;
+					try {
+						await navigator.share({
+							title: shareTitle,
+							text: shareMessage,
+							files: [file],
+						});
+						return;
+					} catch (err: unknown) {
+						if (err instanceof Error && err.name === 'AbortError') {
+							return;
+						}
+					}
 				}
 			}
 
 			if (typeof navigator !== 'undefined' && navigator.share) {
-				await navigator.share({
-					title: shareTitle,
-					text: shareMessage,
-					url: siteUrl,
-				});
-				return;
+				try {
+					await navigator.share({
+						title: shareTitle,
+						text: shareMessage,
+						url: siteUrl,
+					});
+					return;
+				} catch (err: unknown) {
+					if (err instanceof Error && err.name === 'AbortError') {
+						return;
+					}
+				}
 			}
 
 			await handleDownload();
-		} catch {
 		} finally {
 			setIsGenerating(false);
 		}
@@ -313,6 +192,11 @@ export function SocialShareModal({
 			await navigator.clipboard.writeText(shareMessage);
 			setCopiedLink(true);
 			setTimeout(() => setCopiedLink(false), 2200);
+			toast({
+				title: 'Message Copied!',
+				description: 'Share message & link copied to clipboard.',
+				variant: 'success',
+			});
 		} catch {}
 	};
 
@@ -324,13 +208,18 @@ export function SocialShareModal({
 	const linkedinUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(siteUrl)}`;
 
 	return (
-		<Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+		<Dialog
+			open={isOpen}
+			onOpenChange={(open) => !open && onClose()}>
 			<DialogContent className="w-[calc(100%-2rem)] max-w-sm max-h-[92vh] overflow-y-auto p-4 sm:p-5 border-(length:--border-width) border-border rounded-xl bg-card shadow-brutal-xl">
 				<DialogHeader className="text-left space-y-0.5">
 					<div className="flex items-center justify-between pr-8">
 						<div className="flex items-center gap-2">
 							<div className="flex size-7 shrink-0 items-center justify-center rounded-md border-(length:--border-width) border-border bg-primary text-primary-foreground shadow-brutal-xs">
-								<Sparkles className="size-3.5" strokeWidth={2.5} />
+								<Sparkles
+									className="size-3.5"
+									strokeWidth={2.5}
+								/>
 							</div>
 							<DialogTitle className="font-title text-base sm:text-lg font-black tracking-tight text-foreground">
 								Share Photo Card
@@ -340,65 +229,25 @@ export function SocialShareModal({
 							{score}/100
 						</span>
 					</div>
+					<DialogDescription className="sr-only">
+						Share your verified smile card and rewards with friends.
+					</DialogDescription>
 				</DialogHeader>
 
 				<div className="mt-2 space-y-3.5">
-					<div
-						style={{ backgroundColor: cardConfig.bgHex }}
-						className="relative w-full max-w-60 mx-auto aspect-4/5 rounded-xl border-(length:--border-width) border-border p-3 shadow-brutal flex flex-col justify-between">
-						<div className="flex items-center justify-between border-(length:--border-width-sm) border-border bg-card px-2 py-1 rounded-md shadow-brutal-xs">
-							<span className="font-mono text-[9px] font-black uppercase tracking-wider text-foreground">
-								OPEN SMILE
-							</span>
-							<span
-								style={{ backgroundColor: cardConfig.accentHex }}
-								className="font-mono text-[9px] font-black px-1.5 py-0.5 rounded-xs border border-border">
-								{score}/100
-							</span>
-						</div>
-
-						<div className="relative my-2 aspect-4/3 w-full overflow-hidden rounded-md border-(length:--border-width) border-border bg-muted">
-							{imageSrc ? (
-								<>
-									{/* eslint-disable-next-line @next/next/no-img-element */}
-									<img
-										src={imageSrc}
-										alt="Smile card"
-										className="size-full object-cover"
-									/>
-									<div
-										style={{ backgroundColor: cardConfig.accentHex }}
-										className="absolute top-1.5 left-1.5 -rotate-2 border border-border px-1.5 py-0.5 font-mono text-[8px] font-black uppercase text-foreground shadow-brutal-xs truncate max-w-[90%]">
-										<ShieldCheck className="size-2.5 inline mr-1" />
-										VERIFIED
-									</div>
-								</>
-							) : (
-								<div className="flex size-full items-center justify-center font-mono text-xs">
-									<Camera className="size-5 text-muted-foreground" />
-								</div>
-							)}
-						</div>
-
-						<div className="rounded-md border-(length:--border-width-sm) border-border bg-card/95 p-2 shadow-brutal-xs text-left">
-							<p className="font-title text-[11px] font-black line-clamp-1 text-foreground">
-								&ldquo;{cardConfig.comment}&rdquo;
-							</p>
-							<div className="flex items-center justify-between mt-0.5 font-mono text-[8px] text-muted-foreground uppercase">
-								<span>{userName || 'Smiler'}</span>
-								<span className="flex items-center gap-0.5 text-destructive font-bold">
-									<Flame className="size-2.5" /> 100% Genuine
-								</span>
-							</div>
-						</div>
-					</div>
+					<PhotoCard
+						imageSrc={imageSrc}
+						score={score}
+						userName={userName}
+						comment={comment}
+					/>
 
 					<div className="space-y-2.5 pt-1">
 						<Button
 							type="button"
 							onClick={handleNativeShare}
 							disabled={isGenerating}
-							className="w-full h-10 gap-2 border-(length:--border-width) border-border bg-primary text-primary-foreground font-mono text-xs font-black uppercase tracking-wider shadow-brutal brutal-lift hover:bg-primary/90">
+							className="w-full h-10 gap-2 border-(length:--border-width) border-border bg-primary text-primary-foreground font-mono text-xs font-black uppercase tracking-wider shadow-brutal brutal-lift hover:bg-primary/90 cursor-pointer">
 							<Share2 className="size-4" />
 							{isGenerating ? 'Preparing Card...' : 'Share Photo Card'}
 						</Button>
@@ -480,11 +329,12 @@ export function SocialShareModal({
 								title="Copy Share Link & Text"
 								aria-label="Copy Share Link & Text"
 								className="flex h-10 items-center justify-center rounded-lg border-(length:--border-width) border-border bg-card text-foreground hover:bg-muted shadow-brutal-xs brutal-lift cursor-pointer transition-transform">
-								{copiedLink ? (
-									<Check className="size-4.5 text-success" strokeWidth={3} />
-								) : (
-									<Copy className="size-4.5" />
-								)}
+								{copiedLink ?
+									<Check
+										className="size-4.5 text-success"
+										strokeWidth={3}
+									/>
+								:	<Copy className="size-4.5" />}
 							</button>
 						</div>
 					</div>

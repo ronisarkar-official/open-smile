@@ -63,9 +63,9 @@ type CapturePhase =
 	| 'DONE';
 
 const STORAGE_KEY = 'opensmile_pending_capture';
-const SMILE_TRIGGER_THRESHOLD = 50;
+const SMILE_TRIGGER_THRESHOLD = 20;
 const SMILE_TRIGGER_DURATION_MS = 450;
-const SMILE_HOLD_THRESHOLD = 28;
+const SMILE_HOLD_THRESHOLD = 20;
 const SMILE_LOST_TOLERANCE_MS = 900;
 
 export interface CaptureFlowProps {

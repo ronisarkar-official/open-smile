@@ -5,6 +5,7 @@ import { Share2, Sparkles, Coins, Clock, ShieldCheck, Loader2 } from 'lucide-rea
 import {
 	Dialog,
 	DialogContent,
+	DialogDescription,
 	DialogHeader,
 	DialogTitle,
 } from '@/components/ui/dialog';
@@ -48,9 +49,9 @@ export function ShareExploreModal({
 							Share to Explore Feed
 						</DialogTitle>
 					</div>
-					<p className="font-mono text-xs text-muted-foreground">
+					<DialogDescription className="font-mono text-xs text-muted-foreground">
 						Post your smile to the public 24-hour community feed.
-					</p>
+					</DialogDescription>
 				</DialogHeader>
 
 				<form onSubmit={handleFormSubmit} className="space-y-4 mt-2">

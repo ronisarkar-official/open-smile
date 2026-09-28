@@ -5,7 +5,7 @@ const isDev = process.env.NODE_ENV === 'development';
 // Pragmatic CSP: 'unsafe-inline' is required for Next.js inline
 // bootstrap scripts + the theme init script. It still blocks data:
 // injection, mixed content and arbitrary vendor scripts.
-const scriptSrc = ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"];
+const scriptSrc = ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://va.vercel-scripts.com"];
 if (isDev) scriptSrc.push("'unsafe-eval'"); // Turbopack dev may eval modules
 
 const connectSrc = [
@@ -17,6 +17,7 @@ const connectSrc = [
 	'https://avatars.githubusercontent.com',
 	'https://cdn.jsdelivr.net',
 	'https://storage.googleapis.com',
+	'https://*.googleapis.com',
 	'https://*.supabase.co',
 	'wss://*.supabase.co',
 	'https://*.vercel-insights.com',
