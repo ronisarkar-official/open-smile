@@ -31,13 +31,13 @@ export async function GET(_request: NextRequest) {
 			}
 		}
 
-		const { getSystemSettingsMap } = await import('@/lib/db');
+		const { getSystemSettingsMap, getUserReferralsList } = await import('@/lib/db');
 		const settings = await getSystemSettingsMap();
 		const referrerMaxCoins = Number(settings.referral_referrer_max_coins) || 200;
 		const refereeMaxCoins = Number(settings.referral_referee_max_coins) || 50;
 		const maxDaily = Math.max(1, Number(settings.max_daily_referral_rewards) || 5);
 
-		const [completedRes, pendingRes, bonusRes, dailyRes] = await Promise.all([
+		const [completedRes, pendingRes, bonusRes, dailyRes, referrals] = await Promise.all([
 			pool.query(
 				"SELECT COUNT(*) FROM referrals WHERE referrer_id = $1 AND status = 'completed'",
 				[user.id]
@@ -58,6 +58,7 @@ export async function GET(_request: NextRequest) {
 				"SELECT COUNT(*) FROM scratch_cards WHERE user_id = $1 AND source = 'Referral Reward' AND created_at AT TIME ZONE 'Asia/Kolkata' >= (NOW() AT TIME ZONE 'Asia/Kolkata')::date",
 				[user.id]
 			),
+			getUserReferralsList(user.id),
 		]);
 
 		const friendsReferred = parseInt(completedRes.rows[0]?.count || '0', 10);
@@ -81,6 +82,7 @@ export async function GET(_request: NextRequest) {
 				pending_referrals: pendingReferrals,
 			},
 			remaining_today: remainingToday,
+			referrals,
 		});
 	} catch (err) {
 		console.error('Referral stats error:', err);

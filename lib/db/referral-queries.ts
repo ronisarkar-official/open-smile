@@ -215,3 +215,62 @@ export async function processReferralRewardOnFirstCapture(params: {
 	}
 }
 
+export interface UserReferralRecord {
+	id: string;
+	referred_id: string;
+	name: string;
+	image: string | null;
+	status: 'completed' | 'pending';
+	created_at: string;
+	completed_at: string | null;
+	reward_coins: number | null;
+	reward_scratched: boolean | null;
+}
+
+export async function getUserReferralsList(userId: string): Promise<UserReferralRecord[]> {
+	const pool = getPool();
+	const { rows } = await pool.query(
+		`SELECT 
+			r.id,
+			r.referred_id,
+			r.status,
+			r.created_at,
+			r.completed_at,
+			COALESCE(u.name, 'Smiler') AS name,
+			u.image,
+			sc.coins AS reward_coins,
+			sc.is_scratched AS reward_scratched
+		FROM referrals r
+		LEFT JOIN "user" u ON u.id = r.referred_id
+		LEFT JOIN LATERAL (
+			SELECT sc.coins, sc.is_scratched
+			FROM scratch_cards sc
+			WHERE sc.user_id = r.referrer_id 
+			  AND sc.source = 'Referral Reward'
+			  AND r.status = 'completed'
+			  AND sc.created_at BETWEEN (r.completed_at - INTERVAL '1 minute') AND (r.completed_at + INTERVAL '1 minute')
+			ORDER BY ABS(EXTRACT(EPOCH FROM (sc.created_at - r.completed_at))) ASC
+			LIMIT 1
+		) sc ON true
+		WHERE r.referrer_id = $1
+		ORDER BY 
+			CASE WHEN r.status = 'completed' THEN 0 ELSE 1 END,
+			r.completed_at DESC NULLS LAST, 
+			r.created_at DESC
+		LIMIT 50`,
+		[userId]
+	);
+
+	return rows.map((row) => ({
+		id: String(row.id),
+		referred_id: String(row.referred_id),
+		name: row.name || 'Smiler',
+		image: row.image || null,
+		status: row.status as 'completed' | 'pending',
+		created_at: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+		completed_at: row.completed_at ? new Date(row.completed_at).toISOString() : null,
+		reward_coins: row.reward_coins !== null && row.reward_coins !== undefined ? Number(row.reward_coins) : null,
+		reward_scratched: row.reward_scratched !== null && row.reward_scratched !== undefined ? Boolean(row.reward_scratched) : null,
+	}));
+}
+

@@ -41,6 +41,7 @@ async def test_capture_submit_and_status_fields():
             await conn.execute("DELETE FROM image_hashes WHERE user_id = $1", TEST_USER["user_id"])
             await conn.execute("DELETE FROM scratch_cards WHERE user_id = $1", TEST_USER["user_id"])
             await conn.execute("DELETE FROM streaks WHERE user_id = $1", TEST_USER["user_id"])
+            await conn.execute("INSERT INTO system_settings (key, value) VALUES ('max_daily_captures_per_user', '10') ON CONFLICT (key) DO UPDATE SET value = '10'")
 
         # 2. Get initial status
         r_status = await client.get("/api/v1/capture/status")

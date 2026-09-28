@@ -1,9 +1,12 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import {
 	Camera,
 	Check,
+	CheckCircle2,
+	Clock,
 	Coins,
 	Copy,
 	Gift,
@@ -26,7 +29,29 @@ import {
 	DialogTrigger,
 } from '@/components/ui/dialog';
 import { BrandedQrCode } from '@/components/ui/branded-qr-code';
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from '@/components/ui/table';
+import { Avatar, AvatarFallback, AvatarImage, DEFAULT_AVATAR_URL } from '@/components/ui/avatar';
+import { CoinIcon } from '@/components/ui/coin-icon';
 import { cn } from '@/lib/utils';
+
+export interface ReferralItem {
+	id: string;
+	referred_id: string;
+	name: string;
+	image: string | null;
+	status: 'completed' | 'pending';
+	created_at: string;
+	completed_at: string | null;
+	reward_coins: number | null;
+	reward_scratched: boolean | null;
+}
 
 interface ReferStatsData {
 	referral_code: string;
@@ -40,6 +65,7 @@ interface ReferStatsData {
 		pending_referrals: number;
 	};
 	remaining_today: number;
+	referrals?: ReferralItem[];
 }
 
 const steps = [
@@ -109,6 +135,18 @@ export default function ReferPage() {
 	const [toastMessage, setToastMessage] = React.useState<string | null>(null);
 	const [qrDialogOpen, setQrDialogOpen] = React.useState(false);
 	const [isLoading, setIsLoading] = React.useState(true);
+	const [referralFilter, setReferralFilter] = React.useState<'successful' | 'all' | 'pending'>('successful');
+
+	const referralsList = data.referrals || [];
+	const completedReferrals = referralsList.filter((r) => r.status === 'completed');
+	const pendingReferrals = referralsList.filter((r) => r.status === 'pending');
+
+	const displayedReferrals =
+		referralFilter === 'successful'
+			? completedReferrals
+			: referralFilter === 'pending'
+			? pendingReferrals
+			: referralsList;
 
 	const showToast = (msg: string) => {
 		setToastMessage(msg);
@@ -193,12 +231,12 @@ export default function ReferPage() {
 	return (
 		<main
 			id="main-content"
-			className="mx-auto w-full max-w-[1200px] px-3.5 py-4 sm:px-6 sm:py-8 space-y-6 sm:space-y-8 relative"
+			className="mx-auto w-full max-w-300 px-3.5 py-4 sm:px-6 sm:py-8 space-y-6 sm:space-y-8 relative"
 		>
 			{/* Floating Toast Feedback */}
 			{toastMessage && (
 				<div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-3 duration-200 pointer-events-none">
-					<div className="flex items-center gap-2 border-[length:var(--border-width)] border-border bg-foreground text-background px-4 py-2.5 rounded-lg shadow-brutal font-mono text-xs sm:text-sm font-black">
+					<div className="flex items-center gap-2 border-(length:--border-width) border-border bg-foreground text-background px-4 py-2.5 rounded-lg shadow-brutal font-mono text-xs sm:text-sm font-black">
 						<Check className="size-4 text-success" strokeWidth={3} />
 						<span>{toastMessage}</span>
 					</div>
@@ -207,10 +245,6 @@ export default function ReferPage() {
 
 			{/* Page Header */}
 			<div className="space-y-2">
-				<div className="inline-flex items-center gap-1.5 border-[length:var(--border-width)] border-border rounded-md bg-accent px-2.5 py-0.5 font-mono text-[10px] sm:text-xs font-black uppercase text-accent-foreground shadow-brutal-xs">
-					<Sparkles className="size-3" />
-					Viral Rewards
-				</div>
 				<h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-title tracking-tight text-foreground">
 					Refer &amp; Earn
 				</h1>
@@ -222,9 +256,9 @@ export default function ReferPage() {
 			</div>
 
 			{/* Mobile Incentive Banner (Visible on mobile/tablet) */}
-			<div className="lg:hidden border-[length:var(--border-width)] border-border rounded-xl bg-primary p-3.5 sm:p-4 text-primary-foreground shadow-brutal-sm flex items-center justify-between gap-3 min-w-0 w-full">
+			<div className="lg:hidden border-(length:--border-width) border-border rounded-xl bg-primary p-3.5 sm:p-4 text-primary-foreground shadow-brutal-sm flex items-center justify-between gap-3 min-w-0 w-full">
 				<div className="flex items-center gap-3 min-w-0">
-					<div className="size-10 rounded-lg border-[length:var(--border-width)] border-border bg-card text-foreground flex items-center justify-center shrink-0 shadow-brutal-xs">
+					<div className="size-10 rounded-lg border-(length:--border-width) border-border bg-card text-foreground flex items-center justify-center shrink-0 shadow-brutal-xs">
 						<Gift className="size-5 text-primary" strokeWidth={2.5} />
 					</div>
 					<div className="min-w-0">
@@ -241,7 +275,7 @@ export default function ReferPage() {
 			{/* Main Grid: Hero Referral + Side Cards */}
 			<section className="grid gap-5 lg:grid-cols-[1.3fr_0.7fr] min-w-0 w-full">
 				{/* Referral Code & Share Hub */}
-				<article className="border-[length:var(--border-width)] border-border rounded-xl bg-card p-3.5 sm:p-6 shadow-brutal flex flex-col justify-between gap-4 sm:gap-5 min-w-0 w-full overflow-hidden">
+				<article className="border-(length:--border-width) border-border rounded-xl bg-card p-3.5 sm:p-6 shadow-brutal flex flex-col justify-between gap-4 sm:gap-5 min-w-0 w-full overflow-hidden">
 					<div className="space-y-4 min-w-0 w-full">
 						{/* Referral Code Section */}
 						<div className="min-w-0 w-full">
@@ -262,7 +296,7 @@ export default function ReferPage() {
 								<button
 									type="button"
 									onClick={handleCopyCode}
-									className="group flex-1 min-w-0 flex items-center justify-between border-[length:var(--border-width)] border-border rounded-lg bg-muted/70 hover:bg-muted active:scale-[0.99] transition-all px-3 py-2.5 sm:px-4 sm:py-3.5 text-left cursor-pointer shadow-brutal-xs overflow-hidden"
+									className="group flex-1 min-w-0 flex items-center justify-between border-(length:--border-width) border-border rounded-lg bg-muted/70 hover:bg-muted active:scale-[0.99] transition-all px-3 py-2.5 sm:px-4 sm:py-3.5 text-left cursor-pointer shadow-brutal-xs overflow-hidden"
 									title="Click to copy referral code"
 								>
 									<span className="font-mono text-base sm:text-2xl font-black tracking-wider text-foreground truncate select-all">
@@ -274,7 +308,7 @@ export default function ReferPage() {
 								</button>
 								<Button
 									variant="outline"
-									className="h-auto px-3 sm:px-4 shrink-0 font-mono text-xs font-bold gap-1.5 cursor-pointer border-[length:var(--border-width)] border-border shadow-brutal-xs active:translate-x-0.5 active:translate-y-0.5"
+									className="h-auto px-3 sm:px-4 shrink-0 font-mono text-xs font-bold gap-1.5 cursor-pointer border-(length:--border-width) border-border shadow-brutal-xs active:translate-x-0.5 active:translate-y-0.5"
 									onClick={handleCopyCode}
 									aria-label="Copy referral code"
 								>
@@ -297,7 +331,7 @@ export default function ReferPage() {
 								<button
 									type="button"
 									onClick={handleCopyLink}
-									className="flex-1 min-w-0 overflow-hidden border-[length:var(--border-width)] border-dashed border-border rounded-lg bg-muted/40 hover:bg-muted/60 px-3 py-2 sm:px-4 sm:py-2.5 text-left transition-colors cursor-pointer"
+									className="flex-1 min-w-0 overflow-hidden border-(length:--border-width) border-dashed border-border rounded-lg bg-muted/40 hover:bg-muted/60 px-3 py-2 sm:px-4 sm:py-2.5 text-left transition-colors cursor-pointer"
 									title="Click to copy link"
 								>
 									<p className="truncate font-mono text-xs sm:text-sm font-semibold text-muted-foreground select-all">
@@ -307,7 +341,7 @@ export default function ReferPage() {
 								<Button
 									variant="outline"
 									size="icon"
-									className="size-10 sm:size-11 shrink-0 cursor-pointer border-[length:var(--border-width)] border-border shadow-brutal-xs active:translate-x-0.5 active:translate-y-0.5"
+									className="size-10 sm:size-11 shrink-0 cursor-pointer border-(length:--border-width) border-border shadow-brutal-xs active:translate-x-0.5 active:translate-y-0.5"
 									onClick={handleCopyLink}
 									aria-label="Copy referral link"
 								>
@@ -333,7 +367,7 @@ export default function ReferPage() {
 							<Button
 								variant="outline"
 								size="lg"
-								className="w-full sm:flex-1 h-11 sm:h-12 text-sm sm:text-base font-black font-title tracking-tight gap-2 cursor-pointer border-[length:var(--border-width)] border-border shadow-brutal-sm active:translate-x-0.5 active:translate-y-0.5 min-w-0"
+								className="w-full sm:flex-1 h-11 sm:h-12 text-sm sm:text-base font-black font-title tracking-tight gap-2 cursor-pointer border-(length:--border-width) border-border shadow-brutal-sm active:translate-x-0.5 active:translate-y-0.5 min-w-0"
 								onClick={handleCopyLink}
 							>
 								{copiedLink ? (
@@ -358,7 +392,7 @@ export default function ReferPage() {
 									)}`}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex items-center justify-center gap-1.5 h-11 sm:h-12 rounded-lg border-[length:var(--border-width)] border-border bg-[#25D366]/15 hover:bg-[#25D366]/25 text-foreground transition-transform active:scale-[0.96] shadow-brutal-xs px-2 min-w-0"
+									className="flex items-center justify-center gap-1.5 h-11 sm:h-12 rounded-lg border-(length:--border-width) border-border bg-[#25D366]/15 hover:bg-[#25D366]/25 text-foreground transition-transform active:scale-[0.96] shadow-brutal-xs px-2 min-w-0"
 									title="Share to WhatsApp"
 								>
 									<WhatsAppIcon className="size-4 text-[#25D366] shrink-0" />
@@ -372,7 +406,7 @@ export default function ReferPage() {
 									)}&text=${encodeURIComponent(shareMessage)}`}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex items-center justify-center gap-1.5 h-11 sm:h-12 rounded-lg border-[length:var(--border-width)] border-border bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-foreground transition-transform active:scale-[0.96] shadow-brutal-xs px-2 min-w-0"
+									className="flex items-center justify-center gap-1.5 h-11 sm:h-12 rounded-lg border-(length:--border-width) border-border bg-[#229ED9]/15 hover:bg-[#229ED9]/25 text-foreground transition-transform active:scale-[0.96] shadow-brutal-xs px-2 min-w-0"
 									title="Share to Telegram"
 								>
 									<TelegramIcon className="size-4 text-[#229ED9] shrink-0" />
@@ -386,7 +420,7 @@ export default function ReferPage() {
 									)}&url=${encodeURIComponent(data.referral_link)}`}
 									target="_blank"
 									rel="noopener noreferrer"
-									className="flex items-center justify-center gap-1.5 h-11 sm:h-12 rounded-lg border-[length:var(--border-width)] border-border bg-foreground/10 hover:bg-foreground/15 text-foreground transition-transform active:scale-[0.96] shadow-brutal-xs px-2 min-w-0"
+									className="flex items-center justify-center gap-1.5 h-11 sm:h-12 rounded-lg border-(length:--border-width) border-border bg-foreground/10 hover:bg-foreground/15 text-foreground transition-transform active:scale-[0.96] shadow-brutal-xs px-2 min-w-0"
 									title="Share to X"
 								>
 									<XIcon className="size-3.5 text-foreground shrink-0" />
@@ -398,14 +432,14 @@ export default function ReferPage() {
 									<DialogTrigger asChild>
 										<button
 											type="button"
-											className="flex items-center justify-center gap-1.5 h-11 sm:h-12 rounded-lg border-[length:var(--border-width)] border-border bg-muted hover:bg-muted/80 text-foreground transition-transform active:scale-[0.96] shadow-brutal-xs px-2 min-w-0 cursor-pointer"
+											className="flex items-center justify-center gap-1.5 h-11 sm:h-12 rounded-lg border-(length:--border-width) border-border bg-muted hover:bg-muted/80 text-foreground transition-transform active:scale-[0.96] shadow-brutal-xs px-2 min-w-0 cursor-pointer"
 											title="Show QR Code"
 										>
 											<QrCode className="size-4 text-foreground shrink-0" strokeWidth={2.5} />
 											<span className="font-mono text-xs font-black truncate">QR Code</span>
 										</button>
 									</DialogTrigger>
-									<DialogContent className="max-w-xs sm:max-w-sm border-[length:var(--border-width)] border-border bg-card shadow-brutal-lg rounded-xl p-5">
+									<DialogContent className="max-w-xs sm:max-w-sm border-(length:--border-width) border-border bg-card shadow-brutal-lg rounded-xl p-5">
 										<DialogHeader>
 											<DialogTitle className="text-center font-black font-title text-lg uppercase tracking-tight">
 												Scan &amp; Join
@@ -426,7 +460,7 @@ export default function ReferPage() {
 												<p className="font-mono text-xs font-bold text-muted-foreground uppercase">
 													Your Code
 												</p>
-												<div className="inline-flex items-center gap-2 border-[length:var(--border-width)] border-border rounded-md bg-muted px-3 py-1 font-mono text-base font-black">
+												<div className="inline-flex items-center gap-2 border-(length:--border-width) border-border rounded-md bg-muted px-3 py-1 font-mono text-base font-black">
 													{data.referral_code}
 												</div>
 											</div>
@@ -449,18 +483,186 @@ export default function ReferPage() {
 					</div>
 
 					{/* Anti-cheat daily cap note */}
-					<div className="mt-1 flex items-center gap-2.5 border-[length:var(--border-width)] border-border rounded-lg bg-success/15 px-3.5 py-2.5 text-foreground">
+					<div className="mt-1 flex items-center gap-2.5 border-(length:--border-width) border-border rounded-lg bg-success/15 px-3.5 py-2.5 text-foreground">
 						<Sparkles className="size-4 shrink-0 text-success" strokeWidth={2.5} />
 						<p className="font-mono text-xs font-bold leading-tight">
 							{data.remaining_today} / {data.max_daily_rewards || 5} referral rewards remaining today
 						</p>
+					</div>
+
+					{/* Successful Referrals Table */}
+					<div className="mt-4 pt-4 border-t-(length:--border-width) border-border space-y-3">
+						<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+							<div className="flex items-center gap-2 flex-wrap">
+								<Users className="size-4 text-primary shrink-0" strokeWidth={2.5} />
+								<h3 className="font-mono text-xs font-black uppercase tracking-wider text-foreground">
+									Successful Referrals
+								</h3>
+								<span className="font-mono text-[10px] font-black uppercase px-2 py-0.5 rounded border-(length:--border-width) border-border bg-muted text-foreground">
+									{completedReferrals.length} Rewarded
+								</span>
+							</div>
+
+							{referralsList.length > 0 && (
+								<div className="flex items-center gap-1 bg-muted/60 p-1 rounded-lg border-(length:--border-width) border-border/40 w-fit">
+									<button
+										type="button"
+										onClick={() => setReferralFilter('successful')}
+										className={cn(
+											'font-mono text-[10px] font-black uppercase px-2 py-0.5 rounded transition-colors cursor-pointer',
+											referralFilter === 'successful'
+												? 'bg-foreground text-background shadow-brutal-xs'
+												: 'text-muted-foreground hover:text-foreground'
+										)}
+									>
+										Successful ({completedReferrals.length})
+									</button>
+									<button
+										type="button"
+										onClick={() => setReferralFilter('all')}
+										className={cn(
+											'font-mono text-[10px] font-black uppercase px-2 py-0.5 rounded transition-colors cursor-pointer',
+											referralFilter === 'all'
+												? 'bg-foreground text-background shadow-brutal-xs'
+												: 'text-muted-foreground hover:text-foreground'
+										)}
+									>
+										All ({referralsList.length})
+									</button>
+									{pendingReferrals.length > 0 && (
+										<button
+											type="button"
+											onClick={() => setReferralFilter('pending')}
+											className={cn(
+												'font-mono text-[10px] font-black uppercase px-2 py-0.5 rounded transition-colors cursor-pointer',
+												referralFilter === 'pending'
+													? 'bg-foreground text-background shadow-brutal-xs'
+													: 'text-muted-foreground hover:text-foreground'
+											)}
+										>
+											Pending ({pendingReferrals.length})
+										</button>
+									)}
+								</div>
+							)}
+						</div>
+
+						{isLoading ? (
+							<div className="border-(length:--border-width) border-border rounded-xl bg-card p-4 space-y-2.5 shadow-brutal-xs">
+								<div className="h-9 w-full bg-muted/50 rounded animate-pulse" />
+								<div className="h-9 w-full bg-muted/30 rounded animate-pulse" />
+							</div>
+						) : displayedReferrals.length === 0 ? (
+							<div className="border-(length:--border-width) border-dashed border-border rounded-xl bg-muted/20 p-5 text-center flex flex-col items-center justify-center gap-2">
+								<div className="size-9 rounded-lg border-(length:--border-width) border-border bg-card flex items-center justify-center shadow-brutal-xs">
+									<Users className="size-4 text-muted-foreground" strokeWidth={2.5} />
+								</div>
+								<p className="font-mono text-xs font-black uppercase text-foreground">
+									{referralFilter === 'successful'
+										? 'No successful referrals yet'
+										: referralFilter === 'pending'
+										? 'No pending referrals'
+										: 'No referrals yet'}
+								</p>
+								<p className="font-mono text-[11px] text-muted-foreground max-w-[44ch] leading-relaxed">
+									{referralFilter === 'successful'
+										? 'Share your link above. When a friend joins and verifies their first smile check, they will appear here and you both unlock mystery scratch cards!'
+										: 'Share your referral code with friends and watch your community grow!'}
+								</p>
+							</div>
+						) : (
+							<div className="border-(length:--border-width) border-border rounded-xl bg-card shadow-brutal-xs overflow-hidden max-h-75 overflow-y-auto">
+								<Table>
+									<TableHeader>
+										<TableRow className="bg-muted/60 border-b-(length:--border-width) border-border font-mono text-[10px] sm:text-[11px] font-black uppercase text-muted-foreground hover:bg-muted/60">
+											<TableHead className="py-2.5 px-3">Friend</TableHead>
+											<TableHead className="py-2.5 px-3">Status</TableHead>
+											<TableHead className="py-2.5 px-3">Reward</TableHead>
+											<TableHead className="py-2.5 px-3 text-right">Date</TableHead>
+										</TableRow>
+									</TableHeader>
+									<TableBody className="font-mono text-xs divide-y divide-border/20">
+										{displayedReferrals.map((item) => (
+											<TableRow
+												key={item.id}
+												className="border-b-(length:--border-width) border-border/15 hover:bg-muted/30 transition-colors"
+											>
+												<TableCell className="py-2.5 px-3">
+													<div className="flex items-center gap-2.5 min-w-0">
+														<Avatar className="size-7 sm:size-8 border-(length:--border-width) border-border shadow-brutal-xs shrink-0">
+															<AvatarImage src={item.image || DEFAULT_AVATAR_URL} alt={item.name} />
+															<AvatarFallback className="text-[10px] sm:text-xs font-black bg-primary text-primary-foreground">
+																{item.name?.slice(0, 2).toUpperCase() || 'SM'}
+															</AvatarFallback>
+														</Avatar>
+														<div className="min-w-0">
+															<p className="font-title font-bold text-xs sm:text-sm text-foreground truncate max-w-27.5 sm:max-w-37.5">
+																{item.name}
+															</p>
+														</div>
+													</div>
+												</TableCell>
+												<TableCell className="py-2.5 px-3">
+													{item.status === 'completed' ? (
+														<span className="inline-flex items-center gap-1 font-mono text-[10px] font-black uppercase px-2 py-0.5 rounded border border-success/40 bg-success/15 text-foreground whitespace-nowrap">
+															<CheckCircle2 className="size-3 text-success shrink-0" strokeWidth={2.5} />
+															Rewarded
+														</span>
+													) : (
+														<span className="inline-flex items-center gap-1 font-mono text-[10px] font-bold uppercase px-2 py-0.5 rounded border border-border bg-muted text-muted-foreground whitespace-nowrap">
+															<Clock className="size-3 shrink-0" strokeWidth={2.5} />
+															Waiting Smile
+														</span>
+													)}
+												</TableCell>
+												<TableCell className="py-2.5 px-3 font-mono text-xs font-black text-foreground">
+													{item.status === 'completed' ? (
+														<div className="inline-flex items-center gap-1 flex-wrap">
+															{item.reward_coins ? (
+																<span className="inline-flex items-center gap-1 text-foreground">
+																	+{item.reward_coins}
+																	<CoinIcon size={14} />
+																</span>
+															) : (
+																<span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary">
+																	<span>🎁</span> Card Won
+																</span>
+															)}
+															{item.reward_scratched === false && (
+																<Link
+																	href="/rewards"
+																	className="inline-flex items-center gap-0.5 font-mono text-[9px] font-black uppercase text-primary underline hover:text-primary/80 ml-1"
+																	title="Scratch card in rewards"
+																>
+																	Scratch
+																</Link>
+															)}
+														</div>
+													) : (
+														<span className="font-mono text-[10px] text-muted-foreground whitespace-nowrap">
+															Up to {referrerMax} coins
+														</span>
+													)}
+												</TableCell>
+												<TableCell className="py-2.5 px-3 text-right font-mono text-[11px] text-muted-foreground whitespace-nowrap">
+													{new Date(item.completed_at || item.created_at).toLocaleDateString('en-US', {
+														month: 'short',
+														day: 'numeric',
+													})}
+												</TableCell>
+											</TableRow>
+										))}
+									</TableBody>
+								</Table>
+							</div>
+						)}
 					</div>
 				</article>
 
 				{/* Desktop Side Column (Hidden on small screens since incentive & QR are integrated) */}
 				<div className="hidden lg:flex flex-col gap-5">
 					{/* Desktop Scratch Card Incentive Card */}
-					<article className="border-[length:var(--border-width)] border-border rounded-xl bg-primary p-6 text-primary-foreground shadow-brutal relative overflow-hidden">
+					<article className="border-(length:--border-width) border-border rounded-xl bg-primary p-6 text-primary-foreground shadow-brutal relative overflow-hidden">
 						<div className="flex items-center justify-between">
 							<Gift className="size-8 text-primary-foreground" strokeWidth={2.5} />
 							<span className="font-mono text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded border border-primary-foreground/30 bg-primary-foreground/10">
@@ -476,8 +678,8 @@ export default function ReferPage() {
 					</article>
 
 					{/* Desktop QR Card */}
-					<article className="border-[length:var(--border-width)] border-border rounded-xl bg-card p-5 shadow-brutal flex flex-col items-center text-center">
-						<div className="w-full flex items-center justify-between pb-3 border-b-[length:var(--border-width)] border-border/15">
+					<article className="border-(length:--border-width) border-border rounded-xl bg-card p-5 shadow-brutal flex flex-col items-center text-center">
+						<div className="w-full flex items-center justify-between pb-3 border-b-(length:--border-width) border-border/15">
 							<div className="flex items-center gap-2">
 								<QrCode className="size-4 text-foreground" strokeWidth={2.5} />
 								<p className="font-mono text-xs font-bold tracking-wider uppercase text-muted-foreground">
@@ -514,12 +716,12 @@ export default function ReferPage() {
 					{stats.map(({ label, value, icon: StatIcon, color, iconColor }) => (
 						<article
 							key={label}
-							className="border-[length:var(--border-width)] border-border rounded-xl bg-card p-3 sm:p-5 shadow-brutal-xs sm:shadow-brutal flex flex-col justify-between min-h-[105px] sm:min-h-36"
+							className="border-(length:--border-width) border-border rounded-xl bg-card p-3 sm:p-5 shadow-brutal-xs sm:shadow-brutal flex flex-col justify-between min-h-26.25 sm:min-h-36"
 						>
 							<div className="flex items-center justify-between">
 								<div
 									className={cn(
-										'size-7 sm:size-9 rounded-md border-[length:var(--border-width)] border-border flex items-center justify-center shadow-brutal-xs shrink-0',
+										'size-7 sm:size-9 rounded-md border-(length:--border-width) border-border flex items-center justify-center shadow-brutal-xs shrink-0',
 										iconColor
 									)}
 								>
@@ -557,12 +759,12 @@ export default function ReferPage() {
 						return (
 							<li
 								key={step.number}
-								className="border-[length:var(--border-width)] border-border rounded-xl bg-card p-4 sm:p-5 shadow-brutal-xs sm:shadow-brutal flex flex-col justify-between relative overflow-hidden"
+								className="border-(length:--border-width) border-border rounded-xl bg-card p-4 sm:p-5 shadow-brutal-xs sm:shadow-brutal flex flex-col justify-between relative overflow-hidden"
 							>
 								<div className="flex items-center justify-between">
 									<span
 										className={cn(
-											'font-mono text-xs font-black px-2 py-0.5 rounded border-[length:var(--border-width)] shadow-brutal-xs',
+											'font-mono text-xs font-black px-2 py-0.5 rounded border-(length:--border-width) shadow-brutal-xs',
 											step.badgeBg
 										)}
 									>
@@ -570,7 +772,7 @@ export default function ReferPage() {
 									</span>
 									<div
 										className={cn(
-											'size-8 sm:size-9 rounded-md border-[length:var(--border-width)] border-border flex items-center justify-center shadow-brutal-xs',
+											'size-8 sm:size-9 rounded-md border-(length:--border-width) border-border flex items-center justify-center shadow-brutal-xs',
 											step.color
 										)}
 									>
