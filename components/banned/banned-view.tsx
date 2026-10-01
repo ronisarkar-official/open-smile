@@ -47,7 +47,7 @@ export function BannedView({ user }: BannedViewProps) {
 	const supportEmail = 'support@opensmile.org';
 	const banExpiresDate = useMemo(() => {
 		return user?.banExpires ? new Date(user.banExpires) : null;
-	}, [user?.banExpires]);
+	}, [user]);
 
 	const isTemporary = Boolean(banExpiresDate);
 	const remainingText =
@@ -59,7 +59,7 @@ export function BannedView({ user }: BannedViewProps) {
 			.slice(0, 4)
 			.toUpperCase();
 		return `CASE-${seed || 'OS'}-9042`;
-	}, [user?.email]);
+	}, [user]);
 
 	const handleCopyEmail = async () => {
 		try {

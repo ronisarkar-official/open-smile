@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getPool } from '@/lib/db/client';
-import { getSystemSettingsMap, cleanupExpiredExplorePosts } from '@/lib/db';
+import { getSystemSettingsMap, getExploreFeedPosts, getExploreFeedTotalCount } from '@/lib/db';
 import { getServerUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
@@ -34,57 +33,31 @@ export async function GET(request: NextRequest) {
 			return NextResponse.json({ posts: [], total: 0, disabled: true, message: 'Explore feed is disabled.' });
 		}
 		const { searchParams } = new URL(request.url);
-		const filter = searchParams.get('filter') || 'latest';
+		const filter = searchParams.get('filter');
+		const cursor = searchParams.get('cursor');
 		const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
-		const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
-		const offset = (page - 1) * limit;
+		const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20', 10)));
 
-		let orderClause = 'ep.created_at DESC';
-		if (filter === 'top_scored') {
-			orderClause = 'ep.smile_score DESC, ep.created_at DESC';
-		} else if (filter === 'most_liked') {
-			orderClause = 'ep.likes_count DESC, ep.created_at DESC';
-		}
-
-		await cleanupExpiredExplorePosts().catch(() => {});
-
-		const pool = getPool();
 		const currentUser = await getServerUser();
 		const currentUserId = currentUser?.id || null;
 
-		const { rows } = await pool.query(
-			`SELECT 
-				ep.id,
-				ep.user_id,
-				ep.capture_id,
-				ep.image_url,
-				ep.smile_score,
-				ep.caption,
-				ep.likes_count,
-				ep.created_at,
-				u.name AS user_name,
-				u.image AS user_avatar,
-				CASE WHEN el.user_id IS NOT NULL THEN true ELSE false END AS is_liked_by_me
-			 FROM explore_posts ep
-			 JOIN "user" u ON ep.user_id = u.id
-			 LEFT JOIN explore_likes el ON ep.id = el.post_id AND el.user_id = $1
-			 WHERE ep.created_at >= NOW() - INTERVAL '24 hours'
-			 ORDER BY ${orderClause}
-			 LIMIT $2 OFFSET $3`,
-			[currentUserId, limit, offset]
-		);
+		const result = await getExploreFeedPosts({
+			currentUserId,
+			limit,
+			cursor,
+			page,
+			filter,
+		});
 
-		const totalCountRes = await pool.query(
-			"SELECT COUNT(*) FROM explore_posts WHERE created_at >= NOW() - INTERVAL '24 hours'"
-		);
-		const total = parseInt(totalCountRes.rows[0]?.count || '0', 10);
+		const total = await getExploreFeedTotalCount();
 
 		const bgClasses = ['bg-primary', 'bg-accent', 'bg-secondary', 'bg-success'];
-		const posts = rows.map((r, idx) => {
+		const posts = result.rows.map((r, idx) => {
 			const createdAt = new Date(r.created_at);
 			const expiresAt = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000);
-			const msRemaining = Math.max(0, expiresAt.getTime() - Date.now());
-			const hoursRemaining = Math.max(1, Math.ceil(msRemaining / (1000 * 60 * 60)));
+			const msRemaining = expiresAt.getTime() - Date.now();
+			const hoursRemaining = Math.ceil(msRemaining / (1000 * 60 * 60));
+			const expiresIn = msRemaining > 0 ? `${Math.max(1, hoursRemaining)}h left` : undefined;
 
 			return {
 				id: String(r.id),
@@ -97,7 +70,7 @@ export async function GET(request: NextRequest) {
 				imageUrl: r.image_url || undefined,
 				likes: Number(r.likes_count) || 0,
 				timeAgo: formatTimeAgo(r.created_at),
-				expiresIn: `${hoursRemaining}h left`,
+				expiresIn,
 				isLikedByMe: Boolean(r.is_liked_by_me),
 				isMine: Boolean(currentUserId && String(r.user_id) === String(currentUserId)),
 				bg: bgClasses[idx % bgClasses.length],
@@ -106,6 +79,8 @@ export async function GET(request: NextRequest) {
 
 		return NextResponse.json({
 			posts,
+			nextCursor: result.nextCursor,
+			hasMore: result.hasMore,
 			page,
 			total,
 		});

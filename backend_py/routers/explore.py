@@ -1,3 +1,4 @@
+import base64
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 import asyncpg
 import uuid
@@ -43,83 +44,139 @@ def get_avatar_letters(name: Optional[str]) -> str:
         return f"{parts[0][0]}{parts[1][0]}".upper()
     return name[:2].upper()
 
+def encode_cursor(dt: datetime, post_id: str) -> str:
+    raw = f"{dt.isoformat()}|{post_id}"
+    return base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
+
+def decode_cursor(cursor: str) -> Optional[tuple[datetime, str]]:
+    try:
+        padding = "=" * (-len(cursor) % 4)
+        raw = base64.urlsafe_b64decode((cursor + padding).encode()).decode()
+        delimiter = "|" if "|" in raw else "_"
+        parts = raw.split(delimiter)
+        if len(parts) >= 2:
+            post_id = parts[-1]
+            dt_str = delimiter.join(parts[:-1])
+            dt = datetime.fromisoformat(dt_str)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt, post_id
+    except Exception:
+        pass
+    return None
+
 @router.get("/feed", response_model=ExploreFeedResponse)
 async def get_explore_feed(
-    filter: str = Query("latest", pattern="^(latest|top_scored|most_liked)$"),
+    filter: Optional[str] = Query(None),
+    cursor: Optional[str] = Query(None),
     page: int = Query(1, ge=1),
-    limit: int = Query(20, ge=1, le=50),
+    limit: int = Query(20, ge=1, le=100),
     current_user: Optional[dict] = Depends(get_optional_user),
     pool: asyncpg.Pool = Depends(get_db_pool),
 ):
-    offset = (page - 1) * limit
     current_user_id = current_user.get("user_id") if current_user else None
+    fetch_limit = limit + 1
+    decoded = decode_cursor(cursor) if cursor else None
 
-    order_clause = "ep.created_at DESC"
+    order_clause = "ep.created_at DESC, ep.id DESC"
     if filter == "top_scored":
-        order_clause = "ep.smile_score DESC, ep.created_at DESC"
+        order_clause = "ep.smile_score DESC, ep.created_at DESC, ep.id DESC"
     elif filter == "most_liked":
-        order_clause = "ep.likes_count DESC, ep.created_at DESC"
+        order_clause = "ep.likes_count DESC, ep.created_at DESC, ep.id DESC"
+    elif filter == "random":
+        order_clause = "RANDOM()"
 
     async with pool.acquire() as conn:
-        await conn.execute(
-            """
-            WITH expired AS (
-                SELECT id, image_url FROM explore_posts WHERE created_at <= NOW() - INTERVAL '24 hours'
-            ),
-            del_likes AS (
-                DELETE FROM explore_likes WHERE post_id IN (SELECT id FROM expired)
-            ),
-            del_posts AS (
-                DELETE FROM posts WHERE id IN (SELECT id FROM expired)
-            )
-            DELETE FROM explore_posts WHERE id IN (SELECT id FROM expired);
-            """
-        )
-
         total_count = await conn.fetchval(
             """
             SELECT COUNT(*)
             FROM explore_posts ep
-            WHERE ep.created_at >= NOW() - INTERVAL '24 hours'
+            WHERE ep.image_url IS NOT NULL AND ep.image_url != ''
             """
         ) or 0
 
-        rows = await conn.fetch(
-            f"""
-            SELECT 
-                ep.id,
-                ep.user_id,
-                ep.capture_id,
-                ep.image_url,
-                ep.smile_score,
-                ep.caption,
-                ep.likes_count,
-                ep.created_at,
-                u.name AS user_name,
-                u.image AS user_avatar,
-                CASE WHEN el.user_id IS NOT NULL THEN true ELSE false END AS is_liked_by_me
-            FROM explore_posts ep
-            JOIN "user" u ON ep.user_id = u.id
-            LEFT JOIN explore_likes el ON ep.id = el.post_id AND el.user_id = $1
-            WHERE ep.created_at >= NOW() - INTERVAL '24 hours'
-            ORDER BY {order_clause}
-            LIMIT $2 OFFSET $3
-            """,
-            current_user_id,
-            limit,
-            offset,
-        )
+        if decoded and not filter:
+            cursor_dt, cursor_id = decoded
+            try:
+                cursor_uuid = uuid.UUID(cursor_id)
+            except Exception:
+                cursor_uuid = None
+            if cursor_uuid:
+                rows = await conn.fetch(
+                    f"""
+                    SELECT 
+                        ep.id,
+                        ep.user_id,
+                        ep.capture_id,
+                        ep.image_url,
+                        ep.smile_score,
+                        ep.caption,
+                        ep.likes_count,
+                        ep.created_at,
+                        u.name AS user_name,
+                        u.image AS user_avatar,
+                        CASE WHEN el.user_id IS NOT NULL THEN true ELSE false END AS is_liked_by_me
+                    FROM explore_posts ep
+                    LEFT JOIN "user" u ON ep.user_id = u.id
+                    LEFT JOIN explore_likes el ON ep.id = el.post_id AND el.user_id = $1
+                    WHERE ep.image_url IS NOT NULL AND ep.image_url != ''
+                      AND (ep.created_at, ep.id) < ($2, $3)
+                    ORDER BY {order_clause}
+                    LIMIT $4
+                    """,
+                    current_user_id,
+                    cursor_dt,
+                    cursor_uuid,
+                    fetch_limit,
+                )
+            else:
+                rows = []
+        else:
+            offset = (page - 1) * limit
+            rows = await conn.fetch(
+                f"""
+                SELECT 
+                    ep.id,
+                    ep.user_id,
+                    ep.capture_id,
+                    ep.image_url,
+                    ep.smile_score,
+                    ep.caption,
+                    ep.likes_count,
+                    ep.created_at,
+                    u.name AS user_name,
+                    u.image AS user_avatar,
+                    CASE WHEN el.user_id IS NOT NULL THEN true ELSE false END AS is_liked_by_me
+                FROM explore_posts ep
+                LEFT JOIN "user" u ON ep.user_id = u.id
+                LEFT JOIN explore_likes el ON ep.id = el.post_id AND el.user_id = $1
+                WHERE ep.image_url IS NOT NULL AND ep.image_url != ''
+                ORDER BY {order_clause}
+                LIMIT $2 OFFSET $3
+                """,
+                current_user_id,
+                fetch_limit,
+                offset,
+            )
+
+    has_more = len(rows) > limit
+    sliced_rows = rows[:limit] if has_more else rows
+    next_cursor = None
+    if has_more and sliced_rows:
+        last = sliced_rows[-1]
+        next_cursor = encode_cursor(last["created_at"], str(last["id"]))
 
     bg_classes = ["bg-primary", "bg-accent", "bg-secondary", "bg-success"]
     posts = []
     now_utc = datetime.now(timezone.utc)
-    for idx, r in enumerate(rows):
+    for idx, r in enumerate(sliced_rows):
         created_at = r["created_at"]
         if created_at.tzinfo is None:
             created_at = created_at.replace(tzinfo=timezone.utc)
         expires_at = created_at + timedelta(hours=24)
         secs_left = max(0, int((expires_at - now_utc).total_seconds()))
         hours_left = max(1, (secs_left + 3599) // 3600)
+        is_mine = bool(current_user_id and str(r["user_id"]) == str(current_user_id))
 
         posts.append(
             ExplorePostItem(
@@ -135,6 +192,7 @@ async def get_explore_feed(
                 timeAgo=format_time_ago(r["created_at"]),
                 expiresIn=f"{hours_left}h left",
                 isLikedByMe=bool(r["is_liked_by_me"]),
+                isMine=is_mine,
                 bg=bg_classes[idx % len(bg_classes)],
             )
         )
@@ -143,6 +201,8 @@ async def get_explore_feed(
         posts=posts,
         page=page,
         total=total_count,
+        nextCursor=next_cursor,
+        hasMore=has_more,
     )
 
 @router.post("/post", response_model=CreatePostResponse)

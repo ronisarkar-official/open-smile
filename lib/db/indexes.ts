@@ -225,6 +225,7 @@ export function ensureIndexes(): Promise<void> {
 					ON CONFLICT (key) DO NOTHING;
 
 					CREATE INDEX IF NOT EXISTS idx_explore_posts_created ON explore_posts (created_at DESC);
+					CREATE INDEX IF NOT EXISTS idx_explore_posts_feed ON explore_posts (created_at DESC, id DESC) WHERE image_url IS NOT NULL AND image_url != '';
 
 					DELETE FROM otp_codes WHERE expires_at <= NOW();
 					DELETE FROM rate_limits WHERE expires_at <= NOW();

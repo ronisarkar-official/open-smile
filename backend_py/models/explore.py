@@ -14,6 +14,7 @@ class ExplorePostItem(BaseModel):
     timeAgo: str
     expiresIn: Optional[str] = None
     isLikedByMe: bool = False
+    isMine: bool = False
     bg: str = "bg-primary"
 
 class CreatePostRequest(BaseModel):
@@ -38,3 +39,5 @@ class ExploreFeedResponse(BaseModel):
     posts: List[ExplorePostItem]
     page: int
     total: int
+    nextCursor: Optional[str] = None
+    hasMore: bool = False
