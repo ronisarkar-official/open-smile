@@ -27,8 +27,15 @@ export function encodeCursor(createdAt: Date, id: string): string {
 export function decodeCursor(cursor: string): { createdAt: Date; id: string } | null {
 	try {
 		let raw = cursor;
-		if (!cursor.includes('|') && !cursor.includes('T')) {
-			raw = Buffer.from(cursor, 'base64url').toString('utf8');
+		if (!raw.includes('|')) {
+			try {
+				const decoded = Buffer.from(raw, 'base64url').toString('utf8');
+				if (decoded.includes('|') || decoded.includes('_')) {
+					raw = decoded;
+				}
+			} catch {
+				// keep raw
+			}
 		}
 		const delimiter = raw.includes('|') ? '|' : '_';
 		const parts = raw.split(delimiter);
@@ -71,7 +78,8 @@ export async function getExploreFeedPosts(options: {
 	let query = '';
 	let params: any[] = [];
 
-	if (decoded && !options.filter) {
+	const isDefaultOrder = !options.filter || options.filter === 'latest';
+	if (decoded && isDefaultOrder) {
 		query = `
 			SELECT 
 				ep.id,

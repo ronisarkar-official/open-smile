@@ -60,9 +60,9 @@
     "semantic_hash": ""
   },
   "app/(dashboard)/explore/page.tsx": {
-    "mtime": 1790847874.842381,
-    "seen": 1790847956.9243352,
-    "ast_hash": "5631bef228f14db7ba10541acc9a4c90",
+    "mtime": 1790849363.758721,
+    "seen": 1790849419.6797638,
+    "ast_hash": "e93e683d20a20e49543a53b57d1b1d90",
     "semantic_hash": ""
   },
   "app/(dashboard)/layout.tsx": {
@@ -1230,9 +1230,9 @@
     "semantic_hash": ""
   },
   "backend_py/routers/explore.py": {
-    "mtime": 1790847738.3598695,
-    "seen": 1790847956.9244652,
-    "ast_hash": "31d8122cb9fb4044158b19fe5eb045e9",
+    "mtime": 1790849298.3363233,
+    "seen": 1790849419.6798854,
+    "ast_hash": "9a48a941437321da74084fc02599d9eb",
     "semantic_hash": ""
   },
   "backend_py/routers/leaderboard.py": {
@@ -2496,9 +2496,9 @@
     "semantic_hash": ""
   },
   "components/explore/explore-card.tsx": {
-    "mtime": 1790847853.535604,
-    "seen": 1790847956.924519,
-    "ast_hash": "cdbf2f96773faf3c10da853143943d27",
+    "mtime": 1790849315.5369108,
+    "seen": 1790849419.6799314,
+    "ast_hash": "39b7b88933e556bf944e5b79b5f3fd7b",
     "semantic_hash": ""
   },
   "components/explore/explore-delete-dialog.tsx": {
@@ -2538,9 +2538,9 @@
     "semantic_hash": ""
   },
   "lib/db/explore-queries.ts": {
-    "mtime": 1790847669.8775342,
-    "seen": 1790847956.9246218,
-    "ast_hash": "d4a35ea31ed0bbfe041e905be72c6e83",
+    "mtime": 1790849287.1863818,
+    "seen": 1790849419.6800225,
+    "ast_hash": "dcbf1fe495603235ec0211dcbef44b67",
     "semantic_hash": ""
   }
 }

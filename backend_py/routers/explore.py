@@ -57,6 +57,8 @@ def decode_cursor(cursor: str) -> Optional[tuple[datetime, str]]:
         if len(parts) >= 2:
             post_id = parts[-1]
             dt_str = delimiter.join(parts[:-1])
+            if dt_str.endswith("Z"):
+                dt_str = dt_str[:-1] + "+00:00"
             dt = datetime.fromisoformat(dt_str)
             if dt.tzinfo is None:
                 dt = dt.replace(tzinfo=timezone.utc)
@@ -95,7 +97,8 @@ async def get_explore_feed(
             """
         ) or 0
 
-        if decoded and not filter:
+        is_default_order = not filter or filter == "latest"
+        if decoded and is_default_order:
             cursor_dt, cursor_id = decoded
             try:
                 cursor_uuid = uuid.UUID(cursor_id)

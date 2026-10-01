@@ -21,25 +21,47 @@ export const ExploreCard = React.memo(function ExploreCard({
 	onLike,
 	onDelete,
 }: ExploreCardProps) {
-	const optimizedImageUrl = post.imageUrl
+	const initialUrl = post.imageUrl
 		? getImageKitTransformUrl(post.imageUrl, 'w-600,h-450,fo-face,q-75')
 		: '';
-	const srcSet = post.imageUrl ? getImageKitSrcSet(post.imageUrl) : undefined;
+	const [imgSrc, setImgSrc] = React.useState<string>(initialUrl || post.imageUrl || '');
+	const [hasError, setHasError] = React.useState(false);
+	const [isLoaded, setIsLoaded] = React.useState(false);
+
+	const srcSet = React.useMemo(() => {
+		if (imgSrc === initialUrl && post.imageUrl) {
+			return getImageKitSrcSet(post.imageUrl);
+		}
+		return undefined;
+	}, [imgSrc, initialUrl, post.imageUrl]);
+
+	const handleError = React.useCallback(() => {
+		if (post.imageUrl && imgSrc !== post.imageUrl) {
+			setImgSrc(post.imageUrl);
+		} else {
+			setHasError(true);
+		}
+	}, [imgSrc, post.imageUrl]);
 
 	return (
 		<article className="brutal-surface brutal-lift mb-5 break-inside-avoid bg-card border-[length:var(--border-width)] border-black rounded-xl overflow-hidden shadow-brutal">
 			<div
 				className={`${post.bg} relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-muted`}>
-				{post.imageUrl ? (
+				{!hasError && imgSrc ? (
 					<img
-						src={optimizedImageUrl || post.imageUrl}
+						src={imgSrc}
 						srcSet={srcSet}
 						sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
 						alt={`Real smile by ${post.user}`}
-						className="size-full object-cover"
+						className={cn(
+							'size-full object-cover transition-opacity duration-200',
+							isLoaded ? 'opacity-100' : 'opacity-0'
+						)}
 						loading={priority ? 'eager' : 'lazy'}
 						fetchPriority={priority ? 'high' : 'auto'}
 						decoding="async"
+						onLoad={() => setIsLoaded(true)}
+						onError={handleError}
 					/>
 				) : (
 					<div className="flex flex-col items-center justify-center p-6 text-center">

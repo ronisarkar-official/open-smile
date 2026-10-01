@@ -31,6 +31,12 @@ export default function ExplorePage() {
 
 	const likingRef = React.useRef<Set<string>>(new Set());
 	const sentinelRef = React.useRef<HTMLDivElement>(null);
+	const cursorRef = React.useRef<string | null>(null);
+	const hasMoreRef = React.useRef(false);
+	const loadingMoreRef = React.useRef(false);
+
+	cursorRef.current = nextCursor;
+	hasMoreRef.current = hasMore;
 
 	const shuffleWithMathRandom = React.useCallback((items: ExplorePost[]) => {
 		const array = [...items];
@@ -51,9 +57,9 @@ export default function ExplorePage() {
 		}
 		setLoading(true);
 		try {
-			let res = await fetch('/api/v1/explore/feed?limit=20');
+			let res = await fetch('/api/explore/feed?limit=20');
 			if (!res.ok) {
-				res = await fetch('/api/explore/feed?limit=20');
+				res = await fetch('/api/v1/explore/feed?limit=20');
 			}
 			if (res.ok) {
 				const json = await res.json();
@@ -61,70 +67,113 @@ export default function ExplorePage() {
 				const imagePosts = feedPosts.filter((p) => Boolean(p.imageUrl));
 				const postsToShow = imagePosts.length > 0 ? imagePosts : feedPosts;
 				setPosts(shuffleWithMathRandom(postsToShow));
-				setNextCursor(json.nextCursor || null);
-				setHasMore(Boolean(json.hasMore));
+				const nextC = json.nextCursor || null;
+				const more = Boolean(json.hasMore) && Boolean(nextC);
+				setNextCursor(nextC);
+				cursorRef.current = nextC;
+				setHasMore(more);
+				hasMoreRef.current = more;
 			} else {
 				setPosts([]);
 				setNextCursor(null);
+				cursorRef.current = null;
 				setHasMore(false);
+				hasMoreRef.current = false;
 			}
 		} catch {
 			setPosts([]);
 			setNextCursor(null);
+			cursorRef.current = null;
 			setHasMore(false);
+			hasMoreRef.current = false;
 		} finally {
 			setLoading(false);
 		}
 	}, [settings.maintenance_mode, settings.explore_feed_enabled, shuffleWithMathRandom]);
 
 	const loadMore = React.useCallback(async () => {
-		if (!hasMore || !nextCursor || loadingMore || loading) return;
+		const cursor = cursorRef.current;
+		if (!hasMoreRef.current || !cursor || loadingMoreRef.current || loading) return;
+
+		loadingMoreRef.current = true;
 		setLoadingMore(true);
+
 		try {
-			const endpoint = `/api/v1/explore/feed?limit=20&cursor=${encodeURIComponent(nextCursor)}`;
+			const endpoint = `/api/explore/feed?limit=20&cursor=${encodeURIComponent(cursor)}`;
 			let res = await fetch(endpoint);
 			if (!res.ok) {
-				res = await fetch(`/api/explore/feed?limit=20&cursor=${encodeURIComponent(nextCursor)}`);
+				res = await fetch(`/api/v1/explore/feed?limit=20&cursor=${encodeURIComponent(cursor)}`);
 			}
 			if (res.ok) {
 				const json = await res.json();
 				const feedPosts: ExplorePost[] = Array.isArray(json.posts) ? json.posts : [];
 				const imagePosts = feedPosts.filter((p) => Boolean(p.imageUrl));
 				const newPosts = imagePosts.length > 0 ? imagePosts : feedPosts;
+
+				if (newPosts.length === 0) {
+					setHasMore(false);
+					hasMoreRef.current = false;
+					setNextCursor(null);
+					cursorRef.current = null;
+					return;
+				}
+
 				const shuffledNew = shuffleWithMathRandom(newPosts);
+				let addedCount = 0;
 
 				setPosts((prev) => {
 					const existingIds = new Set(prev.map((p) => p.id));
 					const uniqueIncoming = shuffledNew.filter((p) => !existingIds.has(p.id));
+					addedCount = uniqueIncoming.length;
+					if (addedCount === 0) return prev;
 					return [...prev, ...uniqueIncoming];
 				});
-				setNextCursor(json.nextCursor || null);
-				setHasMore(Boolean(json.hasMore));
+
+				const nextC = json.nextCursor || null;
+				if (!nextC || nextC === cursor || addedCount === 0 || !json.hasMore) {
+					setHasMore(false);
+					hasMoreRef.current = false;
+					setNextCursor(null);
+					cursorRef.current = null;
+				} else {
+					setNextCursor(nextC);
+					cursorRef.current = nextC;
+					setHasMore(Boolean(json.hasMore));
+					hasMoreRef.current = Boolean(json.hasMore);
+				}
+			} else {
+				setHasMore(false);
+				hasMoreRef.current = false;
 			}
 		} catch {
-			// keep current state
+			setHasMore(false);
+			hasMoreRef.current = false;
 		} finally {
+			loadingMoreRef.current = false;
 			setLoadingMore(false);
 		}
-	}, [hasMore, nextCursor, loadingMore, loading, shuffleWithMathRandom]);
+	}, [loading, shuffleWithMathRandom]);
 
 	React.useEffect(() => {
 		fetchFeed();
 	}, [fetchFeed]);
 
 	React.useEffect(() => {
-		if (!sentinelRef.current || !hasMore || loading) return;
+		const sentinel = sentinelRef.current;
+		if (!sentinel) return;
+
 		const observer = new IntersectionObserver(
 			(entries) => {
-				if (entries[0]?.isIntersecting) {
+				if (entries[0]?.isIntersecting && hasMoreRef.current && !loadingMoreRef.current && !loading) {
 					loadMore();
 				}
 			},
-			{ rootMargin: '300px' }
+			{ rootMargin: '200px' }
 		);
-		observer.observe(sentinelRef.current);
+
+		observer.observe(sentinel);
 		return () => observer.disconnect();
-	}, [hasMore, loading, loadMore]);
+	}, [loadMore, loading]);
 
 	const handleLike = React.useCallback(async (postId: string) => {
 		if (likingRef.current.has(postId)) return;
@@ -272,14 +321,18 @@ export default function ExplorePage() {
 						})}
 					</section>
 
-					<div ref={sentinelRef} className="h-6 w-full" />
-
-					{loadingMore && (
-						<div className="py-6 flex justify-center items-center gap-2 font-mono text-xs font-bold text-muted-foreground">
-							<RefreshCw className="size-4 animate-spin text-primary" />
-							<span>Loading more community smiles...</span>
-						</div>
-					)}
+					<div ref={sentinelRef} className="w-full py-4 flex flex-col items-center justify-center min-h-[64px]">
+						{loadingMore ? (
+							<div className="flex justify-center items-center gap-2 font-mono text-xs font-bold text-muted-foreground">
+								<RefreshCw className="size-4 animate-spin text-primary" />
+								<span>Loading more community smiles...</span>
+							</div>
+						) : !hasMore && posts.length > 0 ? (
+							<p className="font-mono text-xs font-bold text-muted-foreground">
+								✨ You&apos;ve reached the end of the feed!
+							</p>
+						) : null}
+					</div>
 				</>
 			)}
 
